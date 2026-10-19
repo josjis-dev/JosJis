@@ -1,507 +1,184 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#070b19">
-  <meta name="description" content="Official JosJis Token ($JJS) website. Explore token information, fixed supply policy, and the official Polygon smart contract.">
-  <title>JosJis Token ($JJS) | Official Website</title>
-  <style>
-    :root {
-      --bg: #070b19;
-      --panel: #0d152b;
-      --border: #1d2d50;
-      --purple: #7650ff;
-      --blue: #4294ff;
-      --text: #f4f6ff;
-      --muted: #a7b7d8;
-    }
-
-    * { box-sizing: border-box; }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      margin: 0;
-      background:
-        radial-gradient(ellipse at 80% 15%, #24135a66, transparent 38%),
-        var(--bg);
-      color: var(--text);
-      font-family: system-ui, -apple-system, sans-serif;
-      line-height: 1.65;
-    }
-
-    a { color: inherit; text-decoration: none; }
-
-    .container {
-      width: min(1080px, 90%);
-      margin: auto;
-    }
-
-    header {
-      border-bottom: 1px solid var(--border);
-      background: #070b19eF;
-    }
-
-    nav {
-      min-height: 76px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 18px;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 21px;
-      font-weight: 800;
-    }
-
-    .logo {
-      display: grid;
-      place-items: center;
-      width: 46px;
-      height: 46px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #448fff, #783bff 75%);
-      border: 2px solid #a9a1ff;
-      box-shadow: 0 0 22px #6345ff55;
-      font-size: 15px;
-    }
-
-    .brand small {
-      display: block;
-      color: #a99aff;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .navlinks {
-      display: flex;
-      gap: 24px;
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .navlinks a:hover, .footer a:hover { color: white; }
-
-    .button {
-      display: inline-flex;
-      justify-content: center;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 19px;
-      border: 1px solid #586e9a;
-      border-radius: 12px;
-      color: white;
-      font-weight: 700;
-      font-size: 14px;
-      cursor: pointer;
-      transition: .2s;
-    }
-
-    .button:hover { transform: translateY(-2px); }
-
-    .primary {
-      border-color: transparent;
-      background: linear-gradient(110deg, #6542ff, #347eff);
-      box-shadow: 0 8px 28px #503bff30;
-    }
-
-    .hero {
-      padding: 85px 0 75px;
-      display: grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap: 35px;
-      align-items: center;
-    }
-
-    .eyebrow {
-      color: #ac9bff;
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-    }
-
-    h1 {
-      margin: 12px 0;
-      font-size: clamp(43px, 7vw, 76px);
-      line-height: 1.08;
-      letter-spacing: -3px;
-    }
-
-    .gradient {
-      color: #9c82ff;
-      background: linear-gradient(90deg, #a78bff, #529bff);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .intro {
-      max-width: 590px;
-      color: var(--muted);
-      font-size: 17px;
-      margin: 20px 0 28px;
-    }
-
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-
-    .coin-wrap {
-      display: grid;
-      place-items: center;
-      min-height: 280px;
-      position: relative;
-    }
-
-    .coin {
-      display: grid;
-      place-items: center;
-      width: min(245px, 65vw);
-      aspect-ratio: 1;
-      border-radius: 50%;
-      border: 8px double #c5b6ff;
-      outline: 5px solid #4c39cc;
-      background:
-        radial-gradient(circle at 30% 22%, #658fff, #3820a9 54%, #100b3c);
-      box-shadow: 0 0 65px #563bff66, inset 0 0 30px #a9bfff66;
-      text-align: center;
-      transform: rotate(-7deg);
-    }
-
-    .coin strong {
-      display: block;
-      font-size: 68px;
-      line-height: 1.1;
-      letter-spacing: -5px;
-      text-shadow: 0 4px 12px #0008;
-    }
-
-    .coin span {
-      display: block;
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing: 5px;
-      margin-top: 8px;
-    }
-
-    section { padding: 32px 0 58px; }
-
-    .section-title {
-      font-size: 27px;
-      letter-spacing: -.7px;
-      margin: 0 0 8px;
-    }
-
-    .section-desc {
-      color: var(--muted);
-      margin: 0 0 25px;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 18px;
-    }
-
-    .card {
-      padding: 24px;
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      background: linear-gradient(145deg, #111c35, #0a1022);
-      min-width: 0;
-    }
-
-    .card h3 {
-      margin: 0 0 20px;
-      font-size: 18px;
-    }
-
-    .rows { display: grid; gap: 12px; }
-
-    .item {
-      display: flex;
-      justify-content: space-between;
-      align-items: start;
-      gap: 12px;
-      font-size: 13px;
-    }
-
-    .item span { color: var(--muted); }
-
-    .item strong {
-      text-align: right;
-      overflow-wrap: anywhere;
-    }
-
-    .supply {
-      color: #a996ff;
-      font-size: 21px;
-      font-weight: 800;
-      line-height: 1.4;
-      overflow-wrap: anywhere;
-    }
-
-    .subtle {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .address {
-      padding: 13px;
-      border: 1px solid #283a60;
-      background: #080f21;
-      border-radius: 10px;
-      font-size: 12px;
-      overflow-wrap: anywhere;
-      margin: 12px 0;
-    }
-
-    .full { width: 100%; }
-
-    .link-card {
-      display: block;
-      padding: 14px;
-      margin-top: 12px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      transition: .2s;
-    }
-
-    .link-card:hover { border-color: var(--purple); }
-
-    .link-card strong { display: block; }
-
-    .link-card span {
-      color: var(--muted);
-      font-size: 12px;
-      overflow-wrap: anywhere;
-    }
-
-    .notice {
-      margin-top: 20px;
-      padding: 16px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .footer {
-      border-top: 1px solid var(--border);
-      padding: 30px 0;
-      text-align: center;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .footer strong { color: white; }
-
-    @media (max-width: 800px) {
-      .navlinks { display: none; }
-      .hero {
-        grid-template-columns: 1fr;
-        padding: 58px 0 45px;
-        gap: 15px;
-      }
-      .coin-wrap { min-height: 245px; }
-      .grid { grid-template-columns: 1fr; }
-      h1 { letter-spacing: -2px; }
-      .card { padding: 21px; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      html { scroll-behavior: auto; }
-      * { transition: none !important; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#090909">
+<meta name="description" content="Official JosJis Token ($JJS) website. Discover token information, fixed supply policy, and verify the official Polygon contract.">
+<title>JosJis Token ($JJS) | Official Website</title>
+<link rel="icon" type="image/jpeg" href="josjis-logo.jpg">
+<style>
+:root{--bg:#090909;--panel:#151515;--gold:#ffca28;--gold2:#f59e0b;--text:#fff9e8;--muted:#c3bca9;--border:#40351b}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(ellipse at 80% 5%,#4b300d55,transparent 38%),var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;line-height:1.65}
+a{color:inherit;text-decoration:none}
+.container{width:min(1100px,90%);margin:auto}
+header{position:sticky;top:0;z-index:10;background:#090909ed;border-bottom:1px solid var(--border);backdrop-filter:blur(12px)}
+nav{min-height:76px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.brand{display:flex;align-items:center;gap:12px;font-size:21px;font-weight:850}
+.brand img{width:48px;height:48px;object-fit:cover;border-radius:50%;border:2px solid var(--gold)}
+.brand small{display:block;color:var(--gold);font-size:11px;letter-spacing:2px}
+.navlinks{display:flex;gap:24px;color:var(--muted);font-size:14px}
+.navlinks a:hover{color:var(--gold)}
+.btn{display:inline-flex;justify-content:center;align-items:center;gap:8px;padding:12px 18px;border-radius:12px;border:1px solid #8a6a25;font-size:14px;font-weight:750;color:white;cursor:pointer;transition:.2s}
+.btn:hover{transform:translateY(-2px);border-color:var(--gold)}
+.primary{background:linear-gradient(110deg,#f6b900,#ffda54);color:#171000;border-color:transparent}
+.hero{padding:78px 0 72px;display:grid;grid-template-columns:1.1fr .9fr;align-items:center;gap:42px}
+.eyebrow{color:var(--gold);font-size:12px;font-weight:850;letter-spacing:2px;text-transform:uppercase}
+h1{font-size:clamp(44px,7vw,76px);line-height:1.06;letter-spacing:-3px;margin:15px 0}
+.gold{color:var(--gold)}
+.intro{font-size:17px;color:var(--muted);max-width:590px;margin:20px 0 27px}
+.actions{display:flex;flex-wrap:wrap;gap:12px}
+.hero-logo{display:block;width:min(390px,100%);aspect-ratio:1;object-fit:cover;border-radius:50%;border:5px solid var(--gold);box-shadow:0 0 70px #ffbd2733;margin:auto}
+.logo-frame{padding:10px;border-radius:50%;background:linear-gradient(135deg,#ffdf64,#9c6500,#ffcc32);max-width:410px;margin:auto}
+section{padding:35px 0 55px;scroll-margin-top:85px}
+h2{font-size:29px;letter-spacing:-.7px;margin:0 0 7px}
+.desc{color:var(--muted);margin:0 0 25px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px}
+.card{min-width:0;padding:23px;border:1px solid var(--border);border-radius:17px;background:linear-gradient(145deg,#1a1915,#111111)}
+.card h3{margin:0 0 19px;font-size:18px}
+.rows{display:grid;gap:12px}
+.item{display:flex;justify-content:space-between;align-items:start;gap:12px;font-size:13px}
+.item span,.muted{color:var(--muted)}
+.item strong{text-align:right;overflow-wrap:anywhere}
+.supply{font-size:21px;font-weight:850;color:var(--gold);overflow-wrap:anywhere;line-height:1.4}
+.small{font-size:12px;color:var(--muted)}
+.address{padding:13px;background:#090909;border:1px solid var(--border);border-radius:10px;overflow-wrap:anywhere;font-size:12px;margin:12px 0}
+.full{width:100%;margin-top:9px}
+.linkcard{display:block;margin-top:12px;padding:14px;border:1px solid var(--border);border-radius:12px}
+.linkcard:hover{border-color:var(--gold)}
+.linkcard strong{display:block}
+.linkcard span{color:var(--muted);font-size:12px;overflow-wrap:anywhere}
+.notice{border:1px solid var(--border);padding:16px;border-radius:12px;color:var(--muted);font-size:13px;margin-top:20px}
+footer{margin-top:15px;border-top:1px solid var(--border);padding:30px 0;text-align:center;color:var(--muted);font-size:13px}
+footer strong{color:var(--gold)}
+@media(max-width:800px){.navlinks{display:none}.hero{grid-template-columns:1fr;padding:54px 0 35px;gap:30px}.hero-logo{width:min(300px,78vw)}.grid{grid-template-columns:1fr}h1{letter-spacing:-2px}.card{padding:20px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+</style>
 </head>
 <body>
-  <header>
-    <div class="container">
-      <nav>
-        <a class="brand" href="#home" aria-label="JosJis home">
-          <div class="logo">JJS</div>
-          <div>JosJis<small>OFFICIAL TOKEN</small></div>
-        </a>
-        <div class="navlinks">
-          <a href="#home">Home</a>
-          <a href="#about">About</a>
-          <a href="#token">Token Info</a>
-          <a href="#links">Official Links</a>
-        </div>
-        <a class="button" href="https://x.com/JosJisToken"
-           target="_blank" rel="noopener noreferrer">Follow on X ↗</a>
-      </nav>
-    </div>
-  </header>
+<header>
+<div class="container">
+<nav>
+<a class="brand" href="#home">
+<img src="josjis-logo.jpg" alt="JosJis logo">
+<span>JosJis<small>OFFICIAL TOKEN</small></span>
+</a>
+<div class="navlinks">
+<a href="#home">Home</a><a href="#about">About</a><a href="#token">Token Info</a><a href="#links">Official Links</a>
+</div>
+<a class="btn" href="https://x.com/JosJisToken" target="_blank" rel="noopener noreferrer">Follow on X ↗</a>
+</nav>
+</div>
+</header>
 
-  <main>
-    <div class="container">
-      <section class="hero" id="home">
-        <div>
-          <div class="eyebrow">Community · Transparency · Fixed Supply</div>
-          <h1>JosJis Token<br><span class="gradient">$JJS</span></h1>
-          <p class="intro">
-            JosJis ($JJS) is a Polygon-based ERC-20 token with a
-            fixed supply of 1 quintillion JJS. Explore the project,
-            verify the smart contract, and follow official updates.
-          </p>
-          <div class="actions">
-            <a class="button primary"
-               href="https://polygonscan.com/address/0x300FB296AF304496bdf36b053595896d9eCB2453"
-               target="_blank" rel="noopener noreferrer">
-              View Contract on PolygonScan ↗
-            </a>
-            <a class="button" href="https://x.com/JosJisToken"
-               target="_blank" rel="noopener noreferrer">Follow on X ↗</a>
-          </div>
-        </div>
-        <div class="coin-wrap" aria-label="JosJis JJS token branding">
-          <div class="coin">
-            <div><strong>JJS</strong><span>JOSJIS TOKEN</span></div>
-          </div>
-        </div>
-      </section>
+<main>
+<div class="container">
+<section class="hero" id="home">
+<div>
+<div class="eyebrow">Community · Transparency · Fixed Supply</div>
+<h1>Meet JosJis<br><span class="gold">$JJS Token</span></h1>
+<p class="intro">JosJis ($JJS) is a Polygon-based ERC-20 token with a fixed supply of 1 quintillion JJS. Explore the project, verify the smart contract, and follow official updates.</p>
+<div class="actions">
+<a class="btn primary" href="https://polygonscan.com/address/0x300FB296AF304496bdf36b053595896d9eCB2453" target="_blank" rel="noopener noreferrer">View Contract on PolygonScan ↗</a>
+<a class="btn" href="https://x.com/JosJisToken" target="_blank" rel="noopener noreferrer">Follow on X ↗</a>
+</div>
+</div>
+<div class="logo-frame">
+<img class="hero-logo" src="josjis-logo.jpg" alt="Official JosJis Token logo">
+</div>
+</section>
 
-      <section id="about">
-        <h2 class="section-title">About JosJis</h2>
-        <p class="section-desc">
-          Transparent token information, publicly verifiable on Polygon.
-        </p>
-        <div class="card">
-          <p class="intro" style="font-size:15px;margin:0">
-            JosJis is a community-oriented token project. Anyone can
-            independently inspect its contract address and on-chain
-            information using PolygonScan. Always verify the token
-            address before interacting with it.
-          </p>
-        </div>
-      </section>
+<section id="about">
+<h2>About <span class="gold">JosJis</span></h2>
+<p class="desc">A community-oriented token project on Polygon.</p>
+<div class="card">
+<p class="muted" style="margin:0">JosJis encourages transparency through publicly accessible blockchain information. Anyone can independently review the token contract and on-chain activity using PolygonScan. Always verify the contract address before interacting with the token.</p>
+</div>
+</section>
 
-      <section id="token">
-        <h2 class="section-title">Token Information</h2>
-        <p class="section-desc">Official token details and supply policy.</p>
+<section id="token">
+<h2>Token Information</h2>
+<p class="desc">Token details and supply policy.</p>
+<div class="grid">
+<article class="card">
+<h3>◈ Token Details</h3>
+<div class="rows">
+<div class="item"><span>Token Name</span><strong>JosJis</strong></div>
+<div class="item"><span>Symbol</span><strong>JJS</strong></div>
+<div class="item"><span>Network</span><strong>Polygon</strong></div>
+<div class="item"><span>Standard</span><strong>ERC-20</strong></div>
+<div class="item"><span>Decimals</span><strong>18</strong></div>
+</div>
+</article>
+<article class="card">
+<h3>◈ Total Supply</h3>
+<div class="supply">1 Quintillion JJS</div>
+<p class="small">1,000,000,000,000,000,000 JJS</p>
+<div class="rows">
+<div class="item"><span>Supply Policy</span><strong>Fixed Supply</strong></div>
+<div class="item"><span>Mint Function</span><strong>None*</strong></div>
+<div class="item"><span>Burn Function</span><strong>None*</strong></div>
+</div>
+<p class="small">*Review the verified contract to confirm its functions.</p>
+</article>
+<article class="card">
+<h3>◈ Smart Contract</h3>
+<p class="small">Polygon mainnet contract address</p>
+<div class="address" id="contract">0x300FB296AF304496bdf36b053595896d9eCB2453</div>
+<button class="btn primary full" id="copyBtn" type="button">Copy Contract Address</button>
+<p class="small" id="copyStatus" role="status" aria-live="polite"></p>
+<a class="btn full" href="https://polygonscan.com/address/0x300FB296AF304496bdf36b053595896d9eCB2453" target="_blank" rel="noopener noreferrer">Verify on PolygonScan ↗</a>
+</article>
+</div>
+<div class="notice"><strong style="color:var(--gold)">Please note:</strong> Always verify token details on PolygonScan before interacting with the contract. Prices and liquidity are not guaranteed. This website does not promise profits or investment returns.</div>
+</section>
 
-        <div class="grid">
-          <article class="card">
-            <h3>◈ Token Details</h3>
-            <div class="rows">
-              <div class="item"><span>Name</span><strong>JosJis</strong></div>
-              <div class="item"><span>Symbol</span><strong>JJS</strong></div>
-              <div class="item"><span>Network</span><strong>Polygon</strong></div>
-              <div class="item"><span>Standard</span><strong>ERC-20</strong></div>
-              <div class="item"><span>Decimals</span><strong>18</strong></div>
-            </div>
-          </article>
+<section id="links">
+<h2>Official Links</h2>
+<p class="desc">Connect with JosJis and verify the token.</p>
+<div class="grid">
+<a class="card linkcard" href="https://x.com/JosJisToken" target="_blank" rel="noopener noreferrer"><strong>𝕏 Official X Account ↗</strong><span>https://x.com/JosJisToken</span></a>
+<a class="card linkcard" href="https://polygonscan.com/address/0x300FB296AF304496bdf36b053595896d9eCB2453" target="_blank" rel="noopener noreferrer"><strong>◈ PolygonScan ↗</strong><span>View contract and on-chain activity</span></a>
+<div class="card"><h3>JosJis Community</h3><p class="small">Follow official updates and help build a transparent community.</p></div>
+</div>
+</section>
+</div>
+</main>
 
-          <article class="card">
-            <h3>◈ Total Supply</h3>
-            <div class="supply">1 Quintillion</div>
-            <p class="subtle">1,000,000,000,000,000,000 JJS</p>
-            <div class="rows">
-              <div class="item"><span>Supply Policy</span><strong>Fixed Supply</strong></div>
-              <div class="item"><span>Mint Function</span><strong>None</strong></div>
-              <div class="item"><span>Burn Function</span><strong>None</strong></div>
-            </div>
-          </article>
+<footer>
+<div class="container">
+<strong>JosJis Token ($JJS)</strong>
+<p>Community · Transparency · Polygon</p>
+<p>© <span id="year"></span> JosJis. All rights reserved.</p>
+</div>
+</footer>
 
-          <article class="card">
-            <h3>◈ Contract Address</h3>
-            <p class="subtle">Polygon mainnet</p>
-            <div class="address" id="contract">
-              0x300FB296AF304496bdf36b053595896d9eCB2453
-            </div>
-            <button class="button primary full" id="copyBtn" type="button">
-              Copy Contract Address
-            </button>
-            <p class="subtle" id="copyStatus" role="status" aria-live="polite"></p>
-            <a class="button full"
-               href="https://polygonscan.com/address/0x300FB296AF304496bdf36b053595896d9eCB2453"
-               target="_blank" rel="noopener noreferrer">
-              Verify on PolygonScan ↗
-            </a>
-          </article>
-        </div>
-
-        <div class="notice">
-          <strong>Important:</strong> Verify all token details directly
-          on PolygonScan before interacting with the contract. Token
-          prices and liquidity are not guaranteed. This website does
-          not promise profits or investment returns.
-        </div>
-      </section>
-
-      <section id="links">
-        <h2 class="section-title">Official Links</h2>
-        <p class="section-desc">Follow JosJis and verify the contract.</p>
-        <div class="grid">
-          <a class="card link-card" href="https://x.com/JosJisToken"
-             target="_blank" rel="noopener noreferrer">
-            <strong>𝕏 &nbsp; Official X Account ↗</strong>
-            <span> x.com/JosJisToken</span>
-          </a>
-          <a class="card link-card"
-             href="https://polygonscan.com/address/0x300FB296AF304496bdf36b053595896d9eCB2453"
-             target="_blank" rel="noopener noreferrer">
-            <strong>◈ &nbsp; PolygonScan ↗</strong>
-            <span>View contract and on-chain activity</span>
-          </a>
-          <div class="card">
-            <strong>JJS · Polygon</strong>
-            <p class="subtle">Verify the contract address before every interaction.</p>
-          </div>
-        </div>
-      </section>
-    </div>
-  </main>
-
-  <footer class="footer">
-    <div class="container">
-      <strong>JosJis Token ($JJS)</strong>
-      <p>Built around transparency and community.</p>
-      <p>© <span id="year"></span> JosJis. All rights reserved.</p>
-    </div>
-  </footer>
-
-  <script>
-    const contractAddress =
-      "0x300FB296AF304496bdf36b053595896d9eCB2453";
-
-    document.getElementById("year").textContent =
-      new Date().getFullYear();
-
-    document.getElementById("copyBtn").addEventListener("click", async () => {
-      const status = document.getElementById("copyStatus");
-
-      try {
-        if (navigator.clipboard && window.isSecureContext) {
-          await navigator.clipboard.writeText(contractAddress);
-        } else {
-          const input = document.createElement("textarea");
-          input.value = contractAddress;
-          input.style.position = "fixed";
-          input.style.opacity = "0";
-          document.body.appendChild(input);
-          input.select();
-          const copied = document.execCommand("copy");
-          input.remove();
-          if (!copied) throw new Error("Copy unavailable");
-        }
-
-        status.textContent = "Contract address copied!";
-      } catch (error) {
-        status.textContent = "Please copy the address manually from the box above.";
-      }
-    });
-  </script>
+<script>
+const address = "0x300FB296AF304496bdf36b053595896d9eCB2453";
+document.getElementById("year").textContent = new Date().getFullYear();
+document.getElementById("copyBtn").addEventListener("click", async () => {
+  const status = document.getElementById("copyStatus");
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(address);
+    } else {
+      const input = document.createElement("textarea");
+      input.value = address;
+      input.style.position = "fixed";
+      input.style.opacity = "0";
+      document.body.appendChild(input);
+      input.select();
+      const ok = document.execCommand("copy");
+      input.remove();
+      if (!ok) throw new Error("Copy failed");
+    }
+    status.textContent = "Contract address copied!";
+  } catch (e) {
+    status.textContent = "Copy unavailable. Please copy the address above manually.";
+  }
+});
+</script>
 </body>
 </html>
