@@ -7,7 +7,6 @@
 <meta name="theme-color" content="#100d1c">
 
 <title>JosJis ($JJS) | Official Website</title>
-
 <meta name="description" content="Welcome to JosJis ($JJS), a community-driven token built on Polygon. Explore the JosJis ecosystem.">
 
 <style>
@@ -20,13 +19,9 @@
   --muted:#aaa3b9;
 }
 
-* {
-  box-sizing:border-box;
-}
+* { box-sizing:border-box; }
 
-html {
-  scroll-behavior:smooth;
-}
+html { scroll-behavior:smooth; }
 
 body {
   margin:0;
@@ -70,9 +65,7 @@ nav a {
   font-size:14px;
 }
 
-nav a:hover {
-  color:var(--gold);
-}
+nav a:hover { color:var(--gold); }
 
 .container {
   width:90%;
@@ -99,9 +92,7 @@ h1 {
   margin:15px 0 0;
 }
 
-h1 span {
-  color:var(--gold);
-}
+h1 span { color:var(--gold); }
 
 .hero p {
   color:var(--muted);
@@ -136,9 +127,7 @@ h1 span {
   border:1px solid var(--purple);
 }
 
-section {
-  padding:45px 0;
-}
+section { padding:45px 0; }
 
 .heading {
   text-align:center;
@@ -150,9 +139,7 @@ section {
   margin:0;
 }
 
-.heading p {
-  color:var(--muted);
-}
+.heading p { color:var(--muted); }
 
 .grid {
   display:grid;
@@ -199,9 +186,7 @@ button {
   margin-top:10px;
 }
 
-.notice {
-  border-left:4px solid var(--gold);
-}
+.notice { border-left:4px solid var(--gold); }
 
 footer {
   text-align:center;
@@ -210,9 +195,7 @@ footer {
   border-top:1px solid #302741;
 }
 
-footer a {
-  margin:8px;
-}
+footer a { margin:8px; }
 
 @media(max-width:600px) {
   header {
@@ -231,9 +214,7 @@ footer a {
     font-size:12px;
   }
 
-  .hero {
-    padding-top:55px;
-  }
+  .hero { padding-top:55px; }
 }
 </style>
 </head>
@@ -242,7 +223,6 @@ footer a {
 
 <!-- HEADER -->
 <header>
-
   <div class="brand">
     <img src="josjis-logo.jpg" alt="JosJis Cat Logo">
     JOSJIS
@@ -253,17 +233,13 @@ footer a {
     <a href="#token">Token</a>
     <a href="#links">Links</a>
   </nav>
-
 </header>
 
-
-<!-- HERO SECTION -->
+<!-- HERO -->
 <div class="hero">
-
   <img src="josjis-logo.jpg" alt="Official JosJis Logo">
 
   <h1>Welcome to <span>JosJis</span></h1>
-
   <div class="value">$JJS TOKEN</div>
 
   <p>
@@ -271,36 +247,29 @@ footer a {
     One token. One community. Many possibilities.
   </p>
 
-  <!-- BUY ON METAMASK -->
   <a class="btn gold"
   href="https://link.metamask.io/asset?assetId=eip155%3A137%2Ferc20%3A0x52C8Ff13ada1431376b3E77E8219b644805122dF"
   target="_blank" rel="noopener">
     🦊 Buy JJS on MetaMask
   </a>
 
-  <!-- VIEW CONTRACT -->
   <a class="btn outline"
   href="https://polygonscan.com/token/0x52C8Ff13ada1431376b3E77E8219b644805122dF"
   target="_blank" rel="noopener">
     View Contract
   </a>
-
 </div>
-
 
 <main class="container">
 
-
 <!-- ABOUT -->
 <section id="about">
-
   <div class="heading">
     <h2>About JosJis</h2>
     <p>Community · Transparency · Polygon</p>
   </div>
 
   <div class="card">
-
     JosJis is a Polygon-based token project focused on
     community participation, transparency and exploring
     practical utilities within its ecosystem.
@@ -309,22 +278,17 @@ footer a {
 
     Our goal is to learn, experiment and build useful
     services around the JosJis community.
-
   </div>
-
 </section>
-
 
 <!-- TOKEN INFORMATION -->
 <section id="token">
-
   <div class="heading">
     <h2>Token Information</h2>
     <p>Official $JJS token details</p>
   </div>
 
   <div class="grid">
-
     <div class="card">
       <h3>Token Name</h3>
       <div class="value">JosJis</div>
@@ -355,35 +319,24 @@ footer a {
       <h3>Standard</h3>
       <div class="value">ERC-20</div>
     </div>
-
   </div>
-
 
   <!-- CONTRACT ADDRESS -->
   <div class="card" style="margin-top:18px">
-
     <h3>Official Contract Address</h3>
 
     <div class="address" id="contract">
       0x52C8Ff13ada1431376b3E77E8219b644805122dF
     </div>
 
-    <button onclick="copyContract()">
-      Copy Address
-    </button>
-
+    <button onclick="copyContract()">Copy Address</button>
     <p id="copied" style="color:#e8c477"></p>
-
   </div>
-
 </section>
-
 
 <!-- MIGRATION NOTICE -->
 <section>
-
   <div class="card notice">
-
     <h3>Important: Contract Migration</h3>
 
     JosJis has a new official token contract.
@@ -391,33 +344,23 @@ footer a {
 
     <br><br>
 
-    <b>New Official Contract:</b>
-
-    <br>
-
+    <b>New Official Contract:</b><br>
     0x52C8Ff13ada1431376b3E77E8219b644805122dF
 
     <br><br>
 
-    <b>Previous Contract:</b>
-
-    <br>
-
+    <b>Previous Contract:</b><br>
     0x300FB296AF304496bdf36b053595896d9eCB2453
 
     <br><br>
 
     The previous token does not automatically convert
     into the new token. They are separate contracts.
-
   </div>
-
 </section>
-
 
 <!-- OFFICIAL LINKS -->
 <section id="links">
-
   <div class="heading">
     <h2>Official Links</h2>
     <p>Join the JosJis community</p>
@@ -443,6 +386,16 @@ footer a {
       </a>
     </div>
 
+    <!-- TIKTOK JOSJIS -->
+    <div class="card">
+      <h3>TikTok</h3>
+      <a class="btn"
+      href="https://www.tiktok.com/@josjistoken"
+      target="_blank" rel="noopener">
+        Follow on TikTok
+      </a>
+    </div>
+
     <div class="card">
       <h3>PolygonScan</h3>
       <a class="btn"
@@ -453,15 +406,12 @@ footer a {
     </div>
 
   </div>
-
 </section>
 
 </main>
 
-
 <!-- FOOTER -->
 <footer>
-
   <b>JosJis ($JJS)</b>
 
   <p>Community · Transparency · Polygon</p>
@@ -471,15 +421,11 @@ footer a {
   <small>
     This website does not promise profits or investment returns.
   </small>
-
 </footer>
-
 
 <!-- COPY CONTRACT SCRIPT -->
 <script>
-
 function copyContract() {
-
   const address = document
     .getElementById("contract")
     .innerText.trim();
@@ -493,9 +439,7 @@ function copyContract() {
       document.getElementById("copied").innerText =
         "Please copy the address manually.";
     });
-
 }
-
 </script>
 
 </body>
