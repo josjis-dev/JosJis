@@ -147,7 +147,7 @@ button {
 
 /* =====================================
    LEGACY HEADER
-   Temporary support during migration
+   TEMPORARY SUPPORT
 ===================================== */
 
 header:not(.site-header) {
@@ -481,19 +481,83 @@ textarea {
 }
 
 /* =====================================
-   FOOTER
+   SHARED FOOTER
 ===================================== */
 
-footer {
-  text-align: center;
+.site-footer {
+  background: var(--bg-secondary);
   border-top: 1px solid var(--border);
-  padding: 25px 15px;
+  padding: 45px 7% 20px;
 
+  text-align: left;
   color: var(--muted);
+  font-size: 14px;
+}
+
+.footer-content {
+  max-width: 1100px;
+  margin: auto;
+
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr;
+  gap: 35px;
+}
+
+.footer-brand h3 {
+  color: var(--purple);
+  font-size: 25px;
+  margin: 0 0 10px;
+}
+
+.footer-brand p {
+  color: var(--muted);
+  max-width: 300px;
+  font-size: 13px;
+}
+
+.footer-links,
+.footer-social {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 9px;
+}
+
+.footer-links h4,
+.footer-social h4 {
+  color: var(--text);
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+
+.footer-links a,
+.footer-social a {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.footer-links a:hover,
+.footer-social a:hover {
+  color: var(--purple-light);
+}
+
+.footer-bottom {
+  max-width: 1100px;
+  margin: 35px auto 0;
+  padding-top: 20px;
+
+  border-top: 1px solid var(--border);
+
+  text-align: center;
   font-size: 12px;
 }
 
-footer a {
+.footer-bottom p {
+  margin: 8px 0;
+  overflow-wrap: anywhere;
+}
+
+.footer-bottom a {
   color: var(--purple);
 }
 
@@ -503,7 +567,7 @@ footer a {
 
 @media (max-width: 700px) {
 
-  /* NEW SHARED HEADER */
+  /* SHARED HEADER */
 
   .site-header {
     justify-content: space-between;
@@ -536,7 +600,7 @@ footer a {
     border-top: 1px solid var(--border);
   }
 
-  /* OLD HEADER TEMPORARY SUPPORT */
+  /* LEGACY HEADER */
 
   header:not(.site-header) {
     justify-content: center;
@@ -552,18 +616,26 @@ footer a {
     font-size: 13px;
   }
 
+  /* HERO */
+
   .hero {
     padding: 60px 18px 40px;
   }
+
+  /* GRID */
 
   .dashboard-grid,
   .card-grid {
     grid-template-columns: 1fr;
   }
 
+  /* WALLET */
+
   .wallet-panel {
     padding: 23px 15px;
   }
+
+  /* MAIN */
 
   main {
     padding: 30px 15px 60px;
@@ -571,6 +643,25 @@ footer a {
 
   .value {
     font-size: 22px;
+  }
+
+  /* FOOTER */
+
+  .site-footer {
+    padding: 35px 6% 20px;
+  }
+
+  .footer-content {
+    grid-template-columns: 1fr 1fr;
+    gap: 28px 20px;
+  }
+
+  .footer-brand {
+    grid-column: 1 / -1;
+  }
+
+  .footer-bottom {
+    margin-top: 28px;
   }
 }
 
@@ -596,4 +687,11 @@ footer a {
     font-size: 34px;
   }
 
+  .footer-content {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-brand {
+    grid-column: auto;
+  }
 }
