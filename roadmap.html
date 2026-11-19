@@ -1,0 +1,707 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#100d1c">
+
+<title>JosJis Roadmap | JJS Development</title>
+
+<meta name="description" content="Explore the JosJis development roadmap, from the Polygon token foundation to utility staking, membership NFTs, multi-chain expansion, and future blockchain infrastructure.">
+
+<style>
+:root {
+    --bg: #100d1c;
+    --panel: #1b162b;
+    --purple: #9b72ff;
+    --gold: #e8c477;
+    --white: #ffffff;
+    --muted: #aaa3b9;
+    --border: #302741;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--white);
+    font-family: Arial, sans-serif;
+    line-height: 1.7;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+header {
+    padding: 18px 6%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: #100d1cf5;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.brand {
+    font-size: 23px;
+    font-weight: bold;
+    color: var(--purple);
+}
+
+nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+}
+
+nav a {
+    color: #ddd;
+    font-size: 13px;
+    transition: 0.2s;
+}
+
+nav a:hover,
+nav a.active {
+    color: var(--gold);
+}
+
+.hero {
+    text-align: center;
+    padding: 90px 20px 80px;
+    background: radial-gradient(
+        ellipse at top,
+        #39205a 0%,
+        #1b162b 40%,
+        #100d1c 80%
+    );
+}
+
+.hero-tag {
+    color: var(--purple);
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 4px;
+}
+
+.hero h1 {
+    font-size: clamp(40px, 8vw, 65px);
+    margin: 18px 0;
+    line-height: 1.2;
+}
+
+.hero h1 span {
+    color: var(--gold);
+}
+
+.hero p {
+    color: var(--muted);
+    max-width: 700px;
+    margin: auto;
+}
+
+.container {
+    width: 90%;
+    max-width: 1000px;
+    margin: auto;
+    padding: 60px 0;
+}
+
+section {
+    margin-bottom: 65px;
+}
+
+.heading {
+    margin-bottom: 25px;
+}
+
+.heading h2 {
+    color: var(--gold);
+    font-size: 29px;
+    margin: 0 0 8px;
+}
+
+.heading p {
+    color: var(--muted);
+    margin: 0;
+}
+
+.intro {
+    color: var(--muted);
+    margin-bottom: 30px;
+}
+
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+.legend span {
+    font-size: 11px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+}
+
+.timeline {
+    border-left: 2px solid var(--purple);
+    margin-left: 12px;
+    padding-left: 30px;
+}
+
+.phase {
+    position: relative;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 28px;
+}
+
+.phase::before {
+    content: "";
+    position: absolute;
+    left: -39px;
+    top: 28px;
+    width: 14px;
+    height: 14px;
+    background: var(--purple);
+    border-radius: 50%;
+    box-shadow: 0 0 15px var(--purple);
+}
+
+.phase.completed {
+    border-color: #347d59;
+}
+
+.phase.completed::before {
+    background: #64d99b;
+    box-shadow: 0 0 15px #64d99b;
+}
+
+.phase h3 {
+    color: var(--gold);
+    font-size: 20px;
+    margin: 0 0 8px;
+}
+
+.phase p {
+    color: var(--muted);
+    font-size: 14px;
+    margin: 8px 0;
+}
+
+.phase ul {
+    padding-left: 20px;
+    color: #ddd;
+    font-size: 14px;
+}
+
+.phase li {
+    margin-bottom: 7px;
+}
+
+.phase-label {
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    display: inline-block;
+    padding: 5px 11px;
+    border-radius: 20px;
+}
+
+.done {
+    color: #83e3ad;
+    background: #173d2c;
+}
+
+.planned {
+    color: #d9bdff;
+    background: #30243f;
+}
+
+.research {
+    color: #f0d28b;
+    background: #463719;
+}
+
+.longterm {
+    color: #b8c9ff;
+    background: #202c49;
+}
+
+.card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    padding: 25px;
+}
+
+.card h3 {
+    color: var(--gold);
+    margin-top: 0;
+}
+
+.card p {
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(
+        auto-fit,
+        minmax(220px, 1fr)
+    );
+    gap: 17px;
+}
+
+.notice {
+    border-left: 4px solid var(--gold);
+}
+
+.vision {
+    text-align: center;
+    padding: 40px 25px;
+    border: 1px solid var(--purple);
+    border-radius: 18px;
+    background: radial-gradient(
+        circle at center,
+        #39205a,
+        #171222 75%
+    );
+}
+
+.vision h2 {
+    color: var(--gold);
+    font-size: clamp(24px, 5vw, 34px);
+}
+
+.vision p {
+    color: var(--muted);
+    max-width: 700px;
+    margin: auto;
+}
+
+footer {
+    text-align: center;
+    padding: 30px 15px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+}
+
+footer a {
+    color: var(--gold);
+    margin: 8px;
+}
+
+@media(max-width: 650px) {
+    header {
+        padding: 12px 4%;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    nav {
+        justify-content: center;
+        gap: 12px;
+    }
+
+    nav a {
+        font-size: 12px;
+    }
+
+    .hero {
+        padding-top: 65px;
+    }
+
+    .heading h2 {
+        font-size: 25px;
+    }
+
+    .timeline {
+        padding-left: 23px;
+    }
+
+    .phase {
+        padding: 20px;
+    }
+
+    .phase::before {
+        left: -32px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+
+<header>
+
+    <a href="index.html" class="brand">JOSJIS</a>
+
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="tokenomics.html">Tokenomics</a>
+        <a href="utility.html">Utility</a>
+        <a href="ecosystem.html">Ecosystem</a>
+        <a href="roadmap.html" class="active">Roadmap</a>
+        <a href="contact.html">Contact</a>
+    </nav>
+
+</header>
+
+<!-- HERO -->
+
+<div class="hero">
+
+    <div class="hero-tag">
+        THE JOSJIS DEVELOPMENT JOURNEY
+    </div>
+
+    <h1>
+        JosJis <span>Roadmap</span>
+    </h1>
+
+    <p>
+        A gradual development journey focused on
+        building a sustainable blockchain ecosystem
+        powered by JosJis ($JJS).
+    </p>
+
+</div>
+
+<main class="container">
+
+    <!-- INTRODUCTION -->
+
+    <section>
+
+        <div class="heading">
+            <h2>Our Development Direction</h2>
+            <p>Building step by step, with a long-term vision.</p>
+        </div>
+
+        <p class="intro">
+            The JosJis roadmap outlines the project's
+            development direction, beginning with the
+            JJS token foundation and progressing toward
+            digital utilities, cross-chain expansion,
+            market infrastructure, and future blockchain
+            development.
+        </p>
+
+        <div class="legend">
+            <span style="color:#83e3ad;">● Deployed</span>
+            <span style="color:#d9bdff;">● Planned</span>
+            <span style="color:#f0d28b;">● Research</span>
+            <span style="color:#b8c9ff;">● Long-Term Vision</span>
+        </div>
+
+    </section>
+
+    <!-- ROADMAP TIMELINE -->
+
+    <section>
+
+        <div class="heading">
+            <h2>Development Phases</h2>
+            <p>The planned evolution of the JosJis ecosystem.</p>
+        </div>
+
+        <div class="timeline">
+
+            <!-- PHASE 1 -->
+
+            <div class="phase completed">
+
+                <span class="phase-label done">
+                    FOUNDATION DEPLOYED
+                </span>
+
+                <h3>Phase 1 — Token Foundation</h3>
+
+                <p>
+                    Establishing the core JosJis token
+                    and its initial blockchain presence.
+                </p>
+
+                <ul>
+                    <li>Deploy JosJis ($JJS) on Polygon.</li>
+                    <li>Establish fixed token supply.</li>
+                    <li>Verify the smart contract on PolygonScan.</li>
+                    <li>Establish official project website.</li>
+                    <li>Establish official community channels.</li>
+                </ul>
+
+            </div>
+
+            <!-- PHASE 2 -->
+
+            <div class="phase">
+
+                <span class="phase-label planned">
+                    PLANNED
+                </span>
+
+                <h3>Phase 2 — Utility Development</h3>
+
+                <p>
+                    Developing practical utility features
+                    for JJS holders and community members.
+                </p>
+
+                <ul>
+                    <li>Develop flexible JJS staking.</li>
+                    <li>Introduce utility-based staking benefits.</li>
+                    <li>Develop seven membership NFT levels.</li>
+                    <li>Build wallet connection and balance display.</li>
+                    <li>Develop a staking dashboard.</li>
+                </ul>
+
+            </div>
+
+            <!-- PHASE 3 -->
+
+            <div class="phase">
+
+                <span class="phase-label planned">
+                    PLANNED
+                </span>
+
+                <h3>Phase 3 — Multi-Chain Expansion</h3>
+
+                <p>
+                    Exploring the expansion of JJS
+                    to additional EVM-compatible networks.
+                </p>
+
+                <ul>
+                    <li>Research cross-chain architecture.</li>
+                    <li>Develop JosJis Multi-Chain Bridge.</li>
+                    <li>Explore Base integration.</li>
+                    <li>Explore BNB Chain integration.</li>
+                    <li>Explore Arbitrum integration.</li>
+                    <li>Implement cross-chain security mechanisms.</li>
+                </ul>
+
+            </div>
+
+            <!-- PHASE 4 -->
+
+            <div class="phase">
+
+                <span class="phase-label research">
+                    RESEARCH
+                </span>
+
+                <h3>Phase 4 — JGPS Development</h3>
+
+                <p>
+                    Researching a global reference system
+                    for JJS market information.
+                </p>
+
+                <ul>
+                    <li>Design JJS Global Price System (JGPS).</li>
+                    <li>Explore market data aggregation.</li>
+                    <li>Research price reference methodology.</li>
+                    <li>Explore multi-market data monitoring.</li>
+                    <li>Develop safeguards for outdated market data.</li>
+                </ul>
+
+            </div>
+
+            <!-- PHASE 5 -->
+
+            <div class="phase">
+
+                <span class="phase-label longterm">
+                    LONG-TERM DEVELOPMENT
+                </span>
+
+                <h3>Phase 5 — DeFi Infrastructure</h3>
+
+                <p>
+                    Exploring additional decentralized
+                    applications and blockchain services
+                    within the JosJis ecosystem.
+                </p>
+
+                <ul>
+                    <li>Research decentralized applications.</li>
+                    <li>Explore additional JJS utility services.</li>
+                    <li>Study blockchain infrastructure.</li>
+                    <li>Evaluate security and scalability requirements.</li>
+                </ul>
+
+            </div>
+
+            <!-- PHASE 6 -->
+
+            <div class="phase">
+
+                <span class="phase-label longterm">
+                    LONG-TERM VISION
+                </span>
+
+                <h3>Phase 6 — JosJis Network</h3>
+
+                <p>
+                    Exploring the possibility of building
+                    an independent JosJis blockchain network.
+                </p>
+
+                <ul>
+                    <li>Research EVM-compatible network architecture.</li>
+                    <li>Study validator and consensus mechanisms.</li>
+                    <li>Explore network economics and infrastructure.</li>
+                    <li>Evaluate the feasibility of an independent network.</li>
+                </ul>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- DEVELOPMENT PRINCIPLES -->
+
+    <section>
+
+        <div class="heading">
+            <h2>Our Development Principles</h2>
+            <p>How we approach the growth of JosJis.</p>
+        </div>
+
+        <div class="grid">
+
+            <div class="card">
+                <h3>Transparency</h3>
+                <p>
+                    Communicating project progress and
+                    development status clearly.
+                </p>
+            </div>
+
+            <div class="card">
+                <h3>Security First</h3>
+                <p>
+                    Prioritizing testing, smart contract
+                    security, and responsible implementation.
+                </p>
+            </div>
+
+            <div class="card">
+                <h3>Gradual Development</h3>
+                <p>
+                    Building and testing each component
+                    before expanding into more complex systems.
+                </p>
+            </div>
+
+            <div class="card">
+                <h3>Community Participation</h3>
+                <p>
+                    Encouraging community feedback and
+                    participation throughout development.
+                </p>
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- IMPORTANT NOTICE -->
+
+    <section>
+
+        <div class="card notice">
+
+            <h3>Roadmap Disclaimer</h3>
+
+            <p>
+                This roadmap represents the development
+                direction and long-term vision of JosJis.
+                Planned features and future infrastructure
+                are not necessarily available or operational.
+            </p>
+
+            <p>
+                Development priorities, technical designs,
+                and timelines may change based on testing,
+                resources, security considerations,
+                and project progress.
+            </p>
+
+            <p>
+                No specific launch dates or financial
+                returns are guaranteed.
+            </p>
+
+        </div>
+
+    </section>
+
+    <!-- VISION -->
+
+    <section>
+
+        <div class="vision">
+
+            <h2>Building the Future of JosJis</h2>
+
+            <p>
+                From a single Polygon token to a connected
+                blockchain ecosystem, JosJis aims to grow
+                through learning, innovation, transparency,
+                and community participation.
+            </p>
+
+        </div>
+
+    </section>
+
+</main>
+
+<!-- FOOTER -->
+
+<footer>
+
+    <b>JosJis ($JJS)</b>
+
+    <p>Community · Transparency · Polygon</p>
+
+    <p>
+        <a href="about.html">About</a>
+        <a href="tokenomics.html">Tokenomics</a>
+        <a href="utility.html">Utility</a>
+        <a href="ecosystem.html">Ecosystem</a>
+        <a href="contact.html">Contact</a>
+    </p>
+
+    <p>© 2026 JosJis. All rights reserved.</p>
+
+</footer>
+
+</body>
+</html>
