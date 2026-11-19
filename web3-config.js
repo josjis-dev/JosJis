@@ -1,4 +1,3 @@
-
 // =====================================
 // JOSJIS WEB3 CONFIGURATION
 // =====================================
@@ -15,7 +14,7 @@ export const JJS_CONFIG = {
   rpcUrls: [
     "https://polygon-bor-rpc.publicnode.com",
     "https://polygon.drpc.org",
-    "https://polygon-rpc.com"
+    "https://polygon.gateway.tenderly.co"
   ]
 };
 
@@ -107,7 +106,10 @@ export async function getJJSBalance(address) {
 
       const balance = BigInt(result.result);
 
-      console.log("JJS balance successfully read from:", rpcUrl);
+      console.log(
+        "JJS balance successfully read from:",
+        rpcUrl
+      );
 
       return formatJJSBalance(balance);
 
