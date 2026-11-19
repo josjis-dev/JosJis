@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,76 +10,10 @@
 
     <meta name="theme-color" content="#0c0914">
 
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="style.css">
 
     <style>
-        :root {
-            --purple: #a56aff;
-            --purple-light: #c9a5ff;
-            --purple-dark: #713bc5;
-            --bg: #0c0914;
-            --card: #171222;
-            --border: #342747;
-            --text: #f5f0ff;
-            --muted: #b8adc9;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: Arial, sans-serif;
-            line-height: 1.7;
-        }
-
-        a {
-            color: inherit;
-            text-decoration: none;
-        }
-
-        header {
-            padding: 18px 7%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #30243f;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .logo {
-            font-size: 25px;
-            font-weight: bold;
-            color: var(--purple);
-        }
-
-        nav {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        nav a {
-            color: var(--muted);
-            font-size: 14px;
-            transition: 0.2s;
-        }
-
-        nav a:hover,
-        nav a.active {
-            color: var(--purple-light);
-        }
-
-        .hero {
+        .ecosystem-hero {
             text-align: center;
             padding: 105px 20px 85px;
             background:
@@ -92,31 +25,31 @@
                 );
         }
 
-        .hero-tag {
+        .ecosystem-hero-tag {
             color: var(--purple-light);
             letter-spacing: 4px;
             font-size: 12px;
             font-weight: bold;
         }
 
-        .hero h1 {
+        .ecosystem-hero h1 {
             font-size: clamp(40px, 8vw, 68px);
             line-height: 1.15;
             margin: 20px 0;
         }
 
-        .hero h1 span {
+        .ecosystem-hero h1 span {
             color: var(--purple-light);
         }
 
-        .hero p {
+        .ecosystem-hero p {
             color: var(--muted);
             max-width: 720px;
             margin: auto;
             font-size: 16px;
         }
 
-        .hero-button {
+        .ecosystem-hero-button {
             display: inline-block;
             margin-top: 28px;
             padding: 12px 25px;
@@ -124,25 +57,19 @@
             background: var(--purple-dark);
             color: white;
             font-weight: bold;
-            transition: 0.2s;
+            transition: var(--transition);
         }
 
-        .hero-button:hover {
+        .ecosystem-hero-button:hover {
             background: var(--purple);
             transform: translateY(-2px);
         }
 
-        main {
-            max-width: 1100px;
-            margin: auto;
-            padding: 65px 20px;
-        }
-
-        section {
+        .ecosystem-section {
             margin-bottom: 75px;
         }
 
-        .section-tag {
+        .ecosystem-section-tag {
             color: var(--purple);
             font-size: 11px;
             font-weight: bold;
@@ -150,19 +77,19 @@
             margin-bottom: 8px;
         }
 
-        h2 {
+        .ecosystem-section h2 {
             color: var(--purple-light);
             font-size: 30px;
             margin-bottom: 15px;
         }
 
-        .section-intro {
+        .ecosystem-section-intro {
             color: var(--muted);
             max-width: 760px;
             margin-bottom: 25px;
         }
 
-        .core-box {
+        .ecosystem-core-box {
             background: linear-gradient(
                 135deg,
                 #39205a,
@@ -176,26 +103,26 @@
             box-shadow: 0 0 35px rgba(155, 92, 255, 0.10);
         }
 
-        .core-symbol {
+        .ecosystem-core-symbol {
             font-size: 48px;
             margin-bottom: 8px;
         }
 
-        .core-box h3 {
+        .ecosystem-core-box h3 {
             color: white;
             font-size: 32px;
         }
 
-        .core-box h3 span {
+        .ecosystem-core-box h3 span {
             color: var(--purple-light);
         }
 
-        .core-box p {
+        .ecosystem-core-box p {
             color: var(--muted);
             margin-top: 8px;
         }
 
-        .core-details {
+        .ecosystem-core-details {
             display: flex;
             justify-content: center;
             flex-wrap: wrap;
@@ -203,7 +130,7 @@
             margin-top: 22px;
         }
 
-        .detail-pill {
+        .ecosystem-detail-pill {
             background: rgba(255,255,255,0.08);
             border: 1px solid rgba(255,255,255,0.12);
             border-radius: 30px;
@@ -212,7 +139,7 @@
             color: #e2d3ff;
         }
 
-        .connector {
+        .ecosystem-connector {
             text-align: center;
             color: var(--purple);
             font-size: 28px;
@@ -220,7 +147,7 @@
             padding: 20px 0;
         }
 
-        .grid {
+        .ecosystem-grid {
             display: grid;
             grid-template-columns: repeat(
                 auto-fit,
@@ -229,39 +156,39 @@
             gap: 20px;
         }
 
-        .card {
+        .ecosystem-card {
             background: var(--card);
             border: 1px solid var(--border);
             border-radius: 16px;
             padding: 25px;
-            transition: 0.25s;
+            transition: var(--transition);
             display: flex;
             flex-direction: column;
         }
 
-        .card:hover {
+        .ecosystem-card:hover {
             border-color: var(--purple);
             transform: translateY(-4px);
         }
 
-        .card-icon {
+        .ecosystem-card-icon {
             font-size: 34px;
             margin-bottom: 12px;
         }
 
-        .card h3 {
+        .ecosystem-card h3 {
             color: var(--purple-light);
             font-size: 19px;
             margin-bottom: 10px;
         }
 
-        .card p {
+        .ecosystem-card p {
             color: var(--muted);
             font-size: 14px;
             flex-grow: 1;
         }
 
-        .status {
+        .ecosystem-status {
             display: inline-block;
             width: fit-content;
             margin-top: 18px;
@@ -273,12 +200,12 @@
             font-weight: bold;
         }
 
-        .status-live {
+        .ecosystem-status-live {
             background: #173d2c;
             color: #83e3ad;
         }
 
-        .network-box {
+        .ecosystem-network-box {
             background: linear-gradient(
                 135deg,
                 #241536,
@@ -289,7 +216,17 @@
             padding: 30px;
         }
 
-        .network-list {
+        .ecosystem-network-box h3 {
+            color: var(--purple-light);
+        }
+
+        .ecosystem-network-description {
+            color: var(--muted);
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .ecosystem-network-list {
             display: grid;
             grid-template-columns: repeat(
                 auto-fit,
@@ -299,7 +236,7 @@
             margin-top: 22px;
         }
 
-        .network-item {
+        .ecosystem-network-item {
             text-align: center;
             padding: 18px 10px;
             border: 1px solid var(--border);
@@ -307,29 +244,29 @@
             border-radius: 12px;
         }
 
-        .network-item strong {
+        .ecosystem-network-item strong {
             display: block;
             color: var(--purple-light);
             margin-bottom: 4px;
         }
 
-        .network-item small {
+        .ecosystem-network-item small {
             color: var(--muted);
             font-size: 11px;
         }
 
-        .roadmap-list {
+        .ecosystem-roadmap-list {
             border-left: 2px solid var(--purple-dark);
             margin: 25px 0 0 10px;
             padding-left: 25px;
         }
 
-        .roadmap-item {
+        .ecosystem-roadmap-item {
             position: relative;
             padding-bottom: 28px;
         }
 
-        .roadmap-item::before {
+        .ecosystem-roadmap-item::before {
             content: "";
             position: absolute;
             left: -33px;
@@ -341,18 +278,18 @@
             box-shadow: 0 0 12px var(--purple);
         }
 
-        .roadmap-item h3 {
+        .ecosystem-roadmap-item h3 {
             color: var(--purple-light);
             font-size: 17px;
         }
 
-        .roadmap-item p {
+        .ecosystem-roadmap-item p {
             color: var(--muted);
             font-size: 14px;
             margin-top: 5px;
         }
 
-        .vision-box {
+        .ecosystem-vision-box {
             text-align: center;
             padding: 45px 25px;
             border-radius: 20px;
@@ -364,17 +301,17 @@
             );
         }
 
-        .vision-box h2 {
+        .ecosystem-vision-box h2 {
             font-size: clamp(25px, 5vw, 36px);
         }
 
-        .vision-box p {
+        .ecosystem-vision-box p {
             color: var(--muted);
             max-width: 720px;
             margin: auto;
         }
 
-        .notice {
+        .ecosystem-notice {
             background: var(--card);
             border-left: 3px solid var(--purple);
             border-radius: 6px;
@@ -383,41 +320,12 @@
             font-size: 13px;
         }
 
-        footer {
-            border-top: 1px solid #30243f;
-            text-align: center;
-            padding: 32px 20px;
-            color: var(--muted);
-            font-size: 13px;
-        }
-
-        footer a {
-            color: var(--purple-light);
-        }
-
-        footer p {
-            margin: 5px 0;
-        }
-
         @media (max-width: 600px) {
-            header {
-                justify-content: center;
-            }
-
-            nav {
-                justify-content: center;
-                gap: 13px;
-            }
-
-            .hero {
+            .ecosystem-hero {
                 padding-top: 75px;
             }
 
-            main {
-                padding-top: 45px;
-            }
-
-            h2 {
+            .ecosystem-section h2 {
                 font-size: 25px;
             }
         }
@@ -440,11 +348,9 @@
     </nav>
 </header>
 
-<!-- HERO -->
+<div class="ecosystem-hero">
 
-<div class="hero">
-
-    <div class="hero-tag">
+    <div class="ecosystem-hero-tag">
         THE JOSJIS BLOCKCHAIN ECOSYSTEM
     </div>
 
@@ -460,7 +366,7 @@
         and future blockchain innovation.
     </p>
 
-    <a href="#foundation" class="hero-button">
+    <a href="#foundation" class="ecosystem-hero-button">
         Explore the Ecosystem
     </a>
 
@@ -468,15 +374,13 @@
 
 <main>
 
-    <!-- INTRODUCTION -->
+    <section class="ecosystem-section">
 
-    <section>
-
-        <div class="section-tag">INTRODUCTION</div>
+        <div class="ecosystem-section-tag">INTRODUCTION</div>
 
         <h2>Building Beyond a Token</h2>
 
-        <p class="section-intro">
+        <p class="ecosystem-section-intro">
             JosJis is designed to grow beyond a single
             digital token. Its long-term vision is to
             develop an interconnected blockchain ecosystem
@@ -484,7 +388,7 @@
             participation can work together.
         </p>
 
-        <p class="section-intro">
+        <p class="ecosystem-section-intro">
             The ecosystem will be developed gradually,
             beginning with the JJS token foundation and
             expanding into additional blockchain services
@@ -493,22 +397,20 @@
 
     </section>
 
-    <!-- CORE FOUNDATION -->
+    <section id="foundation" class="ecosystem-section">
 
-    <section id="foundation">
-
-        <div class="section-tag">01 · CORE FOUNDATION</div>
+        <div class="ecosystem-section-tag">01 · CORE FOUNDATION</div>
 
         <h2>The Foundation of JosJis</h2>
 
-        <p class="section-intro">
+        <p class="ecosystem-section-intro">
             Every part of the ecosystem begins with
             the core JosJis token.
         </p>
 
-        <div class="core-box">
+        <div class="ecosystem-core-box">
 
-            <div class="core-symbol">💜</div>
+            <div class="ecosystem-core-symbol">💜</div>
 
             <h3>JosJis <span>($JJS)</span></h3>
 
@@ -516,14 +418,14 @@
                 The core digital token of the JosJis ecosystem.
             </p>
 
-            <div class="core-details">
-                <span class="detail-pill">Polygon Network</span>
-                <span class="detail-pill">ERC-20</span>
-                <span class="detail-pill">18 Decimals</span>
-                <span class="detail-pill">Fixed Supply: 10²⁵ JJS</span>
+            <div class="ecosystem-core-details">
+                <span class="ecosystem-detail-pill">Polygon Network</span>
+                <span class="ecosystem-detail-pill">ERC-20</span>
+                <span class="ecosystem-detail-pill">18 Decimals</span>
+                <span class="ecosystem-detail-pill">Fixed Supply: 10²⁵ JJS</span>
             </div>
 
-            <span class="status status-live">
+            <span class="ecosystem-status ecosystem-status-live">
                 Deployed
             </span>
 
@@ -531,27 +433,25 @@
 
     </section>
 
-    <div class="connector">↓</div>
+    <div class="ecosystem-connector">↓</div>
 
-    <!-- UTILITY LAYER -->
+    <section class="ecosystem-section">
 
-    <section>
-
-        <div class="section-tag">02 · UTILITY LAYER</div>
+        <div class="ecosystem-section-tag">02 · UTILITY LAYER</div>
 
         <h2>JosJis Digital Utilities</h2>
 
-        <p class="section-intro">
+        <p class="ecosystem-section-intro">
             Utility development focuses on creating
             practical functions and membership experiences
             around JJS.
         </p>
 
-        <div class="grid">
+        <div class="ecosystem-grid">
 
-            <div class="card">
+            <div class="ecosystem-card">
 
-                <div class="card-icon">🔒</div>
+                <div class="ecosystem-card-icon">🔒</div>
 
                 <h3>Utility Staking</h3>
 
@@ -562,13 +462,13 @@
                     benefits.
                 </p>
 
-                <span class="status">Planned</span>
+                <span class="ecosystem-status">Planned</span>
 
             </div>
 
-            <div class="card">
+            <div class="ecosystem-card">
 
-                <div class="card-icon">🏆</div>
+                <div class="ecosystem-card-icon">🏆</div>
 
                 <h3>Membership NFTs</h3>
 
@@ -579,7 +479,7 @@
                     ecosystem access.
                 </p>
 
-                <span class="status">Planned</span>
+                <span class="ecosystem-status">Planned</span>
 
             </div>
 
@@ -587,78 +487,72 @@
 
     </section>
 
-    <div class="connector">↓</div>
+    <div class="ecosystem-connector">↓</div>
 
-    <!-- CROSS CHAIN -->
+    <section class="ecosystem-section">
 
-    <section>
-
-        <div class="section-tag">03 · CROSS-CHAIN LAYER</div>
+        <div class="ecosystem-section-tag">03 · CROSS-CHAIN LAYER</div>
 
         <h2>Multi-Chain Expansion</h2>
 
-        <p class="section-intro">
+        <p class="ecosystem-section-intro">
             The goal is to expand JJS accessibility
             beyond Polygon while preserving the integrity
             of the original token supply.
         </p>
 
-        <div class="network-box">
+        <div class="ecosystem-network-box">
 
-            <h3 style="color:var(--purple-light);">
-                JosJis Multi-Chain Bridge
-            </h3>
+            <h3>JosJis Multi-Chain Bridge</h3>
 
-            <p style="color:var(--muted); font-size:14px; margin-top:8px;">
+            <p class="ecosystem-network-description">
                 Exploring a lock-and-mint bridge architecture
                 for supported EVM networks.
             </p>
 
-            <div class="network-list">
+            <div class="ecosystem-network-list">
 
-                <div class="network-item">
+                <div class="ecosystem-network-item">
                     <strong>Polygon</strong>
                     <small>Origin Network</small>
                 </div>
 
-                <div class="network-item">
+                <div class="ecosystem-network-item">
                     <strong>Base</strong>
                     <small>Planned Expansion</small>
                 </div>
 
-                <div class="network-item">
+                <div class="ecosystem-network-item">
                     <strong>BNB Chain</strong>
                     <small>Planned Expansion</small>
                 </div>
 
-                <div class="network-item">
+                <div class="ecosystem-network-item">
                     <strong>Arbitrum</strong>
                     <small>Planned Expansion</small>
                 </div>
 
             </div>
 
-            <span class="status">
-                Research & Planning
+            <span class="ecosystem-status">
+                Research &amp; Planning
             </span>
 
         </div>
 
     </section>
 
-    <div class="connector">↓</div>
+    <div class="ecosystem-connector">↓</div>
 
-    <!-- MARKET DATA -->
+    <section class="ecosystem-section">
 
-    <section>
-
-        <div class="section-tag">04 · MARKET DATA LAYER</div>
+        <div class="ecosystem-section-tag">04 · MARKET DATA LAYER</div>
 
         <h2>JJS Global Price Reference</h2>
 
-        <div class="card">
+        <div class="ecosystem-card">
 
-            <div class="card-icon">📊</div>
+            <div class="ecosystem-card-icon">📊</div>
 
             <h3>JGPS — JosJis Global Price System</h3>
 
@@ -674,29 +568,27 @@
                 information across the ecosystem.
             </p>
 
-            <span class="status">
-                Research & Planning
+            <span class="ecosystem-status">
+                Research &amp; Planning
             </span>
 
         </div>
 
     </section>
 
-    <div class="connector">↓</div>
+    <div class="ecosystem-connector">↓</div>
 
-    <!-- INFRASTRUCTURE -->
+    <section class="ecosystem-section">
 
-    <section>
-
-        <div class="section-tag">05 · FUTURE INFRASTRUCTURE</div>
+        <div class="ecosystem-section-tag">05 · FUTURE INFRASTRUCTURE</div>
 
         <h2>Future JosJis Infrastructure</h2>
 
-        <div class="grid">
+        <div class="ecosystem-grid">
 
-            <div class="card">
+            <div class="ecosystem-card">
 
-                <div class="card-icon">⚙️</div>
+                <div class="ecosystem-card-icon">⚙️</div>
 
                 <h3>DeFi Infrastructure</h3>
 
@@ -706,15 +598,15 @@
                     blockchain-based services.
                 </p>
 
-                <span class="status">
+                <span class="ecosystem-status">
                     Long-Term Development
                 </span>
 
             </div>
 
-            <div class="card">
+            <div class="ecosystem-card">
 
-                <div class="card-icon">🌐</div>
+                <div class="ecosystem-card-icon">🌐</div>
 
                 <h3>JosJis Network</h3>
 
@@ -724,7 +616,7 @@
                     EVM-compatible blockchain network.
                 </p>
 
-                <span class="status">
+                <span class="ecosystem-status">
                     Long-Term Vision
                 </span>
 
@@ -734,86 +626,82 @@
 
     </section>
 
-    <!-- DEVELOPMENT DIRECTION -->
+    <section class="ecosystem-section">
 
-    <section>
-
-        <div class="section-tag">DEVELOPMENT DIRECTION</div>
+        <div class="ecosystem-section-tag">DEVELOPMENT DIRECTION</div>
 
         <h2>The JosJis Journey</h2>
 
-        <p class="section-intro">
+        <p class="ecosystem-section-intro">
             The ecosystem is intended to grow through
             gradual development, testing, and improvement.
         </p>
 
-        <div class="roadmap-list">
+        <div class="ecosystem-roadmap-list">
 
-            <div class="roadmap-item">
+            <div class="ecosystem-roadmap-item">
                 <h3>01. Token Foundation</h3>
                 <p>
                     Establish the JJS token and its
                     Polygon blockchain foundation.
                 </p>
-                <span class="status status-live">
+                <span class="ecosystem-status ecosystem-status-live">
                     Foundation Deployed
                 </span>
             </div>
 
-            <div class="roadmap-item">
+            <div class="ecosystem-roadmap-item">
                 <h3>02. Utility Ecosystem</h3>
                 <p>
                     Develop flexible staking and
                     membership NFT utilities.
                 </p>
-                <span class="status">Planned</span>
+                <span class="ecosystem-status">Planned</span>
             </div>
 
-            <div class="roadmap-item">
+            <div class="ecosystem-roadmap-item">
                 <h3>03. Multi-Chain Expansion</h3>
                 <p>
                     Research and develop cross-chain
                     connectivity for JJS.
                 </p>
-                <span class="status">Planned</span>
+                <span class="ecosystem-status">Planned</span>
             </div>
 
-            <div class="roadmap-item">
+            <div class="ecosystem-roadmap-item">
                 <h3>04. JGPS Development</h3>
                 <p>
                     Explore a global reference system
                     for JJS market information.
                 </p>
-                <span class="status">Research</span>
+                <span class="ecosystem-status">Research</span>
             </div>
 
-            <div class="roadmap-item">
+            <div class="ecosystem-roadmap-item">
                 <h3>05. DeFi Infrastructure</h3>
                 <p>
                     Explore additional decentralized
                     applications and services.
                 </p>
-                <span class="status">Long-Term</span>
+                <span class="ecosystem-status">Long-Term</span>
             </div>
 
-            <div class="roadmap-item">
+            <div class="ecosystem-roadmap-item">
                 <h3>06. JosJis Network</h3>
                 <p>
                     Explore the possibility of developing
                     an independent blockchain network.
                 </p>
-                <span class="status">Long-Term Vision</span>
+                <span class="ecosystem-status">Long-Term Vision</span>
             </div>
 
         </div>
 
     </section>
 
-    <!-- VISION -->
+    <section class="ecosystem-section">
 
-    <section>
-
-        <div class="vision-box">
+        <div class="ecosystem-vision-box">
 
             <h2>One Token. One Community. Many Possibilities.</h2>
 
@@ -828,11 +716,9 @@
 
     </section>
 
-    <!-- DISCLAIMER -->
+    <section class="ecosystem-section">
 
-    <section>
-
-        <div class="notice">
+        <div class="ecosystem-notice">
 
             <strong>Development Status Notice</strong>
 
