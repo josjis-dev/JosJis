@@ -173,11 +173,6 @@ h1 span {
   color:white;
 }
 
-.btn.small {
-  padding:9px 15px;
-  font-size:12px;
-}
-
 section {
   padding:48px 0;
 }
@@ -261,6 +256,10 @@ button {
   color:white;
   font-weight:bold;
   margin-top:10px;
+}
+
+button:hover {
+  opacity:0.85;
 }
 
 .notice {
@@ -482,7 +481,7 @@ footer a {
       0x52C8Ff13ada1431376b3E77E8219b644805122dF
     </div>
 
-    <button onclick="copyContract()">
+    <button type="button" onclick="copyContract()">
       Copy Address
     </button>
 
@@ -512,10 +511,11 @@ footer a {
 
     <div class="card">
       <div class="card-icon">🔒</div>
-      <h3>Flexible Staking</h3>
+      <h3>Flexible Utility Staking</h3>
       <p>
-        A planned staking system designed to connect
-        JJS participation with ecosystem utility benefits.
+        A planned flexible staking system designed
+        to connect JJS participation with ecosystem
+        membership and utility benefits.
       </p>
       <span class="status">Planned</span>
     </div>
@@ -525,7 +525,7 @@ footer a {
       <h3>Membership NFTs</h3>
       <p>
         Seven planned membership levels represented
-        by digital NFT badges.
+        by digital NFT badges and staking tiers.
       </p>
       <span class="status">Planned</span>
     </div>
