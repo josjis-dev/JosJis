@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,81 +8,12 @@
 <title>JosJis ($JJS) | Official Website</title>
 <meta name="description" content="Welcome to JosJis ($JJS), a community-driven Polygon token project. Explore its tokenomics, utilities, ecosystem and development roadmap.">
 
+<link rel="stylesheet" href="style.css">
+
 <style>
-:root {
-    --purple: #9b5cff;
-    --purple-dark: #6e35c5;
-    --bg: #0c0914;
-    --card: #171222;
-    --text: #f5f0ff;
-    --muted: #b8adc9;
-    --border: #30243f;
-}
+/* HOME PAGE SPECIFIC STYLES */
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-html {
-    scroll-behavior: smooth;
-}
-
-body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: Arial, sans-serif;
-    line-height: 1.7;
-}
-
-a {
-    color: inherit;
-    text-decoration: none;
-}
-
-/* HEADER - MATCH ABOUT.HTML */
-
-header {
-    padding: 18px 7%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg);
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    flex-wrap: wrap;
-    gap: 15px;
-}
-
-.logo {
-    font-size: 25px;
-    font-weight: bold;
-    color: var(--purple);
-}
-
-nav {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-}
-
-nav a {
-    color: var(--muted);
-    font-size: 14px;
-    transition: 0.2s;
-}
-
-nav a:hover,
-nav a.active {
-    color: var(--purple);
-}
-
-/* HERO - MATCH ABOUT.HTML */
-
-.hero {
+.home-hero {
     text-align: center;
     padding: 90px 20px 70px;
     background: radial-gradient(
@@ -93,7 +23,7 @@ nav a.active {
     );
 }
 
-.hero img {
+.home-hero img {
     width: 125px;
     height: 125px;
     border-radius: 50%;
@@ -102,7 +32,7 @@ nav a.active {
     box-shadow: 0 0 35px #9b5cff55;
 }
 
-.hero .tag {
+.home-tag {
     color: var(--purple);
     letter-spacing: 3px;
     font-size: 12px;
@@ -110,32 +40,30 @@ nav a.active {
     margin-top: 20px;
 }
 
-.hero h1 {
+.home-hero h1 {
     font-size: clamp(36px, 7vw, 60px);
     margin: 15px 0;
     line-height: 1.2;
 }
 
-.hero h1 span {
+.home-hero h1 span {
     color: var(--purple);
 }
 
-.hero .value {
+.home-token-value {
     font-size: 24px;
     color: var(--purple);
     font-weight: bold;
     margin-top: 8px;
 }
 
-.hero p {
+.home-hero p {
     color: var(--muted);
     max-width: 700px;
     margin: 12px auto 25px;
 }
 
-/* BUTTONS */
-
-.btn {
+.home-btn {
     display: inline-block;
     padding: 11px 20px;
     margin: 5px;
@@ -148,53 +76,34 @@ nav a.active {
     border: 1px solid transparent;
 }
 
-.btn:hover {
+.home-btn:hover {
     opacity: 0.85;
     transform: translateY(-2px);
 }
 
-.btn.gold {
-    background: var(--purple);
-    color: white;
-}
-
-.btn.outline {
+.home-btn-outline {
     background: transparent;
     border-color: var(--purple);
     color: white;
 }
 
-/* MAIN CONTENT */
-
-.container {
-    max-width: 1100px;
-    margin: auto;
-    padding: 0 20px;
-}
-
-section {
-    padding: 48px 0;
-}
-
-.heading {
+.home-heading {
     text-align: center;
     margin-bottom: 28px;
 }
 
-.heading h2 {
+.home-heading h2 {
     font-size: 27px;
     margin: 0;
     color: var(--purple);
 }
 
-.heading p {
+.home-heading p {
     color: var(--muted);
     margin-top: 5px;
 }
 
-/* GRID AND CARDS */
-
-.grid {
+.home-grid {
     display: grid;
     grid-template-columns: repeat(
         auto-fit,
@@ -203,46 +112,44 @@ section {
     gap: 18px;
 }
 
-.card {
+.home-card {
     background: var(--card);
     border: 1px solid var(--border);
     padding: 25px;
-    border-radius: 15px;
+    border-radius: var(--radius);
     overflow-wrap: anywhere;
     transition: 0.2s;
 }
 
-.card:hover {
+.home-card:hover {
     border-color: var(--purple);
     transform: translateY(-3px);
 }
 
-.card h3 {
+.home-card h3 {
     color: #c69aff;
     margin-top: 0;
     margin-bottom: 10px;
 }
 
-.card p {
+.home-card p {
     color: var(--muted);
     font-size: 14px;
 }
 
-.card-icon {
+.home-card-icon {
     font-size: 30px;
     margin-bottom: 8px;
 }
 
-.value {
+.home-value {
     font-size: 24px;
     font-weight: bold;
     color: var(--purple);
 }
 
-/* CONTRACT */
-
-.address {
-    background: #0c0914;
+.home-address {
+    background: var(--bg);
     padding: 13px;
     border-radius: 8px;
     overflow-wrap: anywhere;
@@ -251,28 +158,11 @@ section {
     border: 1px solid var(--border);
 }
 
-button {
-    cursor: pointer;
-    border: 0;
-    border-radius: 7px;
-    padding: 10px 16px;
-    background: var(--purple);
-    color: white;
-    font-weight: bold;
-    margin-top: 10px;
-}
-
-button:hover {
-    opacity: 0.85;
-}
-
-/* STATUS */
-
-.notice {
+.home-notice {
     border-left: 4px solid var(--purple);
 }
 
-.status {
+.home-status {
     display: inline-block;
     font-size: 11px;
     padding: 4px 10px;
@@ -282,47 +172,30 @@ button:hover {
     margin-top: 8px;
 }
 
-.status.live {
+.home-status-live {
     background: #173d2c;
     color: #83e3ad;
 }
 
-.center {
+.home-center {
     text-align: center;
 }
 
-/* FOOTER */
-
-footer {
-    text-align: center;
-    padding: 30px 20px;
-    color: var(--muted);
-    border-top: 1px solid var(--border);
-    font-size: 13px;
+.home-section-action {
+    margin-top: 22px;
 }
 
-footer a {
+.home-copy-message {
     color: var(--purple);
-    margin: 8px;
+    font-size: 12px;
 }
-
-/* MOBILE */
 
 @media (max-width: 600px) {
-    header {
-        justify-content: center;
-    }
-
-    nav {
-        justify-content: center;
-        gap: 13px;
-    }
-
-    .hero {
+    .home-hero {
         padding-top: 65px;
     }
 
-    .heading h2 {
+    .home-heading h2 {
         font-size: 25px;
     }
 }
@@ -334,7 +207,6 @@ footer a {
 <!-- HEADER -->
 
 <header>
-
     <a href="index.html" class="logo">JosJis</a>
 
     <nav>
@@ -346,33 +218,32 @@ footer a {
         <a href="roadmap.html">Roadmap</a>
         <a href="contact.html">Contact</a>
     </nav>
-
 </header>
 
 <!-- HERO -->
 
-<div class="hero">
+<div class="home-hero">
 
     <img src="josjis-logo.jpg" alt="Official JosJis Logo">
 
-    <div class="tag">WELCOME TO THE JOSJIS PROJECT</div>
+    <div class="home-tag">WELCOME TO THE JOSJIS PROJECT</div>
 
     <h1>Welcome to <span>JosJis</span></h1>
 
-    <div class="value">$JJS TOKEN</div>
+    <div class="home-token-value">$JJS TOKEN</div>
 
     <p>
         A community-driven token project built on Polygon.
         One token. One community. Many possibilities.
     </p>
 
-    <a class="btn gold"
+    <a class="home-btn"
     href="https://link.metamask.io/asset?assetId=eip155%3A137%2Ferc20%3A0x52C8Ff13ada1431376b3E77E8219b644805122dF"
     target="_blank" rel="noopener noreferrer">
         🦊 Buy JJS on MetaMask
     </a>
 
-    <a class="btn outline"
+    <a class="home-btn home-btn-outline"
     href="https://polygonscan.com/token/0x52C8Ff13ada1431376b3E77E8219b644805122dF"
     target="_blank" rel="noopener noreferrer">
         View Contract
@@ -386,12 +257,12 @@ footer a {
 
 <section>
 
-    <div class="heading">
+    <div class="home-heading">
         <h2>About JosJis</h2>
         <p>Community · Transparency · Innovation</p>
     </div>
 
-    <div class="card center">
+    <div class="home-card home-center">
 
         <p>
             JosJis is a Polygon-based token project focused
@@ -404,7 +275,7 @@ footer a {
             useful blockchain services around the JosJis community.
         </p>
 
-        <a href="about.html" class="btn">
+        <a href="about.html" class="home-btn">
             Discover JosJis →
         </a>
 
@@ -416,48 +287,48 @@ footer a {
 
 <section>
 
-    <div class="heading">
+    <div class="home-heading">
         <h2>JJS Token Overview</h2>
         <p>Official token information</p>
     </div>
 
-    <div class="grid">
+    <div class="home-grid">
 
-        <div class="card">
+        <div class="home-card">
             <h3>Token Name</h3>
-            <div class="value">JosJis</div>
+            <div class="home-value">JosJis</div>
         </div>
 
-        <div class="card">
+        <div class="home-card">
             <h3>Symbol</h3>
-            <div class="value">$JJS</div>
+            <div class="home-value">$JJS</div>
         </div>
 
-        <div class="card">
+        <div class="home-card">
             <h3>Network</h3>
-            <div class="value">Polygon</div>
+            <div class="home-value">Polygon</div>
         </div>
 
-        <div class="card">
+        <div class="home-card">
             <h3>Standard</h3>
-            <div class="value">ERC-20</div>
+            <div class="home-value">ERC-20</div>
         </div>
 
-        <div class="card">
+        <div class="home-card">
             <h3>Decimals</h3>
-            <div class="value">18</div>
+            <div class="home-value">18</div>
         </div>
 
-        <div class="card">
+        <div class="home-card">
             <h3>Fixed Supply</h3>
-            <div class="value">10²⁵ JJS</div>
+            <div class="home-value">10²⁵ JJS</div>
             <p>No additional mint function.</p>
         </div>
 
     </div>
 
-    <div class="center" style="margin-top:22px">
-        <a href="tokenomics.html" class="btn">
+    <div class="home-center home-section-action">
+        <a href="tokenomics.html" class="home-btn">
             Explore Tokenomics →
         </a>
     </div>
@@ -468,16 +339,16 @@ footer a {
 
 <section>
 
-    <div class="heading">
+    <div class="home-heading">
         <h2>Official Contract</h2>
         <p>Always verify the JJS contract before interacting</p>
     </div>
 
-    <div class="card">
+    <div class="home-card">
 
         <h3>JosJis ($JJS) · Polygon</h3>
 
-        <div class="address" id="contract">
+        <div class="home-address" id="contract">
             0x52C8Ff13ada1431376b3E77E8219b644805122dF
         </div>
 
@@ -485,14 +356,13 @@ footer a {
             Copy Address
         </button>
 
-        <a class="btn outline"
+        <a class="home-btn home-btn-outline"
         href="https://polygonscan.com/token/0x52C8Ff13ada1431376b3E77E8219b644805122dF"
         target="_blank" rel="noopener noreferrer">
             Verify on PolygonScan
         </a>
 
-        <p id="copied" style="color:var(--purple);font-size:12px"
-           aria-live="polite"></p>
+        <p id="copied" class="home-copy-message" aria-live="polite"></p>
 
     </div>
 
@@ -502,38 +372,38 @@ footer a {
 
 <section>
 
-    <div class="heading">
+    <div class="home-heading">
         <h2>JosJis Utility</h2>
         <p>Exploring practical uses for JJS</p>
     </div>
 
-    <div class="grid">
+    <div class="home-grid">
 
-        <div class="card">
-            <div class="card-icon">🔒</div>
+        <div class="home-card">
+            <div class="home-card-icon">🔒</div>
             <h3>Flexible Utility Staking</h3>
             <p>
                 A planned flexible staking system designed
                 to connect JJS participation with ecosystem
                 membership and utility benefits.
             </p>
-            <span class="status">Planned</span>
+            <span class="home-status">Planned</span>
         </div>
 
-        <div class="card">
-            <div class="card-icon">🏆</div>
+        <div class="home-card">
+            <div class="home-card-icon">🏆</div>
             <h3>Membership NFTs</h3>
             <p>
                 Seven planned membership levels represented
                 by digital NFT badges and staking tiers.
             </p>
-            <span class="status">Planned</span>
+            <span class="home-status">Planned</span>
         </div>
 
     </div>
 
-    <div class="center" style="margin-top:22px">
-        <a href="utility.html" class="btn">
+    <div class="home-center home-section-action">
+        <a href="utility.html" class="home-btn">
             Explore Utilities →
         </a>
     </div>
@@ -544,54 +414,54 @@ footer a {
 
 <section>
 
-    <div class="heading">
+    <div class="home-heading">
         <h2>JosJis Ecosystem</h2>
         <p>One token. One connected vision.</p>
     </div>
 
-    <div class="grid">
+    <div class="home-grid">
 
-        <div class="card">
-            <div class="card-icon">🪙</div>
+        <div class="home-card">
+            <div class="home-card-icon">🪙</div>
             <h3>Token Foundation</h3>
             <p>
                 JJS as the core digital token on Polygon.
             </p>
-            <span class="status live">Deployed</span>
+            <span class="home-status home-status-live">Deployed</span>
         </div>
 
-        <div class="card">
-            <div class="card-icon">🌐</div>
+        <div class="home-card">
+            <div class="home-card-icon">🌐</div>
             <h3>Multi-Chain Expansion</h3>
             <p>
                 Exploring cross-chain connectivity for JJS.
             </p>
-            <span class="status">Planned</span>
+            <span class="home-status">Planned</span>
         </div>
 
-        <div class="card">
-            <div class="card-icon">📊</div>
+        <div class="home-card">
+            <div class="home-card-icon">📊</div>
             <h3>JGPS</h3>
             <p>
                 A planned global reference system for JJS market data.
             </p>
-            <span class="status">Research</span>
+            <span class="home-status">Research</span>
         </div>
 
-        <div class="card">
-            <div class="card-icon">⚙️</div>
+        <div class="home-card">
+            <div class="home-card-icon">⚙️</div>
             <h3>Future Infrastructure</h3>
             <p>
                 Exploring additional decentralized services
                 and future blockchain infrastructure.
             </p>
-            <span class="status">Long-Term Vision</span>
+            <span class="home-status">Long-Term Vision</span>
         </div>
 
     </div>
 
-    <div class="center" style="margin-top:22px">
-        <a href="ecosystem.html" class="btn">
+    <div class="home-center home-section-action">
+        <a href="ecosystem.html" class="home-btn">
             Explore Ecosystem →
         </a>
     </div>
@@ -602,12 +472,12 @@ footer a {
 
 <section>
 
-    <div class="heading">
+    <div class="home-heading">
         <h2>Development Roadmap</h2>
         <p>Building JosJis step by step</p>
     </div>
 
-    <div class="card center">
+    <div class="home-card home-center">
 
         <p>
             JosJis is being developed gradually, starting
@@ -616,7 +486,7 @@ footer a {
             future infrastructure.
         </p>
 
-        <a href="roadmap.html" class="btn">
+        <a href="roadmap.html" class="home-btn">
             View Full Roadmap →
         </a>
 
@@ -628,7 +498,7 @@ footer a {
 
 <section>
 
-    <div class="card notice">
+    <div class="home-card home-notice">
 
         <h3>Important: Contract Migration</h3>
 
@@ -661,47 +531,47 @@ footer a {
 
 <section>
 
-    <div class="heading">
+    <div class="home-heading">
         <h2>Join the Community</h2>
         <p>Follow official JosJis channels</p>
     </div>
 
-    <div class="grid">
+    <div class="home-grid">
 
-        <div class="card center">
+        <div class="home-card home-center">
             <h3>𝕏 Official X</h3>
             <p>Announcements and project updates.</p>
-            <a class="btn"
+            <a class="home-btn"
             href="https://x.com/JosJisToken"
             target="_blank" rel="noopener noreferrer">
                 Follow on X
             </a>
         </div>
 
-        <div class="card center">
+        <div class="home-card home-center">
             <h3>✈️ Telegram</h3>
             <p>Join the JosJis community.</p>
-            <a class="btn"
+            <a class="home-btn"
             href="https://t.me/josjis_token"
             target="_blank" rel="noopener noreferrer">
                 Join Telegram
             </a>
         </div>
 
-        <div class="card center">
+        <div class="home-card home-center">
             <h3>🎵 TikTok</h3>
             <p>Watch tutorials and project videos.</p>
-            <a class="btn"
+            <a class="home-btn"
             href="https://www.tiktok.com/@josjistoken"
             target="_blank" rel="noopener noreferrer">
                 Follow on TikTok
             </a>
         </div>
 
-        <div class="card center">
+        <div class="home-card home-center">
             <h3>💻 GitHub</h3>
             <p>Explore website development.</p>
-            <a class="btn"
+            <a class="home-btn"
             href="https://github.com/josjis-dev/JosJis"
             target="_blank" rel="noopener noreferrer">
                 Visit GitHub
@@ -710,8 +580,8 @@ footer a {
 
     </div>
 
-    <div class="center" style="margin-top:22px">
-        <a href="contact.html" class="btn outline">
+    <div class="home-center home-section-action">
+        <a href="contact.html" class="home-btn home-btn-outline">
             All Official Links →
         </a>
     </div>
