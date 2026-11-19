@@ -1,0 +1,601 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Contact JosJis | Official Community & Links</title>
+
+    <meta name="description" content="Connect with the official JosJis community through X, Telegram, TikTok, GitHub, and PolygonScan.">
+
+    <meta name="theme-color" content="#0c0914">
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        :root {
+            --purple: #a56aff;
+            --purple-light: #c9a5ff;
+            --purple-dark: #713bc5;
+            --bg: #0c0914;
+            --card: #171222;
+            --border: #342747;
+            --text: #f5f0ff;
+            --muted: #b8adc9;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: Arial, sans-serif;
+            line-height: 1.7;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        header {
+            padding: 18px 7%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #30243f;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .logo {
+            font-size: 25px;
+            font-weight: bold;
+            color: var(--purple);
+        }
+
+        nav {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: var(--muted);
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        nav a:hover,
+        nav a.active {
+            color: var(--purple-light);
+        }
+
+        .hero {
+            text-align: center;
+            padding: 90px 20px 75px;
+            background: radial-gradient(
+                ellipse at top,
+                #422365 0%,
+                #1b102b 40%,
+                #0c0914 80%
+            );
+        }
+
+        .hero-tag {
+            color: var(--purple-light);
+            letter-spacing: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .hero h1 {
+            font-size: clamp(40px, 8vw, 60px);
+            margin: 18px 0;
+        }
+
+        .hero h1 span {
+            color: var(--purple-light);
+        }
+
+        .hero p {
+            color: var(--muted);
+            max-width: 650px;
+            margin: auto;
+        }
+
+        main {
+            max-width: 1000px;
+            margin: auto;
+            padding: 65px 20px;
+        }
+
+        section {
+            margin-bottom: 65px;
+        }
+
+        .section-tag {
+            color: var(--purple);
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 3px;
+            margin-bottom: 8px;
+        }
+
+        h2 {
+            color: var(--purple-light);
+            font-size: 28px;
+            margin-bottom: 12px;
+        }
+
+        .intro {
+            color: var(--muted);
+            max-width: 700px;
+            margin-bottom: 25px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(
+                auto-fit,
+                minmax(220px, 1fr)
+            );
+            gap: 18px;
+        }
+
+        .contact-card {
+            display: block;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            padding: 24px;
+            transition: 0.25s;
+        }
+
+        .contact-card:hover {
+            border-color: var(--purple);
+            transform: translateY(-4px);
+            background: #21172f;
+        }
+
+        .contact-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .contact-card h3 {
+            color: var(--purple-light);
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .contact-card p {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .contact-card .visit {
+            display: inline-block;
+            color: var(--purple-light);
+            font-size: 12px;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        .contract-box {
+            background: linear-gradient(
+                135deg,
+                #39205a,
+                #171222
+            );
+            border: 1px solid var(--purple-dark);
+            border-radius: 16px;
+            padding: 28px;
+        }
+
+        .contract-label {
+            color: var(--muted);
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .contract-address {
+            display: block;
+            background: #0c0914;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            padding: 14px;
+            color: var(--purple-light);
+            font-size: 13px;
+            word-break: break-all;
+            margin-bottom: 18px;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-block;
+            border: none;
+            border-radius: 8px;
+            padding: 11px 18px;
+            background: var(--purple-dark);
+            color: white;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--purple);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--purple);
+            color: var(--purple-light);
+        }
+
+        .btn-outline:hover {
+            background: var(--purple-dark);
+            color: white;
+        }
+
+        .notice {
+            background: var(--card);
+            border-left: 3px solid var(--purple);
+            border-radius: 6px;
+            padding: 20px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        footer {
+            border-top: 1px solid #30243f;
+            text-align: center;
+            padding: 32px 20px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        footer a {
+            color: var(--purple-light);
+        }
+
+        @media (max-width: 600px) {
+            header {
+                justify-content: center;
+            }
+
+            nav {
+                justify-content: center;
+                gap: 13px;
+            }
+
+            .hero {
+                padding-top: 70px;
+            }
+
+            h2 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+
+    <a href="index.html" class="logo">JosJis</a>
+
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="tokenomics.html">Tokenomics</a>
+        <a href="ecosystem.html">Ecosystem</a>
+        <a href="utility.html">Utility</a>
+        <a href="roadmap.html">Roadmap</a>
+        <a href="contact.html" class="active">Contact</a>
+    </nav>
+
+</header>
+
+<!-- HERO -->
+
+<div class="hero">
+
+    <div class="hero-tag">CONNECT WITH JOSJIS</div>
+
+    <h1>
+        Get in <span>Touch</span>
+    </h1>
+
+    <p>
+        Join the JosJis community, follow project
+        updates, explore our development, and connect
+        with our official communication channels.
+    </p>
+
+</div>
+
+<main>
+
+    <!-- SOCIAL CHANNELS -->
+
+    <section>
+
+        <div class="section-tag">01 · OFFICIAL CHANNELS</div>
+
+        <h2>Connect With JosJis</h2>
+
+        <p class="intro">
+            Follow JosJis through its official social
+            media and community platforms.
+        </p>
+
+        <div class="grid">
+
+            <a class="contact-card"
+               href="https://x.com/JosJisToken"
+               target="_blank"
+               rel="noopener noreferrer">
+
+                <div class="contact-icon">𝕏</div>
+
+                <h3>X (Twitter)</h3>
+
+                <p>
+                    Follow announcements, project updates,
+                    and community discussions.
+                </p>
+
+                <span class="visit">Visit Official X →</span>
+
+            </a>
+
+            <a class="contact-card"
+               href="https://t.me/josjis_token"
+               target="_blank"
+               rel="noopener noreferrer">
+
+                <div class="contact-icon">✈️</div>
+
+                <h3>Telegram</h3>
+
+                <p>
+                    Join the JosJis community and
+                    participate in discussions.
+                </p>
+
+                <span class="visit">Join Telegram →</span>
+
+            </a>
+
+            <a class="contact-card"
+               href="https://www.tiktok.com/@josjistoken"
+               target="_blank"
+               rel="noopener noreferrer">
+
+                <div class="contact-icon">🎵</div>
+
+                <h3>TikTok</h3>
+
+                <p>
+                    Watch JosJis tutorials, educational
+                    content, and project videos.
+                </p>
+
+                <span class="visit">Visit TikTok →</span>
+
+            </a>
+
+            <a class="contact-card"
+               href="https://github.com/josjis-dev/JosJis"
+               target="_blank"
+               rel="noopener noreferrer">
+
+                <div class="contact-icon">💻</div>
+
+                <h3>GitHub</h3>
+
+                <p>
+                    Explore the JosJis website repository
+                    and public development resources.
+                </p>
+
+                <span class="visit">Visit GitHub →</span>
+
+            </a>
+
+        </div>
+
+    </section>
+
+    <!-- CONTRACT INFORMATION -->
+
+    <section>
+
+        <div class="section-tag">02 · TOKEN VERIFICATION</div>
+
+        <h2>Official JJS Contract</h2>
+
+        <p class="intro">
+            Always verify the contract address before
+            buying, transferring, or interacting with
+            JosJis ($JJS).
+        </p>
+
+        <div class="contract-box">
+
+            <div class="contract-label">
+                JosJis ($JJS) · Polygon Network
+            </div>
+
+            <div class="contract-address" id="contractAddress">
+                0x52C8Ff13ada1431376b3E77E8219b644805122dF
+            </div>
+
+            <div class="button-row">
+
+                <button class="btn" onclick="copyAddress()">
+                    Copy Contract Address
+                </button>
+
+                <a class="btn btn-outline"
+                   href="https://polygonscan.com/token/0x52C8Ff13ada1431376b3E77E8219b644805122dF"
+                   target="_blank"
+                   rel="noopener noreferrer">
+                    View on PolygonScan
+                </a>
+
+            </div>
+
+            <p id="copyMessage"
+               style="color:#b8adc9; font-size:12px; margin-top:12px;"
+               aria-live="polite">
+            </p>
+
+        </div>
+
+    </section>
+
+    <!-- WEBSITE -->
+
+    <section>
+
+        <div class="section-tag">03 · OFFICIAL WEBSITE</div>
+
+        <h2>Explore JosJis</h2>
+
+        <p class="intro">
+            Learn more about the project, its token
+            fundamentals, utility plans, and ecosystem
+            development.
+        </p>
+
+        <div class="grid">
+
+            <a href="about.html" class="contact-card">
+                <div class="contact-icon">💜</div>
+                <h3>About JosJis</h3>
+                <p>Discover the vision and mission behind JosJis.</p>
+                <span class="visit">Learn More →</span>
+            </a>
+
+            <a href="tokenomics.html" class="contact-card">
+                <div class="contact-icon">🪙</div>
+                <h3>Tokenomics</h3>
+                <p>Explore JJS token information and supply.</p>
+                <span class="visit">Explore Tokenomics →</span>
+            </a>
+
+            <a href="ecosystem.html" class="contact-card">
+                <div class="contact-icon">🌐</div>
+                <h3>Ecosystem</h3>
+                <p>Explore the wider JosJis ecosystem vision.</p>
+                <span class="visit">Explore Ecosystem →</span>
+            </a>
+
+        </div>
+
+    </section>
+
+    <!-- SECURITY -->
+
+    <section>
+
+        <div class="section-tag">04 · SECURITY & AWARENESS</div>
+
+        <h2>Stay Safe</h2>
+
+        <div class="notice">
+
+            <strong>Important Security Notice</strong>
+
+            <br><br>
+
+            - Only trust links published through official
+            JosJis channels.
+
+            <br>
+
+            - Always verify the JJS contract address
+            before making a transaction.
+
+            <br>
+
+            - Never share your wallet recovery phrase,
+            private key, or password.
+
+            <br>
+
+            - Be cautious of impersonators, fake giveaways,
+            and unofficial investment offers.
+
+            <br>
+
+            - JosJis does not guarantee profits or
+            investment returns.
+
+        </div>
+
+    </section>
+
+</main>
+
+<footer>
+
+    <p>© 2026 JosJis. All rights reserved.</p>
+
+    <p>One Token. One Community. Many Possibilities.</p>
+
+    <p>
+        <a href="https://x.com/JosJisToken"
+           target="_blank"
+           rel="noopener noreferrer">X</a>
+
+        &nbsp; | &nbsp;
+
+        <a href="https://t.me/josjis_token"
+           target="_blank"
+           rel="noopener noreferrer">Telegram</a>
+
+        &nbsp; | &nbsp;
+
+        <a href="https://www.tiktok.com/@josjistoken"
+           target="_blank"
+           rel="noopener noreferrer">TikTok</a>
+    </p>
+
+</footer>
+
+<script>
+    async function copyAddress() {
+        const address =
+            document.getElementById("contractAddress").innerText.trim();
+
+        const message =
+            document.getElementById("copyMessage");
+
+        try {
+            await navigator.clipboard.writeText(address);
+            message.textContent = "Contract address copied successfully!";
+        } catch (error) {
+            message.textContent =
+                "Unable to copy automatically. Please copy the address manually.";
+        }
+    }
+</script>
+
+</body>
+</html>
