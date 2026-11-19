@@ -1,0 +1,456 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>JosJis Utility Ecosystem</title>
+
+    <meta name="description" content="Explore the planned utilities and blockchain applications of the JosJis ecosystem, powered by the JJS token.">
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        :root {
+            --purple: #9b5cff;
+            --purple-dark: #6e35c5;
+            --bg: #0c0914;
+            --card: #171222;
+            --text: #f5f0ff;
+            --muted: #b8adc9;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: Arial, sans-serif;
+            line-height: 1.7;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        header {
+            padding: 18px 7%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #30243f;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .logo {
+            font-size: 25px;
+            font-weight: bold;
+            color: var(--purple);
+        }
+
+        nav {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        nav a:hover,
+        nav a.active {
+            color: var(--purple);
+        }
+
+        .hero {
+            text-align: center;
+            padding: 85px 20px 70px;
+            background: radial-gradient(
+                circle at top,
+                #352052 0%,
+                #0c0914 65%
+            );
+        }
+
+        .tag {
+            color: var(--purple);
+            letter-spacing: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .hero h1 {
+            font-size: clamp(36px, 7vw, 58px);
+            margin: 15px 0;
+        }
+
+        .hero h1 span {
+            color: var(--purple);
+        }
+
+        .hero p {
+            color: var(--muted);
+            max-width: 720px;
+            margin: auto;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: auto;
+            padding: 55px 20px;
+        }
+
+        section {
+            margin-bottom: 55px;
+        }
+
+        h2 {
+            color: var(--purple);
+            font-size: 27px;
+            margin-bottom: 15px;
+        }
+
+        section > p {
+            color: var(--muted);
+            margin-bottom: 15px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(
+                auto-fit,
+                minmax(230px, 1fr)
+            );
+            gap: 18px;
+            margin-top: 25px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid #342747;
+            border-radius: 15px;
+            padding: 25px;
+            transition: 0.25s;
+        }
+
+        .card:hover {
+            border-color: var(--purple);
+            transform: translateY(-4px);
+        }
+
+        .icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .card h3 {
+            color: #c69aff;
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .status {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: #30243f;
+            color: #d4b8ff;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .highlight {
+            background: linear-gradient(
+                135deg,
+                #352052,
+                #171222
+            );
+            border: 1px solid var(--purple-dark);
+            padding: 30px;
+            border-radius: 18px;
+        }
+
+        .highlight h2 {
+            color: #d5b6ff;
+        }
+
+        .highlight p {
+            color: var(--muted);
+        }
+
+        .notice {
+            background: var(--card);
+            border-left: 3px solid var(--purple);
+            padding: 18px;
+            border-radius: 5px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .button {
+            display: inline-block;
+            margin-top: 18px;
+            padding: 11px 22px;
+            background: var(--purple-dark);
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .button:hover {
+            background: var(--purple);
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 20px;
+            border-top: 1px solid #30243f;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        footer a {
+            color: var(--purple);
+        }
+
+        @media (max-width: 600px) {
+            header {
+                justify-content: center;
+            }
+
+            nav {
+                justify-content: center;
+                gap: 13px;
+            }
+
+            .hero {
+                padding-top: 65px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <a href="index.html" class="logo">JosJis</a>
+
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="tokenomics.html">Tokenomics</a>
+        <a href="ecosystem.html">Ecosystem</a>
+        <a href="utility.html" class="active">Utility</a>
+        <a href="roadmap.html">Roadmap</a>
+        <a href="contact.html">Contact</a>
+    </nav>
+</header>
+
+<div class="hero">
+    <div class="tag">THE JOSJIS ECOSYSTEM</div>
+
+    <h1>JJS <span>Utilities</span></h1>
+
+    <p>
+        Exploring practical blockchain applications,
+        digital services, and new opportunities
+        powered by the JosJis ecosystem.
+    </p>
+</div>
+
+<main>
+
+    <section>
+        <h2>Beyond a Digital Token</h2>
+
+        <p>
+            JosJis aims to grow beyond a single cryptocurrency.
+            The ecosystem is designed to explore different
+            applications where JJS can provide practical
+            functions and support digital services.
+        </p>
+
+        <p>
+            Our approach is gradual: explore ideas, build
+            prototypes, test functionality, and develop
+            useful applications over time.
+        </p>
+    </section>
+
+    <section>
+        <h2>Core Utility Concepts</h2>
+
+        <div class="grid">
+
+            <div class="card">
+                <div class="icon">🔒</div>
+                <h3>Utility Staking</h3>
+                <p>
+                    Stake JJS to access ecosystem membership
+                    levels, participation opportunities,
+                    and selected community utilities.
+                </p>
+                <span class="status">Planned</span>
+            </div>
+
+            <div class="card">
+                <div class="icon">🏆</div>
+                <h3>Membership NFTs</h3>
+                <p>
+                    Digital membership badges representing
+                    eligible staking tiers and access
+                    to selected ecosystem benefits.
+                </p>
+                <span class="status">Planned</span>
+            </div>
+
+            <div class="card">
+                <div class="icon">🌐</div>
+                <h3>Multi-Chain Ecosystem</h3>
+                <p>
+                    Explore JJS accessibility across
+                    multiple blockchain networks through
+                    a carefully designed bridge system.
+                </p>
+                <span class="status">Research & Planning</span>
+            </div>
+
+            <div class="card">
+                <div class="icon">📊</div>
+                <h3>JJS Price Reference</h3>
+                <p>
+                    Explore a transparent reference-price
+                    system designed to monitor JJS market
+                    information across supported networks.
+                </p>
+                <span class="status">Research & Planning</span>
+            </div>
+
+        </div>
+    </section>
+
+    <section>
+        <h2>Industry-Focused Ecosystem</h2>
+
+        <p>
+            JosJis also explores opportunities to develop
+            blockchain applications for different industries
+            and communities.
+        </p>
+
+        <div class="grid">
+
+            <div class="card">
+                <div class="icon">🌱</div>
+                <h3>AGRI — Agriculture</h3>
+                <p>
+                    Exploring blockchain utilities for
+                    agricultural communities, farmers,
+                    agricultural products, and supply chains.
+                </p>
+                <span class="status">Concept</span>
+            </div>
+
+            <div class="card">
+                <div class="icon">☕</div>
+                <h3>CFFR — Coffee Industry</h3>
+                <p>
+                    Exploring opportunities for coffee
+                    farmers, roasters, coffee shops,
+                    and coffee communities.
+                </p>
+                <span class="status">Concept</span>
+            </div>
+
+            <div class="card">
+                <div class="icon">🍎</div>
+                <h3>FOOD — Food Ecosystem</h3>
+                <p>
+                    Exploring digital utilities for food
+                    businesses, producers, consumers,
+                    and food-related communities.
+                </p>
+                <span class="status">Concept</span>
+            </div>
+
+            <div class="card">
+                <div class="icon">💡</div>
+                <h3>Future Applications</h3>
+                <p>
+                    Additional industry-focused projects
+                    and digital services may be explored
+                    as the ecosystem develops.
+                </p>
+                <span class="status">Exploration</span>
+            </div>
+
+        </div>
+    </section>
+
+    <section>
+        <div class="highlight">
+            <h2>One Token. Many Possibilities.</h2>
+
+            <p>
+                The long-term vision is to build an interconnected
+                ecosystem where JJS can support different
+                applications, services, and community initiatives.
+            </p>
+
+            <a href="ecosystem.html" class="button">
+                Explore the Ecosystem
+            </a>
+        </div>
+    </section>
+
+    <section>
+        <h2>Our Development Approach</h2>
+
+        <p>
+            Every utility must be developed with attention
+            to security, transparency, practical value,
+            and technical feasibility.
+        </p>
+
+        <div class="notice">
+            The utilities presented on this page represent
+            concepts, research, or planned development.
+            They should not be interpreted as currently
+            operational products unless explicitly announced
+            and verified through official JosJis channels.
+        </div>
+    </section>
+
+</main>
+
+<footer>
+    <p>© 2026 JosJis. All rights reserved.</p>
+
+    <p>
+        <a href="https://x.com/JosJisToken"
+           target="_blank" rel="noopener noreferrer">X</a>
+        &nbsp; | &nbsp;
+        <a href="https://t.me/josjis_token"
+           target="_blank" rel="noopener noreferrer">Telegram</a>
+        &nbsp; | &nbsp;
+        <a href="https://www.tiktok.com/@josjistoken"
+           target="_blank" rel="noopener noreferrer">TikTok</a>
+    </p>
+</footer>
+
+</body>
+</html>
