@@ -121,6 +121,44 @@
             flex-wrap: wrap;
         }
 
+        /* Contact Buttons */
+
+        .contact-button-row .btn {
+            appearance: none;
+            -webkit-appearance: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--purple);
+            color: #ffffff;
+            border: 1px solid var(--purple);
+            border-radius: 9px;
+            padding: 12px 18px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: bold;
+            text-decoration: none;
+            cursor: pointer;
+            transition: 0.25s;
+        }
+
+        .contact-button-row .btn:hover {
+            background: var(--purple-dark);
+            border-color: var(--purple-light);
+            transform: translateY(-2px);
+        }
+
+        .contact-button-row .btn-outline {
+            background: transparent;
+            color: var(--purple-light);
+            border: 1px solid var(--purple);
+        }
+
+        .contact-button-row .btn-outline:hover {
+            background: var(--purple);
+            color: #ffffff;
+        }
+
         .contact-notice {
             background: var(--card);
             border-left: 3px solid var(--purple);
@@ -279,15 +317,22 @@
 
             <div class="contact-button-row">
 
-                <button class="btn" onclick="copyAddress()">
+                <button
+                    type="button"
+                    class="btn"
+                    onclick="copyAddress()">
+
                     Copy Contract Address
+
                 </button>
 
                 <a class="btn btn-outline"
                    href="https://polygonscan.com/token/0x52C8Ff13ada1431376b3E77E8219b644805122dF"
                    target="_blank"
                    rel="noopener noreferrer">
+
                     View on PolygonScan
+
                 </a>
 
             </div>
