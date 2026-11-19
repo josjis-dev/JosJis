@@ -1,6 +1,6 @@
 /* =====================================
    JOSJIS GLOBAL WEBSITE STYLESHEET
-   ===================================== */
+===================================== */
 
 :root {
   --purple: #9b5cff;
@@ -25,7 +25,7 @@
 
 /* =====================================
    RESET
-   ===================================== */
+===================================== */
 
 * {
   box-sizing: border-box;
@@ -59,10 +59,98 @@ button {
 }
 
 /* =====================================
-   HEADER
-   ===================================== */
+   SHARED HEADER
+===================================== */
 
-header {
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 16px 7%;
+  gap: 15px;
+
+  background: rgba(12, 9, 20, 0.96);
+  backdrop-filter: blur(12px);
+
+  border-bottom: 1px solid var(--border);
+}
+
+.site-header .logo {
+  color: var(--purple);
+  font-size: 25px;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.site-header .logo:hover {
+  color: var(--purple-light);
+}
+
+/* DESKTOP NAVIGATION */
+
+.main-nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+
+.main-nav a {
+  color: var(--muted);
+  font-size: 14px;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.main-nav a:hover,
+.main-nav a.active {
+  color: var(--purple);
+}
+
+/* HAMBURGER BUTTON */
+
+.menu-toggle {
+  display: none;
+
+  width: 42px;
+  height: 38px;
+  padding: 8px;
+
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+
+  cursor: pointer;
+}
+
+.menu-toggle span {
+  display: block;
+
+  width: 100%;
+  height: 2px;
+  margin: 5px 0;
+
+  background: var(--text);
+  border-radius: 5px;
+
+  transition: var(--transition);
+}
+
+.menu-toggle:hover {
+  border-color: var(--purple);
+}
+
+/* =====================================
+   LEGACY HEADER
+   Temporary support during migration
+===================================== */
+
+header:not(.site-header) {
   padding: 18px 7%;
   display: flex;
   justify-content: space-between;
@@ -80,39 +168,32 @@ header {
   backdrop-filter: blur(12px);
 }
 
-.logo {
+header:not(.site-header) .logo {
   color: var(--purple);
   font-size: 25px;
   font-weight: bold;
-  text-decoration: none;
 }
 
-.logo:hover {
-  color: var(--purple-light);
-}
-
-nav {
+header:not(.site-header) nav {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 18px;
 }
 
-nav a {
+header:not(.site-header) nav a {
   color: var(--muted);
-  text-decoration: none;
   font-size: 14px;
-  transition: var(--transition);
 }
 
-nav a:hover,
-nav a.active {
+header:not(.site-header) nav a:hover,
+header:not(.site-header) nav a.active {
   color: var(--purple);
 }
 
 /* =====================================
    HERO SECTION
-   ===================================== */
+===================================== */
 
 .hero {
   text-align: center;
@@ -152,7 +233,7 @@ nav a.active {
 
 /* =====================================
    MAIN CONTENT
-   ===================================== */
+===================================== */
 
 main {
   width: 100%;
@@ -181,7 +262,7 @@ section {
 
 /* =====================================
    CARDS
-   ===================================== */
+===================================== */
 
 .card {
   background: var(--card);
@@ -210,7 +291,7 @@ section {
 
 /* =====================================
    GRID
-   ===================================== */
+===================================== */
 
 .dashboard-grid,
 .card-grid {
@@ -221,7 +302,7 @@ section {
 
 /* =====================================
    BUTTONS
-   ===================================== */
+===================================== */
 
 .primary-btn {
   background: linear-gradient(
@@ -266,7 +347,7 @@ section {
 
 /* =====================================
    WALLET PANEL
-   ===================================== */
+===================================== */
 
 .wallet-panel {
   background: linear-gradient(
@@ -310,7 +391,7 @@ section {
 
 /* =====================================
    STATUS
-   ===================================== */
+===================================== */
 
 .status {
   display: block;
@@ -330,7 +411,7 @@ section {
 
 /* =====================================
    TEXT AND VALUES
-   ===================================== */
+===================================== */
 
 .value {
   font-size: 25px;
@@ -355,7 +436,7 @@ section {
 
 /* =====================================
    CONTRACT ADDRESS
-   ===================================== */
+===================================== */
 
 .contract {
   background: #100d19;
@@ -370,7 +451,7 @@ section {
 
 /* =====================================
    FORMS
-   ===================================== */
+===================================== */
 
 input,
 textarea,
@@ -401,7 +482,7 @@ textarea {
 
 /* =====================================
    FOOTER
-   ===================================== */
+===================================== */
 
 footer {
   text-align: center;
@@ -418,21 +499,56 @@ footer a {
 
 /* =====================================
    RESPONSIVE MOBILE
-   ===================================== */
+===================================== */
 
 @media (max-width: 700px) {
 
-  header {
+  /* NEW SHARED HEADER */
+
+  .site-header {
+    justify-content: space-between;
+    padding: 14px 5%;
+    flex-wrap: wrap;
+  }
+
+  .menu-toggle {
+    display: block;
+  }
+
+  .main-nav {
+    display: none;
+
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+
+    padding-top: 12px;
+  }
+
+  .main-nav.open {
+    display: flex;
+  }
+
+  .main-nav a {
+    display: block;
+    padding: 12px 10px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* OLD HEADER TEMPORARY SUPPORT */
+
+  header:not(.site-header) {
     justify-content: center;
     padding: 16px 15px;
   }
 
-  nav {
+  header:not(.site-header) nav {
     justify-content: center;
     gap: 13px;
   }
 
-  nav a {
+  header:not(.site-header) nav a {
     font-size: 13px;
   }
 
@@ -460,16 +576,20 @@ footer a {
 
 /* =====================================
    SMALL MOBILE
-   ===================================== */
+===================================== */
 
 @media (max-width: 380px) {
 
-  nav {
+  header:not(.site-header) nav {
     gap: 10px;
   }
 
-  nav a {
+  header:not(.site-header) nav a {
     font-size: 12px;
+  }
+
+  .main-nav a {
+    font-size: 13px;
   }
 
   .hero h1 {
