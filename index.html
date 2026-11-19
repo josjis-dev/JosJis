@@ -9,6 +9,7 @@
 <meta name="description" content="Welcome to JosJis ($JJS), a community-driven Polygon token project. Explore its tokenomics, utilities, ecosystem and development roadmap.">
 
 <link rel="stylesheet" href="style.css">
+<script src="header.js" defer></script>
 
 <style>
 /* HOME PAGE SPECIFIC STYLES */
@@ -16,11 +17,7 @@
 .home-hero {
     text-align: center;
     padding: 90px 20px 70px;
-    background: radial-gradient(
-        circle at top,
-        #352052 0%,
-        #0c0914 65%
-    );
+    background: radial-gradient(circle at top, #352052 0%, #0c0914 65%);
 }
 
 .home-hero img {
@@ -105,10 +102,7 @@
 
 .home-grid {
     display: grid;
-    grid-template-columns: repeat(
-        auto-fit,
-        minmax(220px, 1fr)
-    );
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 18px;
 }
 
@@ -204,21 +198,7 @@
 
 <body>
 
-<!-- HEADER -->
-
-<header>
-    <a href="index.html" class="logo">JosJis</a>
-
-    <nav>
-        <a href="index.html" class="active">Home</a>
-        <a href="about.html">About</a>
-        <a href="tokenomics.html">Tokenomics</a>
-        <a href="ecosystem.html">Ecosystem</a>
-        <a href="utility.html">Utility</a>
-        <a href="roadmap.html">Roadmap</a>
-        <a href="contact.html">Contact</a>
-    </nav>
-</header>
+<!-- HEADER IS LOADED FROM header.js -->
 
 <!-- HERO -->
 
@@ -253,17 +233,13 @@
 
 <main class="container">
 
-<!-- ABOUT PREVIEW -->
-
 <section>
-
     <div class="home-heading">
         <h2>About JosJis</h2>
         <p>Community · Transparency · Innovation</p>
     </div>
 
     <div class="home-card home-center">
-
         <p>
             JosJis is a Polygon-based token project focused
             on community participation, transparency and
@@ -278,22 +254,16 @@
         <a href="about.html" class="home-btn">
             Discover JosJis →
         </a>
-
     </div>
-
 </section>
 
-<!-- TOKEN OVERVIEW -->
-
 <section>
-
     <div class="home-heading">
         <h2>JJS Token Overview</h2>
         <p>Official token information</p>
     </div>
 
     <div class="home-grid">
-
         <div class="home-card">
             <h3>Token Name</h3>
             <div class="home-value">JosJis</div>
@@ -324,7 +294,6 @@
             <div class="home-value">10²⁵ JJS</div>
             <p>No additional mint function.</p>
         </div>
-
     </div>
 
     <div class="home-center home-section-action">
@@ -332,20 +301,15 @@
             Explore Tokenomics →
         </a>
     </div>
-
 </section>
 
-<!-- CONTRACT ADDRESS -->
-
 <section>
-
     <div class="home-heading">
         <h2>Official Contract</h2>
         <p>Always verify the JJS contract before interacting</p>
     </div>
 
     <div class="home-card">
-
         <h3>JosJis ($JJS) · Polygon</h3>
 
         <div class="home-address" id="contract">
@@ -363,22 +327,16 @@
         </a>
 
         <p id="copied" class="home-copy-message" aria-live="polite"></p>
-
     </div>
-
 </section>
 
-<!-- UTILITY PREVIEW -->
-
 <section>
-
     <div class="home-heading">
         <h2>JosJis Utility</h2>
         <p>Exploring practical uses for JJS</p>
     </div>
 
     <div class="home-grid">
-
         <div class="home-card">
             <div class="home-card-icon">🔒</div>
             <h3>Flexible Utility Staking</h3>
@@ -399,7 +357,6 @@
             </p>
             <span class="home-status">Planned</span>
         </div>
-
     </div>
 
     <div class="home-center home-section-action">
@@ -407,44 +364,33 @@
             Explore Utilities →
         </a>
     </div>
-
 </section>
 
-<!-- ECOSYSTEM PREVIEW -->
-
 <section>
-
     <div class="home-heading">
         <h2>JosJis Ecosystem</h2>
         <p>One token. One connected vision.</p>
     </div>
 
     <div class="home-grid">
-
         <div class="home-card">
             <div class="home-card-icon">🪙</div>
             <h3>Token Foundation</h3>
-            <p>
-                JJS as the core digital token on Polygon.
-            </p>
+            <p>JJS as the core digital token on Polygon.</p>
             <span class="home-status home-status-live">Deployed</span>
         </div>
 
         <div class="home-card">
             <div class="home-card-icon">🌐</div>
             <h3>Multi-Chain Expansion</h3>
-            <p>
-                Exploring cross-chain connectivity for JJS.
-            </p>
+            <p>Exploring cross-chain connectivity for JJS.</p>
             <span class="home-status">Planned</span>
         </div>
 
         <div class="home-card">
             <div class="home-card-icon">📊</div>
             <h3>JGPS</h3>
-            <p>
-                A planned global reference system for JJS market data.
-            </p>
+            <p>A planned global reference system for JJS market data.</p>
             <span class="home-status">Research</span>
         </div>
 
@@ -457,7 +403,6 @@
             </p>
             <span class="home-status">Long-Term Vision</span>
         </div>
-
     </div>
 
     <div class="home-center home-section-action">
@@ -465,20 +410,15 @@
             Explore Ecosystem →
         </a>
     </div>
-
 </section>
 
-<!-- ROADMAP PREVIEW -->
-
 <section>
-
     <div class="home-heading">
         <h2>Development Roadmap</h2>
         <p>Building JosJis step by step</p>
     </div>
 
     <div class="home-card home-center">
-
         <p>
             JosJis is being developed gradually, starting
             from its token foundation and expanding toward
@@ -489,17 +429,11 @@
         <a href="roadmap.html" class="home-btn">
             View Full Roadmap →
         </a>
-
     </div>
-
 </section>
 
-<!-- MIGRATION NOTICE -->
-
 <section>
-
     <div class="home-card home-notice">
-
         <h3>Important: Contract Migration</h3>
 
         <p>
@@ -522,28 +456,20 @@
             The previous token does not automatically convert
             into the new token. They are separate contracts.
         </p>
-
     </div>
-
 </section>
 
-<!-- OFFICIAL LINKS -->
-
 <section>
-
     <div class="home-heading">
         <h2>Join the Community</h2>
         <p>Follow official JosJis channels</p>
     </div>
 
     <div class="home-grid">
-
         <div class="home-card home-center">
             <h3>𝕏 Official X</h3>
             <p>Announcements and project updates.</p>
-            <a class="home-btn"
-            href="https://x.com/JosJisToken"
-            target="_blank" rel="noopener noreferrer">
+            <a class="home-btn" href="https://x.com/JosJisToken" target="_blank" rel="noopener noreferrer">
                 Follow on X
             </a>
         </div>
@@ -551,9 +477,7 @@
         <div class="home-card home-center">
             <h3>✈️ Telegram</h3>
             <p>Join the JosJis community.</p>
-            <a class="home-btn"
-            href="https://t.me/josjis_token"
-            target="_blank" rel="noopener noreferrer">
+            <a class="home-btn" href="https://t.me/josjis_token" target="_blank" rel="noopener noreferrer">
                 Join Telegram
             </a>
         </div>
@@ -561,9 +485,7 @@
         <div class="home-card home-center">
             <h3>🎵 TikTok</h3>
             <p>Watch tutorials and project videos.</p>
-            <a class="home-btn"
-            href="https://www.tiktok.com/@josjistoken"
-            target="_blank" rel="noopener noreferrer">
+            <a class="home-btn" href="https://www.tiktok.com/@josjistoken" target="_blank" rel="noopener noreferrer">
                 Follow on TikTok
             </a>
         </div>
@@ -571,13 +493,10 @@
         <div class="home-card home-center">
             <h3>💻 GitHub</h3>
             <p>Explore website development.</p>
-            <a class="home-btn"
-            href="https://github.com/josjis-dev/JosJis"
-            target="_blank" rel="noopener noreferrer">
+            <a class="home-btn" href="https://github.com/josjis-dev/JosJis" target="_blank" rel="noopener noreferrer">
                 Visit GitHub
             </a>
         </div>
-
     </div>
 
     <div class="home-center home-section-action">
@@ -585,7 +504,6 @@
             All Official Links →
         </a>
     </div>
-
 </section>
 
 </main>
@@ -593,7 +511,6 @@
 <!-- FOOTER -->
 
 <footer>
-
     <b>JosJis ($JJS)</b>
 
     <p>Community · Transparency · Polygon</p>
@@ -612,7 +529,6 @@
     <small>
         This website does not promise profits or investment returns.
     </small>
-
 </footer>
 
 <!-- COPY CONTRACT SCRIPT -->
