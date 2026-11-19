@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -159,6 +158,7 @@ main {
   margin-top:15px;
   color:var(--muted);
   font-size:13px;
+  overflow-wrap:anywhere;
 }
 
 .status.connected { color:#65d99a; }
@@ -356,7 +356,7 @@ footer {
 <script type="module">
 
 // =====================================
-// IMPORT LIBRARIES
+// IMPORT REOWN APPKIT
 // =====================================
 
 import { createAppKit } from
@@ -439,6 +439,12 @@ const networkName =
 const jjsBalance =
   document.getElementById("jjsBalance");
 
+const contractAddress =
+  document.getElementById("contractAddress");
+
+const copyBtn =
+  document.getElementById("copyBtn");
+
 // =====================================
 // APPLICATION STATE
 // =====================================
@@ -454,6 +460,27 @@ let appReady = false;
 function setStatus(message, type = "") {
   statusBox.textContent = message;
   statusBox.className = "status " + type;
+}
+
+// =====================================
+// FORMAT BALANCE WITHOUT NUMBER LOSS
+// =====================================
+
+function formatDisplayBalance(value) {
+
+  const parts = String(value).split(".");
+  const whole = parts[0];
+
+  const formattedWhole = whole.replace(
+    /\B(?=(\d{3})+(?!\d))/g,
+    ","
+  );
+
+  const fraction = (parts[1] || "").slice(0, 6);
+
+  return fraction
+    ? formattedWhole + "." + fraction + " JJS"
+    : formattedWhole + " JJS";
 }
 
 // =====================================
@@ -514,7 +541,7 @@ async function refreshDashboard() {
     connectBtn.style.display = "none";
     disconnectBtn.style.display = "inline-block";
 
-    // Check network
+    // Check Polygon network
 
     if (chainId !== JJS_CONFIG.chainId) {
 
@@ -534,11 +561,11 @@ async function refreshDashboard() {
 
     setStatus("Reading JJS balance...", "connected");
 
-    // Read balance through web3-config.js
+    // Read balance from web3-config.js
 
     const formatted = await getJJSBalance(address);
 
-    // Prevent outdated results
+    // Ignore outdated requests
 
     if (
       requestId !== refreshNumber ||
@@ -547,16 +574,8 @@ async function refreshDashboard() {
       return;
     }
 
-    const number = Number(formatted);
-
-    const display = Number.isFinite(number)
-      ? number.toLocaleString("en-US", {
-          maximumFractionDigits: 6
-        })
-      : formatted;
-
     jjsBalance.textContent =
-      display + " " + JJS_CONFIG.symbol;
+      formatDisplayBalance(formatted);
 
     setStatus(
       "JJS balance loaded successfully.",
@@ -565,14 +584,24 @@ async function refreshDashboard() {
 
   } catch (error) {
 
-    console.error("Dashboard error:", error);
+    console.error("Dashboard balance error:", error);
 
-    if (requestId !== refreshNumber) return;
+    if (
+      requestId !== refreshNumber ||
+      activeAddress === null
+    ) {
+      return;
+    }
 
     jjsBalance.textContent = "Unable to load";
 
+    const errorMessage =
+      error && error.message
+        ? error.message
+        : "Unknown error";
+
     setStatus(
-      "Unable to read JJS balance. Please try again.",
+      "Balance error: " + errorMessage,
       "error"
     );
   }
@@ -595,7 +624,8 @@ connectBtn.addEventListener("click", async () => {
     console.error("Connect error:", error);
 
     setStatus(
-      "Unable to open wallet selection.",
+      "Unable to open wallet selection: " +
+      (error.message || "Unknown error"),
       "error"
     );
   }
@@ -617,7 +647,8 @@ disconnectBtn.addEventListener("click", async () => {
     console.error("Disconnect error:", error);
 
     setStatus(
-      "Unable to disconnect wallet.",
+      "Unable to disconnect wallet: " +
+      (error.message || "Unknown error"),
       "error"
     );
   }
@@ -670,9 +701,7 @@ modal.subscribeNetwork(() => {
 // COPY CONTRACT ADDRESS
 // =====================================
 
-const copyBtn = document.getElementById("copyBtn");
-
-document.getElementById("contractAddress").textContent =
+contractAddress.textContent =
   JJS_CONFIG.contractAddress;
 
 copyBtn.addEventListener("click", async () => {
@@ -687,7 +716,10 @@ copyBtn.addEventListener("click", async () => {
 
   } catch (error) {
 
-    alert("Please copy the contract address manually.");
+    alert(
+      "Copy failed. Please copy this address manually:\n\n" +
+      JJS_CONFIG.contractAddress
+    );
   }
 });
 
