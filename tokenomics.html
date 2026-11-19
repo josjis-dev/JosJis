@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,69 +8,12 @@
 
     <meta name="description" content="Explore JosJis tokenomics, fixed supply, token specifications, and official Polygon smart contract information.">
 
-    <link rel="stylesheet" href="css/style.css">
+    <meta name="theme-color" content="#0c0914">
+
+    <link rel="stylesheet" href="style.css">
 
     <style>
-        :root {
-            --purple: #9b5cff;
-            --purple-dark: #6e35c5;
-            --bg: #0c0914;
-            --card: #171222;
-            --text: #f5f0ff;
-            --muted: #b8adc9;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: Arial, sans-serif;
-            line-height: 1.7;
-        }
-
-        a {
-            color: inherit;
-            text-decoration: none;
-        }
-
-        header {
-            padding: 18px 7%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #30243f;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .logo {
-            font-size: 25px;
-            font-weight: bold;
-            color: var(--purple);
-        }
-
-        nav {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        nav a {
-            color: var(--muted);
-            font-size: 14px;
-        }
-
-        nav a:hover,
-        nav a.active {
-            color: var(--purple);
-        }
-
-        .hero {
+        .tokenomics-hero {
             text-align: center;
             padding: 85px 20px 65px;
             background: radial-gradient(
@@ -81,50 +23,44 @@
             );
         }
 
-        .tag {
-            color: var(--purple);
+        .tokenomics-tag {
+            color: var(--purple-light);
             letter-spacing: 3px;
             font-size: 12px;
             font-weight: bold;
         }
 
-        .hero h1 {
+        .tokenomics-hero h1 {
             font-size: clamp(36px, 7vw, 58px);
             margin: 15px 0;
         }
 
-        .hero h1 span {
-            color: var(--purple);
+        .tokenomics-hero h1 span {
+            color: var(--purple-light);
         }
 
-        .hero p {
+        .tokenomics-hero p {
             color: var(--muted);
             max-width: 700px;
             margin: auto;
         }
 
-        main {
-            max-width: 1050px;
-            margin: auto;
-            padding: 55px 20px;
-        }
-
-        section {
+        .tokenomics-section {
             margin-bottom: 55px;
         }
 
-        h2 {
-            color: var(--purple);
+        .tokenomics-section h2 {
+            color: var(--purple-light);
             font-size: 27px;
             margin-bottom: 15px;
         }
 
-        section p {
+        .tokenomics-section p {
             color: var(--muted);
             margin-bottom: 14px;
         }
 
-        .grid {
+        .tokenomics-grid {
             display: grid;
             grid-template-columns: repeat(
                 auto-fit,
@@ -134,32 +70,43 @@
             margin-top: 25px;
         }
 
-        .card {
+        .tokenomics-card {
             background: var(--card);
-            border: 1px solid #342747;
+            border: 1px solid var(--border);
             border-radius: 15px;
             padding: 24px;
+            transition: var(--transition);
         }
 
-        .card h3 {
-            color: #c69aff;
+        .tokenomics-card:hover {
+            border-color: var(--purple);
+            transform: translateY(-3px);
+        }
+
+        .tokenomics-card h3 {
+            color: var(--purple-light);
             margin-bottom: 8px;
             font-size: 15px;
         }
 
-        .value {
+        .tokenomics-card p {
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .tokenomics-value {
             font-size: 24px;
             font-weight: bold;
             overflow-wrap: anywhere;
         }
 
-        .description {
+        .tokenomics-description {
             color: var(--muted);
             font-size: 13px;
             margin-top: 5px;
         }
 
-        .supply-box {
+        .tokenomics-supply-box {
             background: linear-gradient(
                 135deg,
                 #352052,
@@ -171,28 +118,28 @@
             text-align: center;
         }
 
-        .supply-number {
+        .tokenomics-supply-number {
             font-size: clamp(28px, 6vw, 45px);
             font-weight: bold;
-            color: var(--purple);
+            color: var(--purple-light);
             overflow-wrap: anywhere;
         }
 
-        .contract-box {
+        .tokenomics-contract-box {
             background: var(--card);
-            border: 1px solid #342747;
+            border: 1px solid var(--border);
             padding: 25px;
             border-radius: 15px;
         }
 
-        .contract-address {
-            color: var(--purple);
+        .tokenomics-contract-address {
+            color: var(--purple-light);
             font-size: 14px;
             overflow-wrap: anywhere;
             margin: 12px 0;
         }
 
-        .copy-btn {
+        .tokenomics-copy-btn {
             display: inline-block;
             background: var(--purple-dark);
             color: white;
@@ -201,49 +148,30 @@
             border-radius: 8px;
             cursor: pointer;
             margin-top: 10px;
+            font-weight: bold;
+            transition: var(--transition);
         }
 
-        .copy-btn:hover {
+        .tokenomics-copy-btn:hover {
             background: var(--purple);
         }
 
-        .notice {
+        .tokenomics-notice {
             border-left: 3px solid var(--purple);
             padding: 15px 20px;
-            background: #171222;
+            background: var(--card);
             color: var(--muted);
             border-radius: 5px;
             font-size: 14px;
         }
 
-        .explorer {
-            color: var(--purple);
+        .tokenomics-explorer {
+            color: var(--purple-light);
             font-weight: bold;
         }
 
-        footer {
-            text-align: center;
-            padding: 30px 20px;
-            border-top: 1px solid #30243f;
-            color: var(--muted);
-            font-size: 13px;
-        }
-
-        footer a {
-            color: var(--purple);
-        }
-
         @media (max-width: 600px) {
-            header {
-                justify-content: center;
-            }
-
-            nav {
-                justify-content: center;
-                gap: 13px;
-            }
-
-            .hero {
+            .tokenomics-hero {
                 padding-top: 65px;
             }
         }
@@ -266,8 +194,9 @@
     </nav>
 </header>
 
-<div class="hero">
-    <div class="tag">JOSJIS TOKEN ECONOMICS</div>
+<div class="tokenomics-hero">
+
+    <div class="tokenomics-tag">JOSJIS TOKEN ECONOMICS</div>
 
     <h1>JJS <span>Tokenomics</span></h1>
 
@@ -275,67 +204,75 @@
         Transparent token information, fixed supply,
         and verifiable smart contract details.
     </p>
+
 </div>
 
 <main>
 
-    <section>
+    <section class="tokenomics-section">
+
         <h2>Token Overview</h2>
 
-        <div class="grid">
+        <div class="tokenomics-grid">
 
-            <div class="card">
+            <div class="tokenomics-card">
                 <h3>Token Name</h3>
-                <div class="value">JosJis</div>
-                <div class="description">Official token name</div>
+                <div class="tokenomics-value">JosJis</div>
+                <div class="tokenomics-description">Official token name</div>
             </div>
 
-            <div class="card">
+            <div class="tokenomics-card">
                 <h3>Token Symbol</h3>
-                <div class="value">JJS</div>
-                <div class="description">Official ticker symbol</div>
+                <div class="tokenomics-value">JJS</div>
+                <div class="tokenomics-description">Official ticker symbol</div>
             </div>
 
-            <div class="card">
+            <div class="tokenomics-card">
                 <h3>Blockchain</h3>
-                <div class="value">Polygon</div>
-                <div class="description">Polygon PoS Network</div>
+                <div class="tokenomics-value">Polygon</div>
+                <div class="tokenomics-description">Polygon PoS Network</div>
             </div>
 
-            <div class="card">
+            <div class="tokenomics-card">
                 <h3>Token Standard</h3>
-                <div class="value">ERC-20</div>
-                <div class="description">Fungible token standard</div>
+                <div class="tokenomics-value">ERC-20</div>
+                <div class="tokenomics-description">Fungible token standard</div>
             </div>
 
-            <div class="card">
+            <div class="tokenomics-card">
                 <h3>Decimals</h3>
-                <div class="value">18</div>
-                <div class="description">Token decimal precision</div>
+                <div class="tokenomics-value">18</div>
+                <div class="tokenomics-description">Token decimal precision</div>
             </div>
 
-            <div class="card">
+            <div class="tokenomics-card">
                 <h3>Supply Model</h3>
-                <div class="value">Fixed</div>
-                <div class="description">No additional minting function</div>
+                <div class="tokenomics-value">Fixed</div>
+                <div class="tokenomics-description">No additional minting function</div>
             </div>
 
         </div>
+
     </section>
 
-    <section>
+    <section class="tokenomics-section">
+
         <h2>Total Supply</h2>
 
-        <div class="supply-box">
-            <div class="description">TOTAL FIXED SUPPLY</div>
+        <div class="tokenomics-supply-box">
 
-            <div class="supply-number">
+            <div class="tokenomics-description">
+                TOTAL FIXED SUPPLY
+            </div>
+
+            <div class="tokenomics-supply-number">
                 10,000,000,000,000,000,000,000,000
             </div>
 
             <p>
                 10²⁵ JJS · 10 Septillion JJS
             </p>
+
         </div>
 
         <p style="margin-top:20px;">
@@ -344,14 +281,16 @@
             does not include a public mint function for
             creating additional JJS tokens.
         </p>
+
     </section>
 
-    <section>
+    <section class="tokenomics-section">
+
         <h2>Supply Characteristics</h2>
 
-        <div class="grid">
+        <div class="tokenomics-grid">
 
-            <div class="card">
+            <div class="tokenomics-card">
                 <h3>Fixed Initial Supply</h3>
                 <p>
                     The official Polygon JJS contract has
@@ -359,7 +298,7 @@
                 </p>
             </div>
 
-            <div class="card">
+            <div class="tokenomics-card">
                 <h3>No Additional Minting</h3>
                 <p>
                     The official contract has no function
@@ -367,7 +306,7 @@
                 </p>
             </div>
 
-            <div class="card">
+            <div class="tokenomics-card">
                 <h3>No Burn Function</h3>
                 <p>
                     The official contract does not include
@@ -376,29 +315,37 @@
             </div>
 
         </div>
+
     </section>
 
-    <section>
+    <section class="tokenomics-section">
+
         <h2>Official Contract</h2>
 
-        <div class="contract-box">
+        <div class="tokenomics-contract-box">
 
             <p>
                 Always verify the token contract address
                 before interacting with JJS.
             </p>
 
-            <div class="contract-address" id="contractAddress">
+            <div class="tokenomics-contract-address" id="contractAddress">
                 0x52C8Ff13ada1431376b3E77E8219b644805122dF
             </div>
 
-            <button class="copy-btn" onclick="copyAddress()">
+            <button
+                class="tokenomics-copy-btn"
+                type="button"
+                onclick="copyAddress()"
+            >
                 Copy Contract Address
             </button>
 
+            <p id="copyMessage" aria-live="polite" style="margin-top:12px; font-size:13px;"></p>
+
             <p style="margin-top:20px;">
                 <a
-                    class="explorer"
+                    class="tokenomics-explorer"
                     href="https://polygonscan.com/token/0x52C8Ff13ada1431376b3E77E8219b644805122dF"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -408,9 +355,11 @@
             </p>
 
         </div>
+
     </section>
 
-    <section>
+    <section class="tokenomics-section">
+
         <h2>Token Utility</h2>
 
         <p>
@@ -427,15 +376,17 @@
         </p>
 
         <p>
-            Explore the <a class="explorer" href="utility.html">
+            Explore the <a class="tokenomics-explorer" href="utility.html">
             Utility</a> page for more information.
         </p>
+
     </section>
 
-    <section>
+    <section class="tokenomics-section">
+
         <h2>Important Information</h2>
 
-        <div class="notice">
+        <div class="tokenomics-notice">
             Token supply information refers to the official
             Polygon JJS contract listed on this page.
             Any future wrapped tokens deployed on other
@@ -446,41 +397,67 @@
             promise of price appreciation, profit, or
             financial returns.
         </div>
+
     </section>
 
 </main>
 
 <footer>
+
     <p>© 2026 JosJis. All rights reserved.</p>
 
     <p>
         <a href="https://x.com/JosJisToken"
-           target="_blank">X</a>
+           target="_blank"
+           rel="noopener noreferrer">X</a>
+
         &nbsp; | &nbsp;
+
         <a href="https://t.me/josjis_token"
-           target="_blank">Telegram</a>
+           target="_blank"
+           rel="noopener noreferrer">Telegram</a>
+
         &nbsp; | &nbsp;
+
         <a href="https://www.tiktok.com/@josjistoken"
-           target="_blank">TikTok</a>
+           target="_blank"
+           rel="noopener noreferrer">TikTok</a>
     </p>
+
 </footer>
 
 <script>
-    function copyAddress() {
-        const address =
-            document.getElementById("contractAddress").innerText;
+    async function copyAddress() {
+        const address = document
+            .getElementById("contractAddress")
+            .innerText.trim();
 
-        if (navigator.clipboard &&
-            window.isSecureContext) {
-            navigator.clipboard.writeText(address)
-                .then(() => {
-                    alert("Contract address copied!");
-                })
-                .catch(() => {
-                    alert("Unable to copy address.");
-                });
-        } else {
-            alert("Please copy the contract address manually.");
+        const message = document.getElementById("copyMessage");
+
+        try {
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(address);
+            } else {
+                const textArea = document.createElement("textarea");
+                textArea.value = address;
+                textArea.style.position = "fixed";
+                textArea.style.opacity = "0";
+
+                document.body.appendChild(textArea);
+                textArea.select();
+
+                const copied = document.execCommand("copy");
+                document.body.removeChild(textArea);
+
+                if (!copied) {
+                    throw new Error("Copy failed");
+                }
+            }
+
+            message.textContent = "Contract address copied successfully!";
+        } catch (error) {
+            message.textContent =
+                "Unable to copy automatically. Please copy the address manually.";
         }
     }
 </script>
