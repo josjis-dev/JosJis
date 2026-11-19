@@ -1,0 +1,489 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>JosJis ($JJS) Tokenomics</title>
+
+    <meta name="description" content="Explore JosJis tokenomics, fixed supply, token specifications, and official Polygon smart contract information.">
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        :root {
+            --purple: #9b5cff;
+            --purple-dark: #6e35c5;
+            --bg: #0c0914;
+            --card: #171222;
+            --text: #f5f0ff;
+            --muted: #b8adc9;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: Arial, sans-serif;
+            line-height: 1.7;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        header {
+            padding: 18px 7%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #30243f;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .logo {
+            font-size: 25px;
+            font-weight: bold;
+            color: var(--purple);
+        }
+
+        nav {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        nav a:hover,
+        nav a.active {
+            color: var(--purple);
+        }
+
+        .hero {
+            text-align: center;
+            padding: 85px 20px 65px;
+            background: radial-gradient(
+                circle at top,
+                #352052 0%,
+                #0c0914 65%
+            );
+        }
+
+        .tag {
+            color: var(--purple);
+            letter-spacing: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .hero h1 {
+            font-size: clamp(36px, 7vw, 58px);
+            margin: 15px 0;
+        }
+
+        .hero h1 span {
+            color: var(--purple);
+        }
+
+        .hero p {
+            color: var(--muted);
+            max-width: 700px;
+            margin: auto;
+        }
+
+        main {
+            max-width: 1050px;
+            margin: auto;
+            padding: 55px 20px;
+        }
+
+        section {
+            margin-bottom: 55px;
+        }
+
+        h2 {
+            color: var(--purple);
+            font-size: 27px;
+            margin-bottom: 15px;
+        }
+
+        section p {
+            color: var(--muted);
+            margin-bottom: 14px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(
+                auto-fit,
+                minmax(210px, 1fr)
+            );
+            gap: 18px;
+            margin-top: 25px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid #342747;
+            border-radius: 15px;
+            padding: 24px;
+        }
+
+        .card h3 {
+            color: #c69aff;
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+
+        .value {
+            font-size: 24px;
+            font-weight: bold;
+            overflow-wrap: anywhere;
+        }
+
+        .description {
+            color: var(--muted);
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        .supply-box {
+            background: linear-gradient(
+                135deg,
+                #352052,
+                #171222
+            );
+            border: 1px solid var(--purple-dark);
+            border-radius: 18px;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .supply-number {
+            font-size: clamp(28px, 6vw, 45px);
+            font-weight: bold;
+            color: var(--purple);
+            overflow-wrap: anywhere;
+        }
+
+        .contract-box {
+            background: var(--card);
+            border: 1px solid #342747;
+            padding: 25px;
+            border-radius: 15px;
+        }
+
+        .contract-address {
+            color: var(--purple);
+            font-size: 14px;
+            overflow-wrap: anywhere;
+            margin: 12px 0;
+        }
+
+        .copy-btn {
+            display: inline-block;
+            background: var(--purple-dark);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .copy-btn:hover {
+            background: var(--purple);
+        }
+
+        .notice {
+            border-left: 3px solid var(--purple);
+            padding: 15px 20px;
+            background: #171222;
+            color: var(--muted);
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .explorer {
+            color: var(--purple);
+            font-weight: bold;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 20px;
+            border-top: 1px solid #30243f;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        footer a {
+            color: var(--purple);
+        }
+
+        @media (max-width: 600px) {
+            header {
+                justify-content: center;
+            }
+
+            nav {
+                justify-content: center;
+                gap: 13px;
+            }
+
+            .hero {
+                padding-top: 65px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <a href="index.html" class="logo">JosJis</a>
+
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="tokenomics.html" class="active">Tokenomics</a>
+        <a href="ecosystem.html">Ecosystem</a>
+        <a href="utility.html">Utility</a>
+        <a href="roadmap.html">Roadmap</a>
+        <a href="contact.html">Contact</a>
+    </nav>
+</header>
+
+<div class="hero">
+    <div class="tag">JOSJIS TOKEN ECONOMICS</div>
+
+    <h1>JJS <span>Tokenomics</span></h1>
+
+    <p>
+        Transparent token information, fixed supply,
+        and verifiable smart contract details.
+    </p>
+</div>
+
+<main>
+
+    <section>
+        <h2>Token Overview</h2>
+
+        <div class="grid">
+
+            <div class="card">
+                <h3>Token Name</h3>
+                <div class="value">JosJis</div>
+                <div class="description">Official token name</div>
+            </div>
+
+            <div class="card">
+                <h3>Token Symbol</h3>
+                <div class="value">JJS</div>
+                <div class="description">Official ticker symbol</div>
+            </div>
+
+            <div class="card">
+                <h3>Blockchain</h3>
+                <div class="value">Polygon</div>
+                <div class="description">Polygon PoS Network</div>
+            </div>
+
+            <div class="card">
+                <h3>Token Standard</h3>
+                <div class="value">ERC-20</div>
+                <div class="description">Fungible token standard</div>
+            </div>
+
+            <div class="card">
+                <h3>Decimals</h3>
+                <div class="value">18</div>
+                <div class="description">Token decimal precision</div>
+            </div>
+
+            <div class="card">
+                <h3>Supply Model</h3>
+                <div class="value">Fixed</div>
+                <div class="description">No additional minting function</div>
+            </div>
+
+        </div>
+    </section>
+
+    <section>
+        <h2>Total Supply</h2>
+
+        <div class="supply-box">
+            <div class="description">TOTAL FIXED SUPPLY</div>
+
+            <div class="supply-number">
+                10,000,000,000,000,000,000,000,000
+            </div>
+
+            <p>
+                10²⁵ JJS · 10 Septillion JJS
+            </p>
+        </div>
+
+        <p style="margin-top:20px;">
+            The official JosJis token contract creates its
+            initial supply during deployment. The contract
+            does not include a public mint function for
+            creating additional JJS tokens.
+        </p>
+    </section>
+
+    <section>
+        <h2>Supply Characteristics</h2>
+
+        <div class="grid">
+
+            <div class="card">
+                <h3>Fixed Initial Supply</h3>
+                <p>
+                    The official Polygon JJS contract has
+                    an initial supply of 10²⁵ JJS.
+                </p>
+            </div>
+
+            <div class="card">
+                <h3>No Additional Minting</h3>
+                <p>
+                    The official contract has no function
+                    that allows additional JJS to be minted.
+                </p>
+            </div>
+
+            <div class="card">
+                <h3>No Burn Function</h3>
+                <p>
+                    The official contract does not include
+                    a dedicated token-burning function.
+                </p>
+            </div>
+
+        </div>
+    </section>
+
+    <section>
+        <h2>Official Contract</h2>
+
+        <div class="contract-box">
+
+            <p>
+                Always verify the token contract address
+                before interacting with JJS.
+            </p>
+
+            <div class="contract-address" id="contractAddress">
+                0x52C8Ff13ada1431376b3E77E8219b644805122dF
+            </div>
+
+            <button class="copy-btn" onclick="copyAddress()">
+                Copy Contract Address
+            </button>
+
+            <p style="margin-top:20px;">
+                <a
+                    class="explorer"
+                    href="https://polygonscan.com/token/0x52C8Ff13ada1431376b3E77E8219b644805122dF"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    View JJS on PolygonScan ↗
+                </a>
+            </p>
+
+        </div>
+    </section>
+
+    <section>
+        <h2>Token Utility</h2>
+
+        <p>
+            JJS is intended to support the development
+            of the JosJis ecosystem and its future
+            blockchain-based applications.
+        </p>
+
+        <p>
+            Potential utility areas include digital
+            services, community participation,
+            ecosystem access, and other practical
+            applications as they are developed.
+        </p>
+
+        <p>
+            Explore the <a class="explorer" href="utility.html">
+            Utility</a> page for more information.
+        </p>
+    </section>
+
+    <section>
+        <h2>Important Information</h2>
+
+        <div class="notice">
+            Token supply information refers to the official
+            Polygon JJS contract listed on this page.
+            Any future wrapped tokens deployed on other
+            networks are separate contracts and must be
+            evaluated independently.
+
+            Tokenomics information does not represent a
+            promise of price appreciation, profit, or
+            financial returns.
+        </div>
+    </section>
+
+</main>
+
+<footer>
+    <p>© 2026 JosJis. All rights reserved.</p>
+
+    <p>
+        <a href="https://x.com/JosJisToken"
+           target="_blank">X</a>
+        &nbsp; | &nbsp;
+        <a href="https://t.me/josjis_token"
+           target="_blank">Telegram</a>
+        &nbsp; | &nbsp;
+        <a href="https://www.tiktok.com/@josjistoken"
+           target="_blank">TikTok</a>
+    </p>
+</footer>
+
+<script>
+    function copyAddress() {
+        const address =
+            document.getElementById("contractAddress").innerText;
+
+        if (navigator.clipboard &&
+            window.isSecureContext) {
+            navigator.clipboard.writeText(address)
+                .then(() => {
+                    alert("Contract address copied!");
+                })
+                .catch(() => {
+                    alert("Unable to copy address.");
+                });
+        } else {
+            alert("Please copy the contract address manually.");
+        }
+    }
+</script>
+
+</body>
+</html>
