@@ -130,12 +130,6 @@
             font-size: 13px;
         }
 
-        .contact-copy-message {
-            color: var(--muted);
-            font-size: 12px;
-            margin-top: 12px;
-        }
-
         @media (max-width: 600px) {
             .contact-grid {
                 grid-template-columns: 1fr;
@@ -298,11 +292,6 @@
 
             </div>
 
-            <p id="copyMessage"
-               class="contact-copy-message"
-               aria-live="polite">
-            </p>
-
         </div>
 
     </section>
@@ -398,9 +387,6 @@
         const address =
             document.getElementById("contractAddress").innerText.trim();
 
-        const message =
-            document.getElementById("copyMessage");
-
         try {
             await navigator.clipboard.writeText(address);
 
@@ -409,9 +395,6 @@
                     "JJS Contract Address copied successfully!",
                     "success"
                 );
-            } else {
-                message.textContent =
-                    "Contract address copied successfully!";
             }
 
         } catch (error) {
@@ -422,9 +405,6 @@
                     "Copy failed. Please copy the address manually.",
                     "error"
                 );
-            } else {
-                message.textContent =
-                    "Unable to copy automatically. Please copy the address manually.";
             }
         }
     }
