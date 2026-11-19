@@ -15,14 +15,10 @@ const footerHTML = `
         <div class="footer-links">
             <h4>Quick Links</h4>
 
-            <a href="index.html">Home</a>
             <a href="about.html">About</a>
             <a href="tokenomics.html">Tokenomics</a>
-            <a href="ecosystem.html">Ecosystem</a>
-            <a href="utility.html">Utility</a>
-            <a href="roadmap.html">Roadmap</a>
-            <a href="contact.html">Contact</a>
             <a href="dashboard.html">Dashboard</a>
+            <a href="crypto-donations.html">Donate</a>
         </div>
 
         <div class="footer-social">
@@ -46,7 +42,7 @@ const footerHTML = `
     <div class="footer-bottom">
 
         <p>
-            Contract:
+            Official Contract:
             <a
                 href="https://polygonscan.com/token/0x52C8Ff13ada1431376b3E77E8219b644805122dF"
                 target="_blank"
