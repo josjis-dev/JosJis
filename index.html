@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#100d1c">
 
 <title>JosJis ($JJS) | Official Website</title>
-<meta name="description" content="Welcome to JosJis ($JJS), a community-driven token built on Polygon. Explore the JosJis ecosystem.">
+<meta name="description" content="Welcome to JosJis ($JJS), a community-driven Polygon token project. Explore its tokenomics, utilities, ecosystem and development roadmap.">
 
 <style>
 :root {
@@ -17,11 +17,16 @@
   --gold:#e8c477;
   --white:#ffffff;
   --muted:#aaa3b9;
+  --border:#302741;
 }
 
-* { box-sizing:border-box; }
+* {
+  box-sizing:border-box;
+}
 
-html { scroll-behavior:smooth; }
+html {
+  scroll-behavior:smooth;
+}
 
 body {
   margin:0;
@@ -31,16 +36,20 @@ body {
   line-height:1.7;
 }
 
+a {
+  text-decoration:none;
+}
+
 header {
-  padding:18px 6%;
+  padding:15px 6%;
   display:flex;
   align-items:center;
   justify-content:space-between;
-  border-bottom:1px solid #302741;
+  border-bottom:1px solid var(--border);
   position:sticky;
   top:0;
-  background:#100d1cf2;
-  z-index:5;
+  background:#100d1cf5;
+  z-index:10;
 }
 
 .brand {
@@ -49,23 +58,32 @@ header {
   gap:12px;
   font-weight:bold;
   font-size:20px;
+  color:white;
 }
 
 .brand img {
-  width:46px;
-  height:46px;
+  width:44px;
+  height:44px;
   border-radius:50%;
   object-fit:cover;
 }
 
-nav a {
-  color:#ddd;
-  text-decoration:none;
-  margin-left:18px;
-  font-size:14px;
+nav {
+  display:flex;
+  flex-wrap:wrap;
+  gap:18px;
 }
 
-nav a:hover { color:var(--gold); }
+nav a {
+  color:#ddd;
+  font-size:13px;
+  transition:0.2s;
+}
+
+nav a:hover,
+nav a.active {
+  color:var(--gold);
+}
 
 .container {
   width:90%;
@@ -75,7 +93,14 @@ nav a:hover { color:var(--gold); }
 
 .hero {
   text-align:center;
-  padding:85px 15px 65px;
+  padding:85px 15px 75px;
+  background:
+    radial-gradient(
+      ellipse at top,
+      #39205a 0%,
+      #1b162b 40%,
+      #100d1c 80%
+    );
 }
 
 .hero img {
@@ -87,12 +112,30 @@ nav a:hover { color:var(--gold); }
   box-shadow:0 0 35px #9b72ff55;
 }
 
-h1 {
-  font-size:clamp(38px,8vw,65px);
-  margin:15px 0 0;
+.hero-tag {
+  color:var(--purple);
+  font-size:12px;
+  font-weight:bold;
+  letter-spacing:3px;
+  margin-top:20px;
 }
 
-h1 span { color:var(--gold); }
+h1 {
+  font-size:clamp(38px,8vw,65px);
+  line-height:1.2;
+  margin:12px 0 0;
+}
+
+h1 span {
+  color:var(--gold);
+}
+
+.hero .value {
+  font-size:24px;
+  color:var(--purple);
+  font-weight:bold;
+  margin-top:8px;
+}
 
 .hero p {
   color:var(--muted);
@@ -102,14 +145,16 @@ h1 span { color:var(--gold); }
 
 .btn {
   display:inline-block;
-  padding:12px 22px;
+  padding:11px 20px;
   margin:5px;
-  border-radius:9px;
+  border-radius:8px;
   text-decoration:none;
   font-weight:bold;
+  font-size:13px;
   background:var(--purple);
   color:white;
   transition:0.2s;
+  border:1px solid transparent;
 }
 
 .btn:hover {
@@ -124,10 +169,18 @@ h1 span { color:var(--gold); }
 
 .btn.outline {
   background:transparent;
-  border:1px solid var(--purple);
+  border-color:var(--purple);
+  color:white;
 }
 
-section { padding:45px 0; }
+.btn.small {
+  padding:9px 15px;
+  font-size:12px;
+}
+
+section {
+  padding:48px 0;
+}
 
 .heading {
   text-align:center;
@@ -135,24 +188,37 @@ section { padding:45px 0; }
 }
 
 .heading h2 {
-  font-size:30px;
+  font-size:29px;
   margin:0;
+  color:var(--gold);
 }
 
-.heading p { color:var(--muted); }
+.heading p {
+  color:var(--muted);
+  margin-top:5px;
+}
 
 .grid {
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:16px;
+  grid-template-columns:repeat(
+    auto-fit,
+    minmax(220px,1fr)
+  );
+  gap:17px;
 }
 
 .card {
   background:var(--panel);
-  border:1px solid #302741;
+  border:1px solid var(--border);
   padding:23px;
   border-radius:15px;
   overflow-wrap:anywhere;
+  transition:0.2s;
+}
+
+.card:hover {
+  border-color:var(--purple);
+  transform:translateY(-3px);
 }
 
 .card h3 {
@@ -160,8 +226,18 @@ section { padding:45px 0; }
   margin-top:0;
 }
 
+.card p {
+  color:var(--muted);
+  font-size:14px;
+}
+
+.card-icon {
+  font-size:30px;
+  margin-bottom:8px;
+}
+
 .value {
-  font-size:25px;
+  font-size:24px;
   font-weight:bold;
   color:var(--purple);
 }
@@ -173,6 +249,7 @@ section { padding:45px 0; }
   overflow-wrap:anywhere;
   font-size:13px;
   color:#ddd;
+  border:1px solid var(--border);
 }
 
 button {
@@ -186,35 +263,66 @@ button {
   margin-top:10px;
 }
 
-.notice { border-left:4px solid var(--gold); }
+.notice {
+  border-left:4px solid var(--gold);
+}
+
+.status {
+  display:inline-block;
+  font-size:11px;
+  padding:4px 10px;
+  border-radius:20px;
+  background:#302741;
+  color:#d9bdff;
+  margin-top:8px;
+}
+
+.status.live {
+  background:#173d2c;
+  color:#83e3ad;
+}
+
+.center {
+  text-align:center;
+}
 
 footer {
   text-align:center;
-  padding:30px;
+  padding:30px 15px;
   color:var(--muted);
-  border-top:1px solid #302741;
+  border-top:1px solid var(--border);
+  font-size:13px;
 }
 
-footer a { margin:8px; }
+footer a {
+  color:var(--gold);
+  margin:8px;
+}
 
-@media(max-width:600px) {
+@media(max-width:650px) {
   header {
     padding:12px 4%;
     flex-wrap:wrap;
+    justify-content:center;
   }
 
   nav {
     width:100%;
-    text-align:center;
-    margin-top:12px;
+    justify-content:center;
+    gap:12px;
   }
 
   nav a {
-    margin:0 7px;
     font-size:12px;
   }
 
-  .hero { padding-top:55px; }
+  .hero {
+    padding-top:55px;
+  }
+
+  .heading h2 {
+    font-size:25px;
+  }
 }
 </style>
 </head>
@@ -222,24 +330,36 @@ footer a { margin:8px; }
 <body>
 
 <!-- HEADER -->
+
 <header>
-  <div class="brand">
-    <img src="josjis-logo.jpg" alt="JosJis Cat Logo">
+
+  <a href="index.html" class="brand">
+    <img src="josjis-logo.jpg" alt="JosJis Logo">
     JOSJIS
-  </div>
+  </a>
 
   <nav>
-    <a href="#about">About</a>
-    <a href="#token">Token</a>
-    <a href="#links">Links</a>
+    <a href="index.html" class="active">Home</a>
+    <a href="about.html">About</a>
+    <a href="tokenomics.html">Tokenomics</a>
+    <a href="utility.html">Utility</a>
+    <a href="ecosystem.html">Ecosystem</a>
+    <a href="roadmap.html">Roadmap</a>
+    <a href="contact.html">Contact</a>
   </nav>
+
 </header>
 
 <!-- HERO -->
+
 <div class="hero">
+
   <img src="josjis-logo.jpg" alt="Official JosJis Logo">
 
+  <div class="hero-tag">WELCOME TO THE JOSJIS PROJECT</div>
+
   <h1>Welcome to <span>JosJis</span></h1>
+
   <div class="value">$JJS TOKEN</div>
 
   <p>
@@ -249,46 +369,61 @@ footer a { margin:8px; }
 
   <a class="btn gold"
   href="https://link.metamask.io/asset?assetId=eip155%3A137%2Ferc20%3A0x52C8Ff13ada1431376b3E77E8219b644805122dF"
-  target="_blank" rel="noopener">
+  target="_blank" rel="noopener noreferrer">
     🦊 Buy JJS on MetaMask
   </a>
 
   <a class="btn outline"
   href="https://polygonscan.com/token/0x52C8Ff13ada1431376b3E77E8219b644805122dF"
-  target="_blank" rel="noopener">
+  target="_blank" rel="noopener noreferrer">
     View Contract
   </a>
+
 </div>
 
 <main class="container">
 
-<!-- ABOUT -->
-<section id="about">
+<!-- ABOUT PREVIEW -->
+
+<section>
+
   <div class="heading">
     <h2>About JosJis</h2>
-    <p>Community · Transparency · Polygon</p>
+    <p>Community · Transparency · Innovation</p>
   </div>
 
-  <div class="card">
-    JosJis is a Polygon-based token project focused on
-    community participation, transparency and exploring
-    practical utilities within its ecosystem.
+  <div class="card center">
 
-    <br><br>
+    <p>
+      JosJis is a Polygon-based token project focused
+      on community participation, transparency and
+      exploring practical utilities within its ecosystem.
+    </p>
 
-    Our goal is to learn, experiment and build useful
-    services around the JosJis community.
+    <p>
+      Our vision is to gradually build and develop
+      useful blockchain services around the JosJis community.
+    </p>
+
+    <a href="about.html" class="btn">
+      Discover JosJis →
+    </a>
+
   </div>
+
 </section>
 
-<!-- TOKEN INFORMATION -->
-<section id="token">
+<!-- TOKEN OVERVIEW -->
+
+<section>
+
   <div class="heading">
-    <h2>Token Information</h2>
-    <p>Official $JJS token details</p>
+    <h2>JJS Token Overview</h2>
+    <p>Official token information</p>
   </div>
 
   <div class="grid">
+
     <div class="card">
       <h3>Token Name</h3>
       <div class="value">JosJis</div>
@@ -305,6 +440,11 @@ footer a { margin:8px; }
     </div>
 
     <div class="card">
+      <h3>Standard</h3>
+      <div class="value">ERC-20</div>
+    </div>
+
+    <div class="card">
       <h3>Decimals</h3>
       <div class="value">18</div>
     </div>
@@ -315,130 +455,313 @@ footer a { margin:8px; }
       <p>No additional mint function.</p>
     </div>
 
-    <div class="card">
-      <h3>Standard</h3>
-      <div class="value">ERC-20</div>
-    </div>
   </div>
 
-  <!-- CONTRACT ADDRESS -->
-  <div class="card" style="margin-top:18px">
-    <h3>Official Contract Address</h3>
+  <div class="center" style="margin-top:22px">
+    <a href="tokenomics.html" class="btn">
+      Explore Tokenomics →
+    </a>
+  </div>
+
+</section>
+
+<!-- CONTRACT ADDRESS -->
+
+<section>
+
+  <div class="heading">
+    <h2>Official Contract</h2>
+    <p>Always verify the JJS contract before interacting</p>
+  </div>
+
+  <div class="card">
+
+    <h3>JosJis ($JJS) · Polygon</h3>
 
     <div class="address" id="contract">
       0x52C8Ff13ada1431376b3E77E8219b644805122dF
     </div>
 
-    <button onclick="copyContract()">Copy Address</button>
-    <p id="copied" style="color:#e8c477"></p>
+    <button onclick="copyContract()">
+      Copy Address
+    </button>
+
+    <a class="btn outline"
+    href="https://polygonscan.com/token/0x52C8Ff13ada1431376b3E77E8219b644805122dF"
+    target="_blank" rel="noopener noreferrer">
+      Verify on PolygonScan
+    </a>
+
+    <p id="copied" style="color:var(--gold);font-size:12px"
+       aria-live="polite"></p>
+
   </div>
+
 </section>
 
-<!-- MIGRATION NOTICE -->
+<!-- UTILITY PREVIEW -->
+
 <section>
-  <div class="card notice">
-    <h3>Important: Contract Migration</h3>
 
-    JosJis has a new official token contract.
-    Always verify the address before buying or transferring.
-
-    <br><br>
-
-    <b>New Official Contract:</b><br>
-    0x52C8Ff13ada1431376b3E77E8219b644805122dF
-
-    <br><br>
-
-    <b>Previous Contract:</b><br>
-    0x300FB296AF304496bdf36b053595896d9eCB2453
-
-    <br><br>
-
-    The previous token does not automatically convert
-    into the new token. They are separate contracts.
-  </div>
-</section>
-
-<!-- OFFICIAL LINKS -->
-<section id="links">
   <div class="heading">
-    <h2>Official Links</h2>
-    <p>Join the JosJis community</p>
+    <h2>JosJis Utility</h2>
+    <p>Exploring practical uses for JJS</p>
   </div>
 
   <div class="grid">
 
     <div class="card">
-      <h3>Official X</h3>
+      <div class="card-icon">🔒</div>
+      <h3>Flexible Staking</h3>
+      <p>
+        A planned staking system designed to connect
+        JJS participation with ecosystem utility benefits.
+      </p>
+      <span class="status">Planned</span>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">🏆</div>
+      <h3>Membership NFTs</h3>
+      <p>
+        Seven planned membership levels represented
+        by digital NFT badges.
+      </p>
+      <span class="status">Planned</span>
+    </div>
+
+  </div>
+
+  <div class="center" style="margin-top:22px">
+    <a href="utility.html" class="btn">
+      Explore Utilities →
+    </a>
+  </div>
+
+</section>
+
+<!-- ECOSYSTEM PREVIEW -->
+
+<section>
+
+  <div class="heading">
+    <h2>JosJis Ecosystem</h2>
+    <p>One token. One connected vision.</p>
+  </div>
+
+  <div class="grid">
+
+    <div class="card">
+      <div class="card-icon">🪙</div>
+      <h3>Token Foundation</h3>
+      <p>
+        JJS as the core digital token on Polygon.
+      </p>
+      <span class="status live">Deployed</span>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">🌐</div>
+      <h3>Multi-Chain Expansion</h3>
+      <p>
+        Exploring cross-chain connectivity for JJS.
+      </p>
+      <span class="status">Planned</span>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <h3>JGPS</h3>
+      <p>
+        A planned global reference system for JJS market data.
+      </p>
+      <span class="status">Research</span>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">⚙️</div>
+      <h3>Future Infrastructure</h3>
+      <p>
+        Exploring additional decentralized services
+        and future blockchain infrastructure.
+      </p>
+      <span class="status">Long-Term Vision</span>
+    </div>
+
+  </div>
+
+  <div class="center" style="margin-top:22px">
+    <a href="ecosystem.html" class="btn">
+      Explore Ecosystem →
+    </a>
+  </div>
+
+</section>
+
+<!-- ROADMAP PREVIEW -->
+
+<section>
+
+  <div class="heading">
+    <h2>Development Roadmap</h2>
+    <p>Building JosJis step by step</p>
+  </div>
+
+  <div class="card center">
+
+    <p>
+      JosJis is being developed gradually, starting
+      from its token foundation and expanding toward
+      utilities, cross-chain connectivity and
+      future infrastructure.
+    </p>
+
+    <a href="roadmap.html" class="btn">
+      View Full Roadmap →
+    </a>
+
+  </div>
+
+</section>
+
+<!-- MIGRATION NOTICE -->
+
+<section>
+
+  <div class="card notice">
+
+    <h3>Important: Contract Migration</h3>
+
+    <p>
+      JosJis has a new official token contract.
+      Always verify the contract address before buying
+      or transferring tokens.
+    </p>
+
+    <p>
+      <b>New Official Contract:</b><br>
+      0x52C8Ff13ada1431376b3E77E8219b644805122dF
+    </p>
+
+    <p>
+      <b>Previous Contract:</b><br>
+      0x300FB296AF304496bdf36b053595896d9eCB2453
+    </p>
+
+    <p>
+      The previous token does not automatically convert
+      into the new token. They are separate contracts.
+    </p>
+
+  </div>
+
+</section>
+
+<!-- OFFICIAL LINKS -->
+
+<section>
+
+  <div class="heading">
+    <h2>Join the Community</h2>
+    <p>Follow official JosJis channels</p>
+  </div>
+
+  <div class="grid">
+
+    <div class="card center">
+      <h3>𝕏 Official X</h3>
+      <p>Announcements and project updates.</p>
       <a class="btn"
       href="https://x.com/JosJisToken"
-      target="_blank" rel="noopener">
+      target="_blank" rel="noopener noreferrer">
         Follow on X
       </a>
     </div>
 
-    <div class="card">
-      <h3>Telegram</h3>
+    <div class="card center">
+      <h3>✈️ Telegram</h3>
+      <p>Join the JosJis community.</p>
       <a class="btn"
       href="https://t.me/josjis_token"
-      target="_blank" rel="noopener">
-        Join Community
+      target="_blank" rel="noopener noreferrer">
+        Join Telegram
       </a>
     </div>
 
-    <!-- TIKTOK JOSJIS -->
-    <div class="card">
-      <h3>TikTok</h3>
+    <div class="card center">
+      <h3>🎵 TikTok</h3>
+      <p>Watch tutorials and project videos.</p>
       <a class="btn"
       href="https://www.tiktok.com/@josjistoken"
-      target="_blank" rel="noopener">
+      target="_blank" rel="noopener noreferrer">
         Follow on TikTok
       </a>
     </div>
 
-    <div class="card">
-      <h3>PolygonScan</h3>
+    <div class="card center">
+      <h3>💻 GitHub</h3>
+      <p>Explore website development.</p>
       <a class="btn"
-      href="https://polygonscan.com/token/0x52C8Ff13ada1431376b3E77E8219b644805122dF"
-      target="_blank" rel="noopener">
-        Verify Token
+      href="https://github.com/josjis-dev/JosJis"
+      target="_blank" rel="noopener noreferrer">
+        Visit GitHub
       </a>
     </div>
 
   </div>
+
+  <div class="center" style="margin-top:22px">
+    <a href="contact.html" class="btn outline">
+      All Official Links →
+    </a>
+  </div>
+
 </section>
 
 </main>
 
 <!-- FOOTER -->
+
 <footer>
+
   <b>JosJis ($JJS)</b>
 
   <p>Community · Transparency · Polygon</p>
 
-  <p>© JosJis. All rights reserved.</p>
+  <p>
+    <a href="about.html">About</a>
+    <a href="tokenomics.html">Tokenomics</a>
+    <a href="utility.html">Utility</a>
+    <a href="ecosystem.html">Ecosystem</a>
+    <a href="roadmap.html">Roadmap</a>
+    <a href="contact.html">Contact</a>
+  </p>
+
+  <p>© 2026 JosJis. All rights reserved.</p>
 
   <small>
     This website does not promise profits or investment returns.
   </small>
+
 </footer>
 
 <!-- COPY CONTRACT SCRIPT -->
+
 <script>
-function copyContract() {
+async function copyContract() {
   const address = document
     .getElementById("contract")
     .innerText.trim();
 
-  navigator.clipboard.writeText(address)
-    .then(() => {
-      document.getElementById("copied").innerText =
-        "Address copied!";
-    })
-    .catch(() => {
-      document.getElementById("copied").innerText =
-        "Please copy the address manually.";
-    });
+  const message = document.getElementById("copied");
+
+  try {
+    await navigator.clipboard.writeText(address);
+    message.innerText = "Address copied successfully!";
+  } catch (error) {
+    message.innerText =
+      "Unable to copy automatically. Please copy manually.";
+  }
 }
 </script>
 
