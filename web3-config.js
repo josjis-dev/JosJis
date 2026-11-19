@@ -1,10 +1,4 @@
 
-import {
-  JsonRpcProvider,
-  Contract,
-  formatUnits
-} from "https://esm.sh/ethers@6.15.0";
-
 // =====================================
 // JOSJIS WEB3 CONFIGURATION
 // =====================================
@@ -26,54 +20,109 @@ export const JJS_CONFIG = {
 };
 
 // =====================================
-// TOKEN ABI
+// FORMAT TOKEN BALANCE
 // =====================================
 
-const JJS_ABI = [
-  "function balanceOf(address account) view returns (uint256)"
-];
+function formatJJSBalance(value) {
+
+  const decimals = BigInt(JJS_CONFIG.decimals);
+  const divisor = 10n ** decimals;
+
+  const whole = value / divisor;
+  const fraction = value % divisor;
+
+  const fractionText = fraction
+    .toString()
+    .padStart(JJS_CONFIG.decimals, "0")
+    .replace(/0+$/, "");
+
+  return fractionText
+    ? whole.toString() + "." + fractionText
+    : whole.toString();
+}
 
 // =====================================
-// RPC PROVIDERS
-// =====================================
-
-const providers = JJS_CONFIG.rpcUrls.map(
-  url => new JsonRpcProvider(url, 137, {
-    staticNetwork: true
-  })
-);
-
-// =====================================
-// READ JJS BALANCE
+// READ BALANCE DIRECTLY FROM POLYGON
 // =====================================
 
 export async function getJJSBalance(address) {
 
-  let lastError;
+  if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
+    throw new Error("Invalid wallet address");
+  }
 
-  for (const provider of providers) {
+  // balanceOf(address) function selector
+  const selector = "70a08231";
+
+  // Encode wallet address
+  const encodedAddress = address
+    .slice(2)
+    .toLowerCase()
+    .padStart(64, "0");
+
+  const callData = "0x" + selector + encodedAddress;
+
+  const errors = [];
+
+  // Try RPC endpoints one by one
+  for (const rpcUrl of JJS_CONFIG.rpcUrls) {
 
     try {
 
-      const token = new Contract(
-        JJS_CONFIG.contractAddress,
-        JJS_ABI,
-        provider
-      );
+      const response = await fetch(rpcUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          method: "eth_call",
+          params: [
+            {
+              to: JJS_CONFIG.contractAddress,
+              data: callData
+            },
+            "latest"
+          ],
+          id: 1
+        })
+      });
 
-      const balance = await token.balanceOf(address);
+      if (!response.ok) {
+        throw new Error("HTTP " + response.status);
+      }
 
-      return formatUnits(
-        balance,
-        JJS_CONFIG.decimals
-      );
+      const result = await response.json();
+
+      if (result.error) {
+        throw new Error(result.error.message || "RPC error");
+      }
+
+      if (
+        typeof result.result !== "string" ||
+        !/^0x[0-9a-fA-F]{64,}$/.test(result.result)
+      ) {
+        throw new Error("Invalid balance response");
+      }
+
+      const balance = BigInt(result.result);
+
+      console.log("JJS balance successfully read from:", rpcUrl);
+
+      return formatJJSBalance(balance);
 
     } catch (error) {
 
-      console.warn("RPC failed:", error);
-      lastError = error;
+      console.warn("RPC failed:", rpcUrl, error);
+
+      errors.push(
+        rpcUrl + ": " + error.message
+      );
     }
   }
 
-  throw lastError || new Error("All RPC endpoints failed");
+  throw new Error(
+    "All Polygon RPC endpoints failed. " +
+    errors.join(" | ")
+  );
 }
