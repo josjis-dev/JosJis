@@ -12,6 +12,7 @@
 
 <script src="header.js" defer></script>
 <script src="footer.js" defer></script>
+<script src="components.js" defer></script>
 
 <style>
 /* HOME PAGE SPECIFIC STYLES */
@@ -537,14 +538,25 @@ async function copyContract() {
         .getElementById("contract")
         .innerText.trim();
 
-    const message = document.getElementById("copied");
-
     try {
         await navigator.clipboard.writeText(address);
-        message.innerText = "Address copied successfully!";
+
+        if (typeof showJJSAlert === "function") {
+            showJJSAlert(
+                "JJS Contract Address copied successfully!",
+                "success"
+            );
+        }
+
     } catch (error) {
-        message.innerText =
-            "Unable to copy automatically. Please copy manually.";
+        console.error("Copy contract error:", error);
+
+        if (typeof showJJSAlert === "function") {
+            showJJSAlert(
+                "Copy failed. Please copy the contract address manually.",
+                "error"
+            );
+        }
     }
 }
 </script>
