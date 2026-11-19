@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#100d1c">
+<meta name="theme-color" content="#0c0914">
 
 <title>JosJis Roadmap | JJS Development</title>
 
@@ -12,16 +12,18 @@
 
 <style>
 :root {
-    --bg: #100d1c;
-    --panel: #1b162b;
-    --purple: #9b72ff;
-    --gold: #e8c477;
-    --white: #ffffff;
-    --muted: #aaa3b9;
-    --border: #302741;
+    --purple: #9b5cff;
+    --purple-dark: #6e35c5;
+    --bg: #0c0914;
+    --card: #171222;
+    --text: #f5f0ff;
+    --muted: #b8adc9;
+    --border: #30243f;
 }
 
 * {
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
 }
 
@@ -30,9 +32,8 @@ html {
 }
 
 body {
-    margin: 0;
     background: var(--bg);
-    color: var(--white);
+    color: var(--text);
     font-family: Arial, sans-serif;
     line-height: 1.7;
 }
@@ -42,67 +43,72 @@ a {
     text-decoration: none;
 }
 
+/* HEADER */
+
 header {
-    padding: 18px 6%;
+    padding: 18px 7%;
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    align-items: center;
     border-bottom: 1px solid var(--border);
-    background: #100d1cf5;
+    background: #0c0914;
     position: sticky;
     top: 0;
     z-index: 10;
+    flex-wrap: wrap;
+    gap: 15px;
 }
 
-.brand {
-    font-size: 23px;
+.logo {
+    font-size: 25px;
     font-weight: bold;
     color: var(--purple);
 }
 
 nav {
     display: flex;
+    gap: 20px;
     flex-wrap: wrap;
-    gap: 18px;
 }
 
 nav a {
-    color: #ddd;
-    font-size: 13px;
+    color: var(--muted);
+    font-size: 14px;
     transition: 0.2s;
 }
 
 nav a:hover,
 nav a.active {
-    color: var(--gold);
+    color: var(--purple);
 }
+
+/* HERO */
 
 .hero {
     text-align: center;
-    padding: 90px 20px 80px;
+    padding: 90px 20px 70px;
     background: radial-gradient(
-        ellipse at top,
-        #39205a 0%,
-        #1b162b 40%,
-        #100d1c 80%
+        circle at top,
+        #352052 0%,
+        #0c0914 65%
     );
 }
 
-.hero-tag {
+.hero .tag {
     color: var(--purple);
+    letter-spacing: 3px;
     font-size: 12px;
     font-weight: bold;
-    letter-spacing: 4px;
 }
 
 .hero h1 {
-    font-size: clamp(40px, 8vw, 65px);
-    margin: 18px 0;
+    font-size: clamp(36px, 7vw, 60px);
+    margin: 15px 0;
     line-height: 1.2;
 }
 
 .hero h1 span {
-    color: var(--gold);
+    color: var(--purple);
 }
 
 .hero p {
@@ -111,15 +117,16 @@ nav a.active {
     margin: auto;
 }
 
+/* MAIN CONTENT */
+
 .container {
-    width: 90%;
-    max-width: 1000px;
+    max-width: 1050px;
     margin: auto;
-    padding: 60px 0;
+    padding: 55px 20px;
 }
 
 section {
-    margin-bottom: 65px;
+    margin-bottom: 55px;
 }
 
 .heading {
@@ -127,8 +134,8 @@ section {
 }
 
 .heading h2 {
-    color: var(--gold);
-    font-size: 29px;
+    color: var(--purple);
+    font-size: 27px;
     margin: 0 0 8px;
 }
 
@@ -142,6 +149,8 @@ section {
     margin-bottom: 30px;
 }
 
+/* LEGEND */
+
 .legend {
     display: flex;
     flex-wrap: wrap;
@@ -153,9 +162,11 @@ section {
     font-size: 11px;
     padding: 6px 12px;
     border-radius: 20px;
-    background: var(--panel);
+    background: var(--card);
     border: 1px solid var(--border);
 }
+
+/* TIMELINE */
 
 .timeline {
     border-left: 2px solid var(--purple);
@@ -165,7 +176,7 @@ section {
 
 .phase {
     position: relative;
-    background: var(--panel);
+    background: var(--card);
     border: 1px solid var(--border);
     border-radius: 15px;
     padding: 25px;
@@ -194,7 +205,7 @@ section {
 }
 
 .phase h3 {
-    color: var(--gold);
+    color: #c69aff;
     font-size: 20px;
     margin: 0 0 8px;
 }
@@ -245,16 +256,19 @@ section {
     background: #202c49;
 }
 
+/* CARDS */
+
 .card {
-    background: var(--panel);
+    background: var(--card);
     border: 1px solid var(--border);
     border-radius: 15px;
     padding: 25px;
 }
 
 .card h3 {
-    color: var(--gold);
+    color: #c69aff;
     margin-top: 0;
+    margin-bottom: 10px;
 }
 
 .card p {
@@ -268,28 +282,33 @@ section {
         auto-fit,
         minmax(220px, 1fr)
     );
-    gap: 17px;
+    gap: 18px;
 }
 
+/* NOTICE */
+
 .notice {
-    border-left: 4px solid var(--gold);
+    border-left: 4px solid var(--purple);
 }
+
+/* VISION */
 
 .vision {
     text-align: center;
     padding: 40px 25px;
-    border: 1px solid var(--purple);
+    border: 1px solid var(--purple-dark);
     border-radius: 18px;
-    background: radial-gradient(
-        circle at center,
-        #39205a,
-        #171222 75%
+    background: linear-gradient(
+        135deg,
+        #241637,
+        #171222
     );
 }
 
 .vision h2 {
-    color: var(--gold);
+    color: var(--purple);
     font-size: clamp(24px, 5vw, 34px);
+    margin-bottom: 12px;
 }
 
 .vision p {
@@ -298,33 +317,31 @@ section {
     margin: auto;
 }
 
+/* FOOTER */
+
 footer {
     text-align: center;
-    padding: 30px 15px;
-    color: var(--muted);
+    padding: 30px 20px;
     border-top: 1px solid var(--border);
+    color: var(--muted);
     font-size: 13px;
 }
 
 footer a {
-    color: var(--gold);
+    color: var(--purple);
     margin: 8px;
 }
 
-@media(max-width: 650px) {
+/* MOBILE */
+
+@media (max-width: 600px) {
     header {
-        padding: 12px 4%;
-        flex-wrap: wrap;
         justify-content: center;
     }
 
     nav {
         justify-content: center;
-        gap: 12px;
-    }
-
-    nav a {
-        font-size: 12px;
+        gap: 13px;
     }
 
     .hero {
@@ -356,14 +373,14 @@ footer a {
 
 <header>
 
-    <a href="index.html" class="brand">JOSJIS</a>
+    <a href="index.html" class="logo">JosJis</a>
 
     <nav>
         <a href="index.html">Home</a>
         <a href="about.html">About</a>
         <a href="tokenomics.html">Tokenomics</a>
-        <a href="utility.html">Utility</a>
         <a href="ecosystem.html">Ecosystem</a>
+        <a href="utility.html">Utility</a>
         <a href="roadmap.html" class="active">Roadmap</a>
         <a href="contact.html">Contact</a>
     </nav>
@@ -374,7 +391,7 @@ footer a {
 
 <div class="hero">
 
-    <div class="hero-tag">
+    <div class="tag">
         THE JOSJIS DEVELOPMENT JOURNEY
     </div>
 
@@ -391,8 +408,6 @@ footer a {
 </div>
 
 <main class="container">
-
-    <!-- INTRODUCTION -->
 
     <section>
 
@@ -419,8 +434,6 @@ footer a {
 
     </section>
 
-    <!-- ROADMAP TIMELINE -->
-
     <section>
 
         <div class="heading">
@@ -429,8 +442,6 @@ footer a {
         </div>
 
         <div class="timeline">
-
-            <!-- PHASE 1 -->
 
             <div class="phase completed">
 
@@ -455,13 +466,9 @@ footer a {
 
             </div>
 
-            <!-- PHASE 2 -->
-
             <div class="phase">
 
-                <span class="phase-label planned">
-                    PLANNED
-                </span>
+                <span class="phase-label planned">PLANNED</span>
 
                 <h3>Phase 2 — Utility Development</h3>
 
@@ -480,13 +487,9 @@ footer a {
 
             </div>
 
-            <!-- PHASE 3 -->
-
             <div class="phase">
 
-                <span class="phase-label planned">
-                    PLANNED
-                </span>
+                <span class="phase-label planned">PLANNED</span>
 
                 <h3>Phase 3 — Multi-Chain Expansion</h3>
 
@@ -506,13 +509,9 @@ footer a {
 
             </div>
 
-            <!-- PHASE 4 -->
-
             <div class="phase">
 
-                <span class="phase-label research">
-                    RESEARCH
-                </span>
+                <span class="phase-label research">RESEARCH</span>
 
                 <h3>Phase 4 — JGPS Development</h3>
 
@@ -530,8 +529,6 @@ footer a {
                 </ul>
 
             </div>
-
-            <!-- PHASE 5 -->
 
             <div class="phase">
 
@@ -555,8 +552,6 @@ footer a {
                 </ul>
 
             </div>
-
-            <!-- PHASE 6 -->
 
             <div class="phase">
 
@@ -583,8 +578,6 @@ footer a {
         </div>
 
     </section>
-
-    <!-- DEVELOPMENT PRINCIPLES -->
 
     <section>
 
@@ -631,8 +624,6 @@ footer a {
 
     </section>
 
-    <!-- IMPORTANT NOTICE -->
-
     <section>
 
         <div class="card notice">
@@ -662,8 +653,6 @@ footer a {
 
     </section>
 
-    <!-- VISION -->
-
     <section>
 
         <div class="vision">
@@ -683,8 +672,6 @@ footer a {
 
 </main>
 
-<!-- FOOTER -->
-
 <footer>
 
     <b>JosJis ($JJS)</b>
@@ -694,8 +681,8 @@ footer a {
     <p>
         <a href="about.html">About</a>
         <a href="tokenomics.html">Tokenomics</a>
-        <a href="utility.html">Utility</a>
         <a href="ecosystem.html">Ecosystem</a>
+        <a href="utility.html">Utility</a>
         <a href="contact.html">Contact</a>
     </p>
 
