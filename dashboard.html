@@ -472,15 +472,22 @@ copyBtn.addEventListener("click", async () => {
       JJS_CONFIG.contractAddress
     );
 
-    alert("JJS contract address copied!");
+    showJJSAlert(
+      "JJS Contract Address copied successfully!",
+      "success"
+    );
 
   } catch (error) {
 
-    alert(
-      "Copy failed. Please copy this address manually:\n\n" +
-      JJS_CONFIG.contractAddress
+    console.error("Copy contract error:", error);
+
+    showJJSAlert(
+      "Copy failed. Please copy the contract address manually.",
+      "error"
     );
+
   }
+
 });
 
 </script>
