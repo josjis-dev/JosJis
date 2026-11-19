@@ -28,6 +28,7 @@ const headerHTML = `
         <a href="ecosystem.html" data-page="ecosystem.html">Ecosystem</a>
         <a href="utility.html" data-page="utility.html">Utility</a>
         <a href="dashboard.html" data-page="dashboard.html">Dashboard</a>
+        <a href="crypto-donations.html" data-page="crypto-donations.html">Donate</a>
         <a href="roadmap.html" data-page="roadmap.html">Roadmap</a>
         <a href="contact.html" data-page="contact.html">Contact</a>
 
