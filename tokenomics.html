@@ -10,10 +10,13 @@
 
     <meta name="theme-color" content="#0c0914">
 
+    <!-- Shared CSS -->
     <link rel="stylesheet" href="style.css">
 
+    <!-- Shared Header, Footer & Components -->
     <script src="header.js" defer></script>
     <script src="footer.js" defer></script>
+    <script src="components.js" defer></script>
 
     <style>
         .tokenomics-hero {
@@ -332,8 +335,6 @@
                 Copy Contract Address
             </button>
 
-            <p id="copyMessage" aria-live="polite" style="margin-top:12px; font-size:13px;"></p>
-
             <p style="margin-top:20px;">
                 <a
                     class="tokenomics-explorer"
@@ -401,8 +402,6 @@
             .getElementById("contractAddress")
             .innerText.trim();
 
-        const message = document.getElementById("copyMessage");
-
         try {
             if (navigator.clipboard && window.isSecureContext) {
                 await navigator.clipboard.writeText(address);
@@ -423,10 +422,22 @@
                 }
             }
 
-            message.textContent = "Contract address copied successfully!";
+            if (typeof showJJSAlert === "function") {
+                showJJSAlert(
+                    "JJS Contract Address copied successfully!",
+                    "success"
+                );
+            }
+
         } catch (error) {
-            message.textContent =
-                "Unable to copy automatically. Please copy the address manually.";
+            console.error("Copy contract error:", error);
+
+            if (typeof showJJSAlert === "function") {
+                showJJSAlert(
+                    "Copy failed. Please copy the contract address manually.",
+                    "error"
+                );
+            }
         }
     }
 </script>
