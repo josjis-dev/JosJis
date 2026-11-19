@@ -398,29 +398,11 @@
 
 <script>
     async function copyAddress() {
-        const address = document
-            .getElementById("contractAddress")
-            .innerText.trim();
+        const address =
+            document.getElementById("contractAddress").innerText.trim();
 
         try {
-            if (navigator.clipboard && window.isSecureContext) {
-                await navigator.clipboard.writeText(address);
-            } else {
-                const textArea = document.createElement("textarea");
-                textArea.value = address;
-                textArea.style.position = "fixed";
-                textArea.style.opacity = "0";
-
-                document.body.appendChild(textArea);
-                textArea.select();
-
-                const copied = document.execCommand("copy");
-                document.body.removeChild(textArea);
-
-                if (!copied) {
-                    throw new Error("Copy failed");
-                }
-            }
+            await navigator.clipboard.writeText(address);
 
             if (typeof showJJSAlert === "function") {
                 showJJSAlert(
@@ -434,7 +416,7 @@
 
             if (typeof showJJSAlert === "function") {
                 showJJSAlert(
-                    "Copy failed. Please copy the contract address manually.",
+                    "Copy failed. Please copy the address manually.",
                     "error"
                 );
             }
