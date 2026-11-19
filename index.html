@@ -9,7 +9,9 @@
 <meta name="description" content="Welcome to JosJis ($JJS), a community-driven Polygon token project. Explore its tokenomics, utilities, ecosystem and development roadmap.">
 
 <link rel="stylesheet" href="style.css">
+
 <script src="header.js" defer></script>
+<script src="footer.js" defer></script>
 
 <style>
 /* HOME PAGE SPECIFIC STYLES */
@@ -184,6 +186,14 @@
     font-size: 12px;
 }
 
+.home-disclaimer {
+    display: block;
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    padding: 0 15px 25px;
+}
+
 @media (max-width: 600px) {
     .home-hero {
         padding-top: 65px;
@@ -198,7 +208,7 @@
 
 <body>
 
-<!-- HEADER IS LOADED FROM header.js -->
+<!-- SHARED HEADER LOADED FROM header.js -->
 
 <!-- HERO -->
 
@@ -316,7 +326,10 @@
             0x52C8Ff13ada1431376b3E77E8219b644805122dF
         </div>
 
-        <button type="button" onclick="copyContract()">
+        <button
+            type="button"
+            class="primary-btn"
+            onclick="copyContract()">
             Copy Address
         </button>
 
@@ -508,28 +521,13 @@
 
 </main>
 
-<!-- FOOTER -->
+<!-- PROJECT DISCLAIMER -->
 
-<footer>
-    <b>JosJis ($JJS)</b>
+<div class="home-disclaimer">
+    This website does not promise profits or investment returns.
+</div>
 
-    <p>Community · Transparency · Polygon</p>
-
-    <p>
-        <a href="about.html">About</a>
-        <a href="tokenomics.html">Tokenomics</a>
-        <a href="ecosystem.html">Ecosystem</a>
-        <a href="utility.html">Utility</a>
-        <a href="roadmap.html">Roadmap</a>
-        <a href="contact.html">Contact</a>
-    </p>
-
-    <p>© 2026 JosJis. All rights reserved.</p>
-
-    <small>
-        This website does not promise profits or investment returns.
-    </small>
-</footer>
+<!-- SHARED FOOTER LOADED FROM footer.js -->
 
 <!-- COPY CONTRACT SCRIPT -->
 
