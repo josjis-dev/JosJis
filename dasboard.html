@@ -271,25 +271,24 @@ footer {
   <section class="wallet-panel">
     <div class="wallet-icon">👛</div>
 
-    <h2 id="walletTitle">Connect Your Wallet</h2>
+    <h2 id="walletTitle">Checking Wallet...</h2>
 
     <p id="walletDescription">
-      Choose your preferred wallet to access your dashboard.
+      Restoring your wallet session. Please wait.
     </p>
 
-    <button class="primary-btn" id="connectBtn">
+    <button class="primary-btn" id="connectBtn" style="display:none">
       Connect Wallet
     </button>
 
     <br>
 
-    <button class="secondary-btn" id="disconnectBtn"
-      style="display:none">
+    <button class="secondary-btn" id="disconnectBtn" style="display:none">
       Disconnect Wallet
     </button>
 
     <span id="status" class="status">
-      Wallet not connected
+      Initializing wallet...
     </span>
   </section>
 
@@ -303,19 +302,19 @@ footer {
 
     <div class="card">
       <h3>Network</h3>
-      <div class="value" id="networkName">Not connected</div>
+      <div class="value" id="networkName">Checking...</div>
       <div class="sub">Expected: Polygon Mainnet</div>
     </div>
 
     <div class="card">
       <h3>Wallet Address</h3>
-      <div class="value address" id="walletAddress">Not connected</div>
+      <div class="value address" id="walletAddress">Checking...</div>
       <div class="sub">Connected wallet account</div>
     </div>
 
     <div class="card">
       <h3>Wallet Status</h3>
-      <div class="value" id="walletStatus">Disconnected</div>
+      <div class="value" id="walletStatus">Checking...</div>
       <div class="sub">Wallet connection status</div>
     </div>
 
@@ -359,7 +358,7 @@ import { EthersAdapter } from
 import { polygon } from
   "https://esm.sh/@reown/appkit@2.0.0/networks";
 
-import { BrowserProvider, Contract, JsonRpcProvider, formatUnits }
+import { Contract, JsonRpcProvider, formatUnits }
   from "https://esm.sh/ethers@6.15.0";
 
 const PROJECT_ID = "ea2b7e670f2c0331bca41ba7f66f0126";
@@ -386,7 +385,7 @@ const token = new Contract(
 const metadata = {
   name: "JosJis",
   description: "Official JosJis Web3 Dashboard",
-  url: "https://josjis-dev.github.io",
+  url: "https://josjis-dev.github.io/JosJis/",
   icons: [
     "https://josjis-dev.github.io/JosJis/josjis-logo.jpg"
   ]
@@ -408,8 +407,8 @@ const disconnectBtn = document.getElementById("disconnectBtn");
 const statusBox = document.getElementById("status");
 
 let activeAddress = null;
-let currentProvider = null;
 let refreshNumber = 0;
+let appReady = false;
 
 function setStatus(message, type = "") {
   statusBox.textContent = message;
@@ -418,7 +417,7 @@ function setStatus(message, type = "") {
 
 function resetDashboard() {
   activeAddress = null;
-  currentProvider = null;
+  refreshNumber++;
 
   document.getElementById("walletTitle").textContent =
     "Connect Your Wallet";
@@ -447,7 +446,7 @@ async function refreshDashboard() {
     const chainId = modal.getChainId();
 
     if (!address) {
-      resetDashboard();
+      if (appReady) resetDashboard();
       return;
     }
 
@@ -508,6 +507,8 @@ async function refreshDashboard() {
   } catch (error) {
     console.error("Dashboard error:", error);
 
+    if (requestId !== refreshNumber) return;
+
     document.getElementById("jjsBalance").textContent =
       "Unable to load";
 
@@ -540,7 +541,7 @@ disconnectBtn.addEventListener("click", async () => {
 modal.subscribeState((state) => {
   if (state.isConnected) {
     refreshDashboard();
-  } else {
+  } else if (appReady) {
     resetDashboard();
   }
 });
@@ -553,6 +554,32 @@ modal.subscribeNetwork(() => {
   refreshDashboard();
 });
 
+// Wait for AppKit initialization and session restoration.
+modal.subscribeState((state) => {
+  if (!appReady && state.initialized) {
+    appReady = true;
+
+    if (state.isConnected) {
+      refreshDashboard();
+    } else {
+      resetDashboard();
+    }
+  }
+});
+
+// Fallback if initialization state is not emitted.
+setTimeout(() => {
+  if (!appReady) {
+    appReady = true;
+
+    if (modal.getIsConnected()) {
+      refreshDashboard();
+    } else {
+      resetDashboard();
+    }
+  }
+}, 5000);
+
 document.getElementById("copyBtn").addEventListener("click", async () => {
   try {
     await navigator.clipboard.writeText(JJS_CONTRACT);
@@ -561,11 +588,6 @@ document.getElementById("copyBtn").addEventListener("click", async () => {
     alert("Please copy the contract address manually.");
   }
 });
-
-// Restore an existing AppKit connection when available.
-if (modal.getIsConnected()) {
-  refreshDashboard();
-}
 
 </script>
 
