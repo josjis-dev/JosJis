@@ -107,82 +107,15 @@
 <script type="module">
 
 // =====================================
-// IMPORT LIBRARIES
+// IMPORT WEB3 CONFIGURATION
 // =====================================
-
-import { createAppKit } from
-  "https://esm.sh/@reown/appkit@2.0.0";
-
-import { EthersAdapter } from
-  "https://esm.sh/@reown/appkit-adapter-ethers@2.0.0";
-
-import { polygon } from
-  "https://esm.sh/@reown/appkit@2.0.0/networks";
 
 import {
-  Contract,
-  JsonRpcProvider,
-  formatUnits
-} from "https://esm.sh/ethers@6.15.0";
-
-// =====================================
-// JOSJIS CONFIGURATION
-// =====================================
-
-const PROJECT_ID =
-  "ea2b7e670f2c0331bca41ba7f66f0126";
-
-const JJS_CONTRACT =
-  "0x52C8Ff13ada1431376b3E77E8219b644805122dF";
-
-const JJS_ABI = [
-  "function balanceOf(address account) view returns (uint256)",
-  "function decimals() view returns (uint8)",
-  "function symbol() view returns (string)"
-];
-
-// =====================================
-// POLYGON RPC PROVIDER
-// =====================================
-
-const rpcProvider = new JsonRpcProvider(
-  "https://polygon-bor-rpc.publicnode.com"
-);
-
-const token = new Contract(
+  modal,
+  token,
   JJS_CONTRACT,
-  JJS_ABI,
-  rpcProvider
-);
-
-// =====================================
-// WEBSITE METADATA
-// =====================================
-
-const metadata = {
-  name: "JosJis",
-  description: "Official JosJis Web3 Dashboard",
-  url: "https://josjis-dev.github.io",
-  icons: [
-    "https://josjis-dev.github.io/JosJis/josjis-logo.jpg"
-  ]
-};
-
-// =====================================
-// INITIALIZE REOWN APPKIT
-// =====================================
-
-const modal = createAppKit({
-  adapters: [new EthersAdapter()],
-  networks: [polygon],
-  defaultNetwork: polygon,
-  projectId: PROJECT_ID,
-  metadata,
-  enableReconnect: true,
-  features: {
-    analytics: true
-  }
-});
+  formatUnits
+} from "./web3-config.js";
 
 // =====================================
 // HTML ELEMENTS
