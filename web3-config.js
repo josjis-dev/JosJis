@@ -1,453 +1,87 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0c0914">
-
-<title>JosJis Dashboard | JJS Web3</title>
-<meta name="description" content="Connect your Web3 wallet and view your JosJis token balance on Polygon.">
-
-<link rel="stylesheet" href="style.css">
-
-<script src="header.js" defer></script>
-<script src="footer.js" defer></script>
-<script src="components.js" defer></script>
-</head>
-
-<body>
-
-<section class="hero">
-  <div class="tag">JOSJIS WEB3 PLATFORM</div>
-  <h1>My <span>Dashboard</span></h1>
-  <p>
-    Connect your wallet and access your JosJis account.
-    View your JJS balance directly from Polygon.
-  </p>
-</section>
-
-<main>
-
-  <section class="wallet-panel">
-    <div class="wallet-icon">👛</div>
-
-    <h2 id="walletTitle">Connect Your Wallet</h2>
-
-    <p id="walletDescription">
-      Choose your preferred wallet to access your dashboard.
-    </p>
-
-    <button class="primary-btn" id="connectBtn" type="button">
-      Connect Wallet
-    </button>
-
-    <br>
-
-    <button class="secondary-btn" id="disconnectBtn"
-      type="button" style="display:none">
-      Disconnect Wallet
-    </button>
-
-    <span id="status" class="status">
-      Checking wallet session...
-    </span>
-  </section>
-
-  <section class="dashboard-grid">
-
-    <div class="card">
-      <h3>JJS Balance</h3>
-      <div class="value purple" id="jjsBalance">-- JJS</div>
-      <div class="sub">JosJis Token on Polygon</div>
-    </div>
-
-    <div class="card">
-      <h3>Network</h3>
-      <div class="value" id="networkName">Checking...</div>
-      <div class="sub">Expected: Polygon Mainnet</div>
-    </div>
-
-    <div class="card">
-      <h3>Wallet Address</h3>
-      <div class="value address" id="walletAddress">Checking...</div>
-      <div class="sub">Connected wallet account</div>
-    </div>
-
-    <div class="card">
-      <h3>Wallet Status</h3>
-      <div class="value" id="walletStatus">Restoring...</div>
-      <div class="sub">Wallet connection status</div>
-    </div>
-
-  </section>
-
-  <section class="info-section">
-    <h2>About Your Dashboard</h2>
-    <p>
-      Your JJS balance is read from the Polygon blockchain.
-      Connecting your wallet does not transfer tokens or
-      authorize transactions.
-    </p>
-  </section>
-
-  <section class="info-section">
-    <h2>Official JJS Contract</h2>
-
-    <div class="contract" id="contractAddress">
-      0x52C8Ff13ada1431376b3E77E8219b644805122dF
-    </div>
-
-    <button class="secondary-btn" id="copyBtn" type="button">
-      Copy Contract Address
-    </button>
-  </section>
-
-</main>
-
-<script type="module">
-
 // =====================================
-// IMPORT WEB3 CONFIGURATION
+// JOSJIS WEB3 CONFIGURATION
 // =====================================
+
+import { createAppKit } from
+  "https://esm.sh/@reown/appkit@2.0.0";
+
+import { EthersAdapter } from
+  "https://esm.sh/@reown/appkit-adapter-ethers@2.0.0";
+
+import { polygon } from
+  "https://esm.sh/@reown/appkit@2.0.0/networks";
 
 import {
-  modal,
-  token,
-  JJS_CONTRACT,
+  Contract,
+  JsonRpcProvider,
   formatUnits
-} from "./web3-config.js";
+} from "https://esm.sh/ethers@6.15.0";
 
 // =====================================
-// HTML ELEMENTS
+// PROJECT CONFIGURATION
 // =====================================
 
-const connectBtn =
-  document.getElementById("connectBtn");
+export const PROJECT_ID =
+  "ea2b7e670f2c0331bca41ba7f66f0126";
 
-const disconnectBtn =
-  document.getElementById("disconnectBtn");
+export const JJS_CONTRACT =
+  "0x52C8Ff13ada1431376b3E77E8219b644805122dF";
 
-const statusBox =
-  document.getElementById("status");
-
-// =====================================
-// APPLICATION STATE
-// =====================================
-
-let activeAddress = null;
-let refreshNumber = 0;
-let isManualDisconnect = false;
+const JJS_ABI = [
+  "function balanceOf(address account) view returns (uint256)",
+  "function decimals() view returns (uint8)",
+  "function symbol() view returns (string)"
+];
 
 // =====================================
-// STATUS FUNCTION
+// POLYGON RPC PROVIDER
 // =====================================
 
-function setStatus(message, type = "") {
-  statusBox.textContent = message;
-  statusBox.className = "status " + type;
-}
-
-// =====================================
-// SHOW CONNECTED WALLET
-// =====================================
-
-function showConnectedWallet(address) {
-
-  activeAddress = address;
-
-  document.getElementById("walletTitle").textContent =
-    "Wallet Connected";
-
-  document.getElementById("walletDescription").textContent =
-    "Your wallet is connected to JosJis.";
-
-  document.getElementById("walletAddress").textContent =
-    address;
-
-  document.getElementById("walletStatus").textContent =
-    "Connected";
-
-  connectBtn.style.display = "none";
-  disconnectBtn.style.display = "inline-block";
-}
-
-// =====================================
-// RESET DASHBOARD
-// Only called after manual disconnect
-// =====================================
-
-function resetDashboard() {
-
-  refreshNumber++;
-  activeAddress = null;
-
-  document.getElementById("walletTitle").textContent =
-    "Connect Your Wallet";
-
-  document.getElementById("walletDescription").textContent =
-    "Choose your preferred wallet to access your dashboard.";
-
-  document.getElementById("walletAddress").textContent =
-    "Not connected";
-
-  document.getElementById("jjsBalance").textContent =
-    "-- JJS";
-
-  document.getElementById("networkName").textContent =
-    "Not connected";
-
-  document.getElementById("walletStatus").textContent =
-    "Disconnected";
-
-  connectBtn.style.display = "inline-block";
-  disconnectBtn.style.display = "none";
-
-  setStatus("Wallet disconnected");
-}
-
-// =====================================
-// REFRESH DASHBOARD
-// =====================================
-
-async function refreshDashboard() {
-
-  try {
-
-    const address = modal.getAddress();
-
-    if (!address) {
-      return;
-    }
-
-    const requestId = ++refreshNumber;
-    const chainId = modal.getChainId();
-
-    showConnectedWallet(address);
-
-    if (Number(chainId) !== 137) {
-
-      document.getElementById("networkName").textContent =
-        "Wrong Network";
-
-      document.getElementById("jjsBalance").textContent =
-        "Polygon required";
-
-      setStatus(
-        "Please switch to Polygon Mainnet.",
-        "error"
-      );
-
-      return;
-    }
-
-    document.getElementById("networkName").textContent =
-      "Polygon Mainnet";
-
-    setStatus("Connected successfully", "connected");
-
-    const [balance, decimals] = await Promise.all([
-      token.balanceOf(address),
-      token.decimals()
-    ]);
-
-    if (
-      requestId !== refreshNumber ||
-      activeAddress !== address
-    ) {
-      return;
-    }
-
-    const formatted = formatUnits(balance, decimals);
-    const number = Number(formatted);
-
-    const display = Number.isFinite(number)
-      ? number.toLocaleString("en-US", {
-          maximumFractionDigits: 6
-        })
-      : formatted;
-
-    document.getElementById("jjsBalance").textContent =
-      display + " JJS";
-
-  } catch (error) {
-
-    console.error("Dashboard error:", error);
-
-    document.getElementById("jjsBalance").textContent =
-      "Unable to load";
-
-    setStatus(
-      "Wallet connected, but balance could not be loaded.",
-      "error"
-    );
-  }
-}
-
-// =====================================
-// CONNECT WALLET
-// =====================================
-
-connectBtn.addEventListener("click", async () => {
-
-  try {
-
-    await modal.open({
-      view: "Connect"
-    });
-
-  } catch (error) {
-
-    console.error("Connect error:", error);
-
-    setStatus(
-      "Unable to open wallet selection.",
-      "error"
-    );
-  }
-});
-
-// =====================================
-// DISCONNECT WALLET
-// =====================================
-
-disconnectBtn.addEventListener("click", async () => {
-
-  try {
-
-    isManualDisconnect = true;
-
-    await modal.disconnect();
-
-    resetDashboard();
-
-    isManualDisconnect = false;
-
-  } catch (error) {
-
-    isManualDisconnect = false;
-
-    console.error("Disconnect error:", error);
-
-    setStatus(
-      "Unable to disconnect wallet.",
-      "error"
-    );
-  }
-});
-
-// =====================================
-// APPKIT STATE LISTENER
-// =====================================
-
-modal.subscribeState((state) => {
-
-  // Only react to a confirmed connected state.
-  // Ignore temporary disconnected states during restoration.
-
-  if (state.isConnected) {
-    refreshDashboard();
-  }
-
-});
-
-// =====================================
-// ACCOUNT LISTENER
-// =====================================
-
-modal.subscribeAccount((account) => {
-
-  if (account.isConnected && account.address) {
-    refreshDashboard();
-  }
-
-});
-
-// =====================================
-// NETWORK LISTENER
-// =====================================
-
-modal.subscribeNetwork(() => {
-
-  if (modal.getIsConnected()) {
-    refreshDashboard();
-  }
-
-});
-
-// =====================================
-// COPY CONTRACT ADDRESS
-// =====================================
-
-document.getElementById("copyBtn").addEventListener(
-  "click",
-  async () => {
-
-    try {
-
-      await navigator.clipboard.writeText(JJS_CONTRACT);
-
-      alert("JJS contract address copied!");
-
-    } catch (error) {
-
-      alert("Please copy the contract address manually.");
-
-    }
-
-  }
+export const rpcProvider = new JsonRpcProvider(
+  "https://polygon-bor-rpc.publicnode.com"
 );
 
 // =====================================
-// RESTORE PREVIOUS WALLET SESSION
+// JJS TOKEN CONTRACT
 // =====================================
 
-async function restoreWalletSession() {
+export const token = new Contract(
+  JJS_CONTRACT,
+  JJS_ABI,
+  rpcProvider
+);
 
-  setStatus("Restoring saved wallet session...");
+// =====================================
+// WEBSITE METADATA
+// =====================================
 
-  // Keep Connect Wallet available during restoration.
-  connectBtn.disabled = false;
-  connectBtn.textContent = "Connect Wallet";
+const metadata = {
+  name: "JosJis",
+  description: "Official JosJis Web3 Dashboard",
+  url: "https://josjis-dev.github.io",
+  icons: [
+    "https://josjis-dev.github.io/JosJis/josjis-logo.jpg"
+  ]
+};
 
-  // Check AppKit session after initialization.
-  for (let attempt = 0; attempt < 40; attempt++) {
+// =====================================
+// INITIALIZE REOWN APPKIT
+// =====================================
 
-    try {
-
-      if (
-        modal.getIsConnected() &&
-        modal.getAddress()
-      ) {
-
-        await refreshDashboard();
-        return;
-      }
-
-    } catch (error) {
-
-      console.error("Restore check:", error);
-
-    }
-
-    await new Promise(resolve => setTimeout(resolve, 250));
+export const modal = createAppKit({
+  adapters: [new EthersAdapter()],
+  networks: [polygon],
+  defaultNetwork: polygon,
+  projectId: PROJECT_ID,
+  metadata,
+  enableReconnect: true,
+  features: {
+    analytics: true
   }
+});
 
-  // Do not force-disconnect or clear the saved session.
-  // AppKit may still restore the session later.
+// =====================================
+// EXPORT ETHERS FUNCTION
+// =====================================
 
-  if (!activeAddress) {
-
-    document.getElementById("walletStatus").textContent =
-      "Waiting for wallet";
-
-    setStatus("No active wallet session detected.");
-
-  }
-}
-
-restoreWalletSession();
-
-</script>
-
-</body>
-</html>
+export { formatUnits };
