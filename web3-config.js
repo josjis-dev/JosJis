@@ -1,130 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0c0914">
+
+<title>JosJis Dashboard | JJS Web3</title>
+<meta name="description" content="Connect your Web3 wallet and view your JosJis token balance on Polygon.">
+
+<link rel="stylesheet" href="style.css">
+
+<script src="header.js" defer></script>
+<script src="footer.js" defer></script>
+<script src="components.js" defer></script>
+</head>
+
+<body>
+
+<section class="hero">
+  <div class="tag">JOSJIS WEB3 PLATFORM</div>
+  <h1>My <span>Dashboard</span></h1>
+  <p>
+    Connect your wallet and access your JosJis account.
+    View your JJS balance directly from Polygon.
+  </p>
+</section>
+
+<main>
+
+  <section class="wallet-panel">
+    <div class="wallet-icon">👛</div>
+
+    <h2 id="walletTitle">Connect Your Wallet</h2>
+
+    <p id="walletDescription">
+      Choose your preferred wallet to access your dashboard.
+    </p>
+
+    <button class="primary-btn" id="connectBtn" type="button">
+      Connect Wallet
+    </button>
+
+    <br>
+
+    <button class="secondary-btn" id="disconnectBtn"
+      type="button" style="display:none">
+      Disconnect Wallet
+    </button>
+
+    <span id="status" class="status">
+      Checking wallet session...
+    </span>
+  </section>
+
+  <section class="dashboard-grid">
+
+    <div class="card">
+      <h3>JJS Balance</h3>
+      <div class="value purple" id="jjsBalance">-- JJS</div>
+      <div class="sub">JosJis Token on Polygon</div>
+    </div>
+
+    <div class="card">
+      <h3>Network</h3>
+      <div class="value" id="networkName">Checking...</div>
+      <div class="sub">Expected: Polygon Mainnet</div>
+    </div>
+
+    <div class="card">
+      <h3>Wallet Address</h3>
+      <div class="value address" id="walletAddress">Checking...</div>
+      <div class="sub">Connected wallet account</div>
+    </div>
+
+    <div class="card">
+      <h3>Wallet Status</h3>
+      <div class="value" id="walletStatus">Restoring...</div>
+      <div class="sub">Wallet connection status</div>
+    </div>
+
+  </section>
+
+  <section class="info-section">
+    <h2>About Your Dashboard</h2>
+    <p>
+      Your JJS balance is read from the Polygon blockchain.
+      Connecting your wallet does not transfer tokens or
+      authorize transactions.
+    </p>
+  </section>
+
+  <section class="info-section">
+    <h2>Official JJS Contract</h2>
+
+    <div class="contract" id="contractAddress">
+      0x52C8Ff13ada1431376b3E77E8219b644805122dF
+    </div>
+
+    <button class="secondary-btn" id="copyBtn" type="button">
+      Copy Contract Address
+    </button>
+  </section>
+
+</main>
+
+<script type="module">
+
 // =====================================
-// JOSJIS WEB3 CONFIGURATION
+// IMPORT WEB3 CONFIGURATION
 // =====================================
 
-export const JJS_CONFIG = {
-  name: "JosJis",
-  symbol: "JJS",
-  chainId: 137,
-  decimals: 18,
-
-  contractAddress:
-    "0x52C8Ff13ada1431376b3E77E8219b644805122dF",
-
-  rpcUrls: [
-    "https://polygon-bor-rpc.publicnode.com",
-    "https://polygon.drpc.org",
-    "https://polygon.gateway.tenderly.co"
-  ]
-};
+import {
+  modal,
+  token,
+  JJS_CONTRACT,
+  formatUnits
+} from "./web3-config.js";
 
 // =====================================
-// FORMAT TOKEN BALANCE
+// HTML ELEMENTS
 // =====================================
 
-function formatJJSBalance(value) {
+const connectBtn =
+  document.getElementById("connectBtn");
 
-  const decimals = BigInt(JJS_CONFIG.decimals);
-  const divisor = 10n ** decimals;
+const disconnectBtn =
+  document.getElementById("disconnectBtn");
 
-  const whole = value / divisor;
-  const fraction = value % divisor;
+const statusBox =
+  document.getElementById("status");
 
-  const fractionText = fraction
-    .toString()
-    .padStart(JJS_CONFIG.decimals, "0")
-    .replace(/0+$/, "");
+// =====================================
+// APPLICATION STATE
+// =====================================
 
-  return fractionText
-    ? whole.toString() + "." + fractionText
-    : whole.toString();
+let activeAddress = null;
+let refreshNumber = 0;
+let isManualDisconnect = false;
+
+// =====================================
+// STATUS FUNCTION
+// =====================================
+
+function setStatus(message, type = "") {
+  statusBox.textContent = message;
+  statusBox.className = "status " + type;
 }
 
 // =====================================
-// READ BALANCE DIRECTLY FROM POLYGON
+// SHOW CONNECTED WALLET
 // =====================================
 
-export async function getJJSBalance(address) {
+function showConnectedWallet(address) {
 
-  if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
-    throw new Error("Invalid wallet address");
+  activeAddress = address;
+
+  document.getElementById("walletTitle").textContent =
+    "Wallet Connected";
+
+  document.getElementById("walletDescription").textContent =
+    "Your wallet is connected to JosJis.";
+
+  document.getElementById("walletAddress").textContent =
+    address;
+
+  document.getElementById("walletStatus").textContent =
+    "Connected";
+
+  connectBtn.style.display = "none";
+  disconnectBtn.style.display = "inline-block";
+}
+
+// =====================================
+// RESET DASHBOARD
+// Only called after manual disconnect
+// =====================================
+
+function resetDashboard() {
+
+  refreshNumber++;
+  activeAddress = null;
+
+  document.getElementById("walletTitle").textContent =
+    "Connect Your Wallet";
+
+  document.getElementById("walletDescription").textContent =
+    "Choose your preferred wallet to access your dashboard.";
+
+  document.getElementById("walletAddress").textContent =
+    "Not connected";
+
+  document.getElementById("jjsBalance").textContent =
+    "-- JJS";
+
+  document.getElementById("networkName").textContent =
+    "Not connected";
+
+  document.getElementById("walletStatus").textContent =
+    "Disconnected";
+
+  connectBtn.style.display = "inline-block";
+  disconnectBtn.style.display = "none";
+
+  setStatus("Wallet disconnected");
+}
+
+// =====================================
+// REFRESH DASHBOARD
+// =====================================
+
+async function refreshDashboard() {
+
+  try {
+
+    const address = modal.getAddress();
+
+    if (!address) {
+      return;
+    }
+
+    const requestId = ++refreshNumber;
+    const chainId = modal.getChainId();
+
+    showConnectedWallet(address);
+
+    if (Number(chainId) !== 137) {
+
+      document.getElementById("networkName").textContent =
+        "Wrong Network";
+
+      document.getElementById("jjsBalance").textContent =
+        "Polygon required";
+
+      setStatus(
+        "Please switch to Polygon Mainnet.",
+        "error"
+      );
+
+      return;
+    }
+
+    document.getElementById("networkName").textContent =
+      "Polygon Mainnet";
+
+    setStatus("Connected successfully", "connected");
+
+    const [balance, decimals] = await Promise.all([
+      token.balanceOf(address),
+      token.decimals()
+    ]);
+
+    if (
+      requestId !== refreshNumber ||
+      activeAddress !== address
+    ) {
+      return;
+    }
+
+    const formatted = formatUnits(balance, decimals);
+    const number = Number(formatted);
+
+    const display = Number.isFinite(number)
+      ? number.toLocaleString("en-US", {
+          maximumFractionDigits: 6
+        })
+      : formatted;
+
+    document.getElementById("jjsBalance").textContent =
+      display + " JJS";
+
+  } catch (error) {
+
+    console.error("Dashboard error:", error);
+
+    document.getElementById("jjsBalance").textContent =
+      "Unable to load";
+
+    setStatus(
+      "Wallet connected, but balance could not be loaded.",
+      "error"
+    );
+  }
+}
+
+// =====================================
+// CONNECT WALLET
+// =====================================
+
+connectBtn.addEventListener("click", async () => {
+
+  try {
+
+    await modal.open({
+      view: "Connect"
+    });
+
+  } catch (error) {
+
+    console.error("Connect error:", error);
+
+    setStatus(
+      "Unable to open wallet selection.",
+      "error"
+    );
+  }
+});
+
+// =====================================
+// DISCONNECT WALLET
+// =====================================
+
+disconnectBtn.addEventListener("click", async () => {
+
+  try {
+
+    isManualDisconnect = true;
+
+    await modal.disconnect();
+
+    resetDashboard();
+
+    isManualDisconnect = false;
+
+  } catch (error) {
+
+    isManualDisconnect = false;
+
+    console.error("Disconnect error:", error);
+
+    setStatus(
+      "Unable to disconnect wallet.",
+      "error"
+    );
+  }
+});
+
+// =====================================
+// APPKIT STATE LISTENER
+// =====================================
+
+modal.subscribeState((state) => {
+
+  // Only react to a confirmed connected state.
+  // Ignore temporary disconnected states during restoration.
+
+  if (state.isConnected) {
+    refreshDashboard();
   }
 
-  // balanceOf(address) function selector
-  const selector = "70a08231";
+});
 
-  // Encode wallet address
-  const encodedAddress = address
-    .slice(2)
-    .toLowerCase()
-    .padStart(64, "0");
+// =====================================
+// ACCOUNT LISTENER
+// =====================================
 
-  const callData = "0x" + selector + encodedAddress;
+modal.subscribeAccount((account) => {
 
-  const errors = [];
+  if (account.isConnected && account.address) {
+    refreshDashboard();
+  }
 
-  // Try RPC endpoints one by one
-  for (const rpcUrl of JJS_CONFIG.rpcUrls) {
+});
+
+// =====================================
+// NETWORK LISTENER
+// =====================================
+
+modal.subscribeNetwork(() => {
+
+  if (modal.getIsConnected()) {
+    refreshDashboard();
+  }
+
+});
+
+// =====================================
+// COPY CONTRACT ADDRESS
+// =====================================
+
+document.getElementById("copyBtn").addEventListener(
+  "click",
+  async () => {
 
     try {
 
-      const response = await fetch(rpcUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          method: "eth_call",
-          params: [
-            {
-              to: JJS_CONFIG.contractAddress,
-              data: callData
-            },
-            "latest"
-          ],
-          id: 1
-        })
-      });
+      await navigator.clipboard.writeText(JJS_CONTRACT);
 
-      if (!response.ok) {
-        throw new Error("HTTP " + response.status);
-      }
-
-      const result = await response.json();
-
-      if (result.error) {
-        throw new Error(result.error.message || "RPC error");
-      }
-
-      if (
-        typeof result.result !== "string" ||
-        !/^0x[0-9a-fA-F]{64,}$/.test(result.result)
-      ) {
-        throw new Error("Invalid balance response");
-      }
-
-      const balance = BigInt(result.result);
-
-      console.log(
-        "JJS balance successfully read from:",
-        rpcUrl
-      );
-
-      return formatJJSBalance(balance);
+      alert("JJS contract address copied!");
 
     } catch (error) {
 
-      console.warn("RPC failed:", rpcUrl, error);
+      alert("Please copy the contract address manually.");
 
-      errors.push(
-        rpcUrl + ": " + error.message
-      );
     }
+
+  }
+);
+
+// =====================================
+// RESTORE PREVIOUS WALLET SESSION
+// =====================================
+
+async function restoreWalletSession() {
+
+  setStatus("Restoring saved wallet session...");
+
+  // Keep Connect Wallet available during restoration.
+  connectBtn.disabled = false;
+  connectBtn.textContent = "Connect Wallet";
+
+  // Check AppKit session after initialization.
+  for (let attempt = 0; attempt < 40; attempt++) {
+
+    try {
+
+      if (
+        modal.getIsConnected() &&
+        modal.getAddress()
+      ) {
+
+        await refreshDashboard();
+        return;
+      }
+
+    } catch (error) {
+
+      console.error("Restore check:", error);
+
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 250));
   }
 
-  throw new Error(
-    "All Polygon RPC endpoints failed. " +
-    errors.join(" | ")
-  );
+  // Do not force-disconnect or clear the saved session.
+  // AppKit may still restore the session later.
+
+  if (!activeAddress) {
+
+    document.getElementById("walletStatus").textContent =
+      "Waiting for wallet";
+
+    setStatus("No active wallet session detected.");
+
+  }
 }
+
+restoreWalletSession();
+
+</script>
+
+</body>
+</html>
