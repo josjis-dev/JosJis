@@ -179,6 +179,11 @@ const modal = createAppKit({
   defaultNetwork: polygon,
   projectId: PROJECT_ID,
   metadata,
+
+  // IMPORTANT:
+  // Restore previously connected wallet sessions
+  enableReconnect: true,
+
   features: {
     analytics: true
   }
@@ -204,12 +209,13 @@ const statusBox =
 let activeAddress = null;
 let refreshNumber = 0;
 
-// Wallet session restoration state
 let isRestoringSession = true;
-let restoreAttempts = 0;
-let restoreTimer = null;
+let hasConnectedSession = false;
 
-const MAX_RESTORE_ATTEMPTS = 20;
+let restoreTimer = null;
+let restoreAttempts = 0;
+
+const MAX_RESTORE_ATTEMPTS = 30;
 const RESTORE_INTERVAL = 300;
 
 // =====================================
@@ -250,6 +256,8 @@ function finishSessionRestoration() {
 function resetDashboard() {
 
   activeAddress = null;
+  hasConnectedSession = false;
+
   refreshNumber++;
 
   document.getElementById("walletTitle").textContent =
@@ -293,22 +301,17 @@ async function refreshDashboard() {
     const address = modal.getAddress();
     const chainId = modal.getChainId();
 
-    // Wait for account information
-    // Do not reset during session restoration
-
     if (!address) {
 
-      if (!isRestoringSession) {
-
-        setStatus("Waiting for wallet account...");
-
-      }
-
+      // Do not reset during session restoration
       return;
 
     }
 
     activeAddress = address;
+    hasConnectedSession = true;
+
+    finishSessionRestoration();
 
     document.getElementById("walletTitle").textContent =
       "Wallet Connected";
@@ -467,12 +470,24 @@ modal.subscribeState((state) => {
 
   if (state.isConnected) {
 
-    finishSessionRestoration();
     refreshDashboard();
 
-  } else if (!isRestoringSession) {
+  } else {
 
-    resetDashboard();
+    // Ignore initial disconnected state
+    // while AppKit restores saved session
+
+    if (isRestoringSession) {
+      return;
+    }
+
+    // Only reset if a session was previously active
+
+    if (hasConnectedSession) {
+
+      resetDashboard();
+
+    }
 
   }
 
@@ -482,18 +497,20 @@ modal.subscribeState((state) => {
 // ACCOUNT LISTENER
 // =====================================
 
-modal.subscribeAccount(() => {
+modal.subscribeAccount((account) => {
 
-  if (
-    isRestoringSession &&
-    !modal.getIsConnected()
+  if (account.isConnected && account.address) {
+
+    refreshDashboard();
+
+  } else if (
+    !isRestoringSession &&
+    hasConnectedSession
   ) {
 
-    return;
+    resetDashboard();
 
   }
-
-  refreshDashboard();
 
 });
 
@@ -503,16 +520,11 @@ modal.subscribeAccount(() => {
 
 modal.subscribeNetwork(() => {
 
-  if (
-    isRestoringSession &&
-    !modal.getIsConnected()
-  ) {
+  if (modal.getIsConnected()) {
 
-    return;
+    refreshDashboard();
 
   }
-
-  refreshDashboard();
 
 });
 
@@ -547,40 +559,59 @@ document.getElementById("copyBtn").addEventListener(
 // RESTORE WALLET SESSION
 // =====================================
 
-// Wait for AppKit to restore its saved session.
-// Avoid treating the initial disconnected state
-// as a final disconnection.
-
 connectBtn.disabled = true;
 connectBtn.textContent = "Restoring Wallet...";
 
-setStatus("Checking saved wallet session...");
+setStatus("Restoring saved wallet session...");
+
+// Check whether Reown has restored the session
 
 restoreTimer = setInterval(() => {
 
   restoreAttempts++;
 
-  if (modal.getIsConnected()) {
+  try {
 
-    finishSessionRestoration();
-    refreshDashboard();
+    if (
+      modal.getIsConnected() &&
+      modal.getAddress()
+    ) {
 
-    return;
+      finishSessionRestoration();
+      refreshDashboard();
+
+      return;
+
+    }
+
+  } catch (error) {
+
+    console.error("Session restoration check:", error);
 
   }
+
+  // Stop waiting after 9 seconds
 
   if (restoreAttempts >= MAX_RESTORE_ATTEMPTS) {
 
     finishSessionRestoration();
-    resetDashboard();
+
+    if (!hasConnectedSession) {
+
+      resetDashboard();
+
+    }
 
   }
 
 }, RESTORE_INTERVAL);
 
-// Check once immediately as well
+// Immediate check
 
-if (modal.getIsConnected()) {
+if (
+  modal.getIsConnected() &&
+  modal.getAddress()
+) {
 
   finishSessionRestoration();
   refreshDashboard();
