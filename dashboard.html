@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,253 +8,15 @@
 <title>JosJis Dashboard | JJS Web3</title>
 <meta name="description" content="Connect your Web3 wallet and view your JosJis token balance on Polygon.">
 
-<style>
-:root {
-  --purple:#9b5cff;
-  --purple-dark:#6e35c5;
-  --bg:#0c0914;
-  --card:#171222;
-  --text:#f5f0ff;
-  --muted:#b8adc9;
-  --border:#342747;
-}
+<link rel="stylesheet" href="style.css">
 
-* { box-sizing:border-box; }
+<script src="header.js" defer></script>
+<script src="footer.js" defer></script>
+<script src="components.js" defer></script>
 
-body {
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-  font-family:Arial,sans-serif;
-  line-height:1.7;
-}
-
-header {
-  padding:18px 7%;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  flex-wrap:wrap;
-  gap:15px;
-  border-bottom:1px solid #30243f;
-  position:sticky;
-  top:0;
-  background:rgba(12,9,20,.96);
-  z-index:10;
-}
-
-.logo {
-  color:var(--purple);
-  font-size:25px;
-  font-weight:bold;
-  text-decoration:none;
-}
-
-nav {
-  display:flex;
-  flex-wrap:wrap;
-  gap:18px;
-}
-
-nav a {
-  color:var(--muted);
-  text-decoration:none;
-  font-size:14px;
-}
-
-nav a:hover, nav a.active { color:var(--purple); }
-
-.hero {
-  text-align:center;
-  padding:75px 20px 45px;
-  background:radial-gradient(circle at top,#352052 0%,#0c0914 65%);
-}
-
-.tag {
-  color:var(--purple);
-  letter-spacing:3px;
-  font-size:12px;
-  font-weight:bold;
-}
-
-.hero h1 {
-  font-size:clamp(36px,7vw,55px);
-  margin:12px 0;
-}
-
-.hero h1 span { color:var(--purple); }
-
-.hero p {
-  color:var(--muted);
-  max-width:650px;
-  margin:auto;
-}
-
-main {
-  max-width:1050px;
-  margin:auto;
-  padding:35px 20px 70px;
-}
-
-.wallet-panel {
-  background:linear-gradient(135deg,#211633,#171222);
-  border:1px solid var(--border);
-  border-radius:18px;
-  padding:28px;
-  text-align:center;
-  margin-bottom:25px;
-}
-
-.wallet-icon {
-  width:65px;
-  height:65px;
-  margin:0 auto 15px;
-  border-radius:18px;
-  background:#302044;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:30px;
-}
-
-.wallet-panel h2 {
-  margin:5px 0;
-  font-size:23px;
-}
-
-.wallet-panel p {
-  color:var(--muted);
-  margin:5px 0 20px;
-  font-size:14px;
-}
-
-.primary-btn {
-  background:linear-gradient(135deg,var(--purple),var(--purple-dark));
-  color:white;
-  border:none;
-  padding:13px 25px;
-  border-radius:10px;
-  font-weight:bold;
-  font-size:15px;
-  cursor:pointer;
-}
-
-.secondary-btn {
-  background:transparent;
-  color:var(--muted);
-  border:1px solid var(--border);
-  padding:10px 18px;
-  border-radius:9px;
-  cursor:pointer;
-  margin-top:15px;
-}
-
-.status {
-  display:block;
-  margin-top:15px;
-  color:var(--muted);
-  font-size:13px;
-}
-
-.status.connected { color:#65d99a; }
-.status.error { color:#ff7777; }
-
-.dashboard-grid {
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:18px;
-}
-
-.card {
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:15px;
-  padding:22px;
-  min-width:0;
-}
-
-.card h3 {
-  color:var(--muted);
-  font-size:14px;
-  font-weight:normal;
-  margin:0 0 10px;
-}
-
-.value {
-  font-size:25px;
-  font-weight:bold;
-  overflow-wrap:anywhere;
-}
-
-.purple { color:var(--purple); }
-
-.address {
-  font-size:14px;
-  word-break:break-all;
-}
-
-.sub {
-  color:var(--muted);
-  font-size:12px;
-  margin-top:6px;
-}
-
-.info-section { margin-top:35px; }
-
-.info-section h2 {
-  color:var(--purple);
-  font-size:22px;
-}
-
-.info-section p {
-  color:var(--muted);
-  font-size:14px;
-}
-
-.contract {
-  background:#100d19;
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:14px;
-  font-size:12px;
-  word-break:break-all;
-  color:var(--muted);
-}
-
-footer {
-  text-align:center;
-  border-top:1px solid #30243f;
-  padding:25px 15px;
-  color:var(--muted);
-  font-size:12px;
-}
-
-@media(max-width:700px) {
-  header { justify-content:center; }
-  nav { justify-content:center; gap:13px; }
-  .dashboard-grid { grid-template-columns:1fr; }
-  .hero { padding-top:60px; }
-  .wallet-panel { padding:23px 15px; }
-}
-</style>
 </head>
 
 <body>
-
-<header>
-  <a href="index.html" class="logo">JosJis</a>
-
-  <nav>
-    <a href="index.html">Home</a>
-    <a href="about.html">About</a>
-    <a href="tokenomics.html">Tokenomics</a>
-    <a href="ecosystem.html">Ecosystem</a>
-    <a href="utility.html">Utility</a>
-    <a href="roadmap.html">Roadmap</a>
-    <a href="contact.html">Contact</a>
-    <a href="dashboard.html" class="active">Dashboard</a>
-  </nav>
-</header>
 
 <section class="hero">
   <div class="tag">JOSJIS WEB3 PLATFORM</div>
@@ -277,14 +38,14 @@ footer {
       Choose your preferred wallet to access your dashboard.
     </p>
 
-    <button class="primary-btn" id="connectBtn">
+    <button class="primary-btn" id="connectBtn" type="button">
       Connect Wallet
     </button>
 
     <br>
 
     <button class="secondary-btn" id="disconnectBtn"
-      style="display:none">
+      type="button" style="display:none">
       Disconnect Wallet
     </button>
 
@@ -332,23 +93,23 @@ footer {
 
   <section class="info-section">
     <h2>Official JJS Contract</h2>
+
     <div class="contract" id="contractAddress">
       0x52C8Ff13ada1431376b3E77E8219b644805122dF
     </div>
-    <button class="secondary-btn" id="copyBtn">
+
+    <button class="secondary-btn" id="copyBtn" type="button">
       Copy Contract Address
     </button>
   </section>
 
 </main>
 
-<footer>
-  © 2026 JosJis. All rights reserved.
-  <br>
-  Built on Polygon.
-</footer>
-
 <script type="module">
+
+// =====================================
+// IMPORT LIBRARIES
+// =====================================
 
 import { createAppKit } from
   "https://esm.sh/@reown/appkit@2.0.0";
@@ -359,10 +120,19 @@ import { EthersAdapter } from
 import { polygon } from
   "https://esm.sh/@reown/appkit@2.0.0/networks";
 
-import { BrowserProvider, Contract, JsonRpcProvider, formatUnits }
-  from "https://esm.sh/ethers@6.15.0";
+import {
+  BrowserProvider,
+  Contract,
+  JsonRpcProvider,
+  formatUnits
+} from "https://esm.sh/ethers@6.15.0";
 
-const PROJECT_ID = "ea2b7e670f2c0331bca41ba7f66f0126";
+// =====================================
+// JOSJIS CONFIGURATION
+// =====================================
+
+const PROJECT_ID =
+  "ea2b7e670f2c0331bca41ba7f66f0126";
 
 const JJS_CONTRACT =
   "0x52C8Ff13ada1431376b3E77E8219b644805122dF";
@@ -372,6 +142,10 @@ const JJS_ABI = [
   "function decimals() view returns (uint8)",
   "function symbol() view returns (string)"
 ];
+
+// =====================================
+// POLYGON RPC PROVIDER
+// =====================================
 
 const rpcProvider = new JsonRpcProvider(
   "https://polygon-bor-rpc.publicnode.com"
@@ -383,6 +157,10 @@ const token = new Contract(
   rpcProvider
 );
 
+// =====================================
+// WEBSITE METADATA
+// =====================================
+
 const metadata = {
   name: "JosJis",
   description: "Official JosJis Web3 Dashboard",
@@ -391,6 +169,10 @@ const metadata = {
     "https://josjis-dev.github.io/JosJis/josjis-logo.jpg"
   ]
 };
+
+// =====================================
+// INITIALIZE REOWN APPKIT
+// =====================================
 
 const modal = createAppKit({
   adapters: [new EthersAdapter()],
@@ -403,22 +185,47 @@ const modal = createAppKit({
   }
 });
 
-const connectBtn = document.getElementById("connectBtn");
-const disconnectBtn = document.getElementById("disconnectBtn");
-const statusBox = document.getElementById("status");
+// =====================================
+// HTML ELEMENTS
+// =====================================
+
+const connectBtn =
+  document.getElementById("connectBtn");
+
+const disconnectBtn =
+  document.getElementById("disconnectBtn");
+
+const statusBox =
+  document.getElementById("status");
+
+// =====================================
+// APPLICATION STATE
+// =====================================
 
 let activeAddress = null;
 let currentProvider = null;
 let refreshNumber = 0;
 
+// =====================================
+// STATUS FUNCTION
+// =====================================
+
 function setStatus(message, type = "") {
+
   statusBox.textContent = message;
   statusBox.className = "status " + type;
+
 }
 
+// =====================================
+// RESET DASHBOARD
+// =====================================
+
 function resetDashboard() {
+
   activeAddress = null;
   currentProvider = null;
+  refreshNumber++;
 
   document.getElementById("walletTitle").textContent =
     "Connect Your Wallet";
@@ -429,26 +236,43 @@ function resetDashboard() {
   document.getElementById("walletAddress").textContent =
     "Not connected";
 
-  document.getElementById("jjsBalance").textContent = "-- JJS";
-  document.getElementById("networkName").textContent = "Not connected";
-  document.getElementById("walletStatus").textContent = "Disconnected";
+  document.getElementById("jjsBalance").textContent =
+    "-- JJS";
 
-  connectBtn.style.display = "inline-block";
-  disconnectBtn.style.display = "none";
+  document.getElementById("networkName").textContent =
+    "Not connected";
+
+  document.getElementById("walletStatus").textContent =
+    "Disconnected";
+
+  connectBtn.style.display =
+    "inline-block";
+
+  disconnectBtn.style.display =
+    "none";
 
   setStatus("Wallet not connected");
+
 }
 
+// =====================================
+// REFRESH DASHBOARD
+// =====================================
+
 async function refreshDashboard() {
+
   const requestId = ++refreshNumber;
 
   try {
+
     const address = modal.getAddress();
     const chainId = modal.getChainId();
 
     if (!address) {
+
       resetDashboard();
       return;
+
     }
 
     activeAddress = address;
@@ -465,36 +289,60 @@ async function refreshDashboard() {
     document.getElementById("walletStatus").textContent =
       "Connected";
 
-    connectBtn.style.display = "none";
-    disconnectBtn.style.display = "inline-block";
+    connectBtn.style.display =
+      "none";
+
+    disconnectBtn.style.display =
+      "inline-block";
+
+    // Check Polygon network
 
     if (Number(chainId) !== 137) {
+
       document.getElementById("networkName").textContent =
         "Wrong Network";
 
       document.getElementById("jjsBalance").textContent =
         "Polygon required";
 
-      setStatus("Please switch to Polygon Mainnet.", "error");
+      setStatus(
+        "Please switch to Polygon Mainnet.",
+        "error"
+      );
+
       return;
+
     }
 
     document.getElementById("networkName").textContent =
       "Polygon Mainnet";
 
-    setStatus("Connected successfully", "connected");
+    setStatus(
+      "Connected successfully",
+      "connected"
+    );
+
+    // Read JJS balance
 
     const [balance, decimals] = await Promise.all([
       token.balanceOf(address),
       token.decimals()
     ]);
 
-    if (requestId !== refreshNumber || activeAddress !== address) {
+    // Prevent outdated results
+
+    if (
+      requestId !== refreshNumber ||
+      activeAddress !== address
+    ) {
       return;
     }
 
-    const formatted = formatUnits(balance, decimals);
-    const number = Number(formatted);
+    const formatted =
+      formatUnits(balance, decimals);
+
+    const number =
+      Number(formatted);
 
     const display = Number.isFinite(number)
       ? number.toLocaleString("en-US", {
@@ -506,7 +354,12 @@ async function refreshDashboard() {
       display + " JJS";
 
   } catch (error) {
+
     console.error("Dashboard error:", error);
+
+    if (requestId !== refreshNumber) {
+      return;
+    }
 
     document.getElementById("jjsBalance").textContent =
       "Unable to load";
@@ -515,56 +368,134 @@ async function refreshDashboard() {
       "Connected, but balance could not be loaded.",
       "error"
     );
+
   }
+
 }
 
+// =====================================
+// CONNECT WALLET
+// =====================================
+
 connectBtn.addEventListener("click", async () => {
+
   try {
-    await modal.open({ view: "Connect" });
+
+    await modal.open({
+      view: "Connect"
+    });
+
   } catch (error) {
+
     console.error(error);
-    setStatus("Unable to open wallet selection.", "error");
+
+    setStatus(
+      "Unable to open wallet selection.",
+      "error"
+    );
+
   }
+
 });
+
+// =====================================
+// DISCONNECT WALLET
+// =====================================
 
 disconnectBtn.addEventListener("click", async () => {
+
   try {
+
     await modal.disconnect();
+
     resetDashboard();
+
   } catch (error) {
+
     console.error(error);
-    setStatus("Unable to disconnect wallet.", "error");
+
+    setStatus(
+      "Unable to disconnect wallet.",
+      "error"
+    );
+
   }
+
 });
+
+// =====================================
+// APPKIT STATE LISTENER
+// =====================================
 
 modal.subscribeState((state) => {
+
   if (state.isConnected) {
+
     refreshDashboard();
+
   } else {
+
     resetDashboard();
+
   }
+
 });
+
+// =====================================
+// ACCOUNT LISTENER
+// =====================================
 
 modal.subscribeAccount(() => {
+
   refreshDashboard();
+
 });
+
+// =====================================
+// NETWORK LISTENER
+// =====================================
 
 modal.subscribeNetwork(() => {
+
   refreshDashboard();
+
 });
 
-document.getElementById("copyBtn").addEventListener("click", async () => {
-  try {
-    await navigator.clipboard.writeText(JJS_CONTRACT);
-    alert("JJS contract address copied!");
-  } catch (error) {
-    alert("Please copy the contract address manually.");
+// =====================================
+// COPY CONTRACT ADDRESS
+// =====================================
+
+document.getElementById("copyBtn").addEventListener(
+  "click",
+  async () => {
+
+    try {
+
+      await navigator.clipboard.writeText(
+        JJS_CONTRACT
+      );
+
+      alert("JJS contract address copied!");
+
+    } catch (error) {
+
+      alert(
+        "Please copy the contract address manually."
+      );
+
+    }
+
   }
-});
+);
 
-// Restore an existing AppKit connection when available.
+// =====================================
+// RESTORE WALLET SESSION
+// =====================================
+
 if (modal.getIsConnected()) {
+
   refreshDashboard();
+
 }
 
 </script>
