@@ -479,7 +479,8 @@ disconnectBtn.addEventListener(
 
     try {
 
-      await modal.disconnect();
+      // Perbaikan: Gunakan connectionControllerClient untuk disconnect
+      await modal.adapter?.connectionControllerClient?.disconnect();
 
       resetDashboard();
 
@@ -498,53 +499,35 @@ disconnectBtn.addEventListener(
 );
 
 // =====================================
-// APPKIT STATE LISTENER
+// APPKIT STATE LISTENER (DIPERBAIKI)
 // =====================================
 
-modal.subscribeState((state) => {
+// Perbaikan: Gunakan subscribeProvider sebagai pengganti subscribeState
+modal.subscribeProvider((state) => {
 
-  if (!state.initialized) {
-    return;
-  }
-
-  appReady = true;
-
-  if (state.isConnected) {
-
-    refreshDashboard();
-
-  } else {
-
-    resetDashboard();
-
-  }
-
-});
-
-// =====================================
-// ACCOUNT LISTENER
-// =====================================
-
-modal.subscribeAccount((account) => {
-
+  // Tandai bahwa AppKit sudah siap setelah event pertama
   if (!appReady) {
-    return;
+    appReady = true;
   }
 
-  if (account.isConnected && account.address) {
-
-    refreshDashboard();
-
+  // Logika status koneksi
+  if (state.isConnected && state.address) {
+    // Jika alamat berubah, refresh dashboard
+    if (state.address !== activeAddress) {
+      refreshDashboard();
+    } else {
+      // Tetap perbarui tampilan meskipun alamat sama (misal: perubahan jaringan)
+      refreshDashboard();
+    }
   } else {
-
+    // Jika terputus, reset dashboard
     resetDashboard();
-
   }
 
 });
 
 // =====================================
-// NETWORK LISTENER
+// NETWORK LISTENER (TETAP)
 // =====================================
 
 modal.subscribeNetwork(() => {
