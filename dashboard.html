@@ -13,7 +13,6 @@
 <script src="header.js" defer></script>
 <script src="footer.js" defer></script>
 <script src="components.js" defer></script>
-
 </head>
 
 <body>
@@ -179,11 +178,7 @@ const modal = createAppKit({
   defaultNetwork: polygon,
   projectId: PROJECT_ID,
   metadata,
-
-  // IMPORTANT:
-  // Restore previously connected wallet sessions
   enableReconnect: true,
-
   features: {
     analytics: true
   }
@@ -208,57 +203,50 @@ const statusBox =
 
 let activeAddress = null;
 let refreshNumber = 0;
-
-let isRestoringSession = true;
-let hasConnectedSession = false;
-
-let restoreTimer = null;
-let restoreAttempts = 0;
-
-const MAX_RESTORE_ATTEMPTS = 30;
-const RESTORE_INTERVAL = 300;
+let isManualDisconnect = false;
 
 // =====================================
 // STATUS FUNCTION
 // =====================================
 
 function setStatus(message, type = "") {
-
   statusBox.textContent = message;
   statusBox.className = "status " + type;
-
 }
 
 // =====================================
-// FINISH SESSION RESTORATION
+// SHOW CONNECTED WALLET
 // =====================================
 
-function finishSessionRestoration() {
+function showConnectedWallet(address) {
 
-  isRestoringSession = false;
+  activeAddress = address;
 
-  if (restoreTimer !== null) {
+  document.getElementById("walletTitle").textContent =
+    "Wallet Connected";
 
-    clearInterval(restoreTimer);
-    restoreTimer = null;
+  document.getElementById("walletDescription").textContent =
+    "Your wallet is connected to JosJis.";
 
-  }
+  document.getElementById("walletAddress").textContent =
+    address;
 
-  connectBtn.disabled = false;
-  connectBtn.textContent = "Connect Wallet";
+  document.getElementById("walletStatus").textContent =
+    "Connected";
 
+  connectBtn.style.display = "none";
+  disconnectBtn.style.display = "inline-block";
 }
 
 // =====================================
 // RESET DASHBOARD
+// Only called after manual disconnect
 // =====================================
 
 function resetDashboard() {
 
-  activeAddress = null;
-  hasConnectedSession = false;
-
   refreshNumber++;
+  activeAddress = null;
 
   document.getElementById("walletTitle").textContent =
     "Connect Your Wallet";
@@ -278,14 +266,10 @@ function resetDashboard() {
   document.getElementById("walletStatus").textContent =
     "Disconnected";
 
-  connectBtn.style.display =
-    "inline-block";
+  connectBtn.style.display = "inline-block";
+  disconnectBtn.style.display = "none";
 
-  disconnectBtn.style.display =
-    "none";
-
-  setStatus("Wallet not connected");
-
+  setStatus("Wallet disconnected");
 }
 
 // =====================================
@@ -294,44 +278,18 @@ function resetDashboard() {
 
 async function refreshDashboard() {
 
-  const requestId = ++refreshNumber;
-
   try {
 
     const address = modal.getAddress();
-    const chainId = modal.getChainId();
 
     if (!address) {
-
-      // Do not reset during session restoration
       return;
-
     }
 
-    activeAddress = address;
-    hasConnectedSession = true;
+    const requestId = ++refreshNumber;
+    const chainId = modal.getChainId();
 
-    finishSessionRestoration();
-
-    document.getElementById("walletTitle").textContent =
-      "Wallet Connected";
-
-    document.getElementById("walletDescription").textContent =
-      "Your wallet is connected to JosJis.";
-
-    document.getElementById("walletAddress").textContent =
-      address;
-
-    document.getElementById("walletStatus").textContent =
-      "Connected";
-
-    connectBtn.style.display =
-      "none";
-
-    disconnectBtn.style.display =
-      "inline-block";
-
-    // Check Polygon network
+    showConnectedWallet(address);
 
     if (Number(chainId) !== 137) {
 
@@ -347,40 +305,27 @@ async function refreshDashboard() {
       );
 
       return;
-
     }
 
     document.getElementById("networkName").textContent =
       "Polygon Mainnet";
 
-    setStatus(
-      "Connected successfully",
-      "connected"
-    );
-
-    // Read JJS balance
+    setStatus("Connected successfully", "connected");
 
     const [balance, decimals] = await Promise.all([
       token.balanceOf(address),
       token.decimals()
     ]);
 
-    // Prevent outdated results
-
     if (
       requestId !== refreshNumber ||
       activeAddress !== address
     ) {
-
       return;
-
     }
 
-    const formatted =
-      formatUnits(balance, decimals);
-
-    const number =
-      Number(formatted);
+    const formatted = formatUnits(balance, decimals);
+    const number = Number(formatted);
 
     const display = Number.isFinite(number)
       ? number.toLocaleString("en-US", {
@@ -395,20 +340,14 @@ async function refreshDashboard() {
 
     console.error("Dashboard error:", error);
 
-    if (requestId !== refreshNumber) {
-      return;
-    }
-
     document.getElementById("jjsBalance").textContent =
       "Unable to load";
 
     setStatus(
-      "Connected, but balance could not be loaded.",
+      "Wallet connected, but balance could not be loaded.",
       "error"
     );
-
   }
-
 }
 
 // =====================================
@@ -425,15 +364,13 @@ connectBtn.addEventListener("click", async () => {
 
   } catch (error) {
 
-    console.error(error);
+    console.error("Connect error:", error);
 
     setStatus(
       "Unable to open wallet selection.",
       "error"
     );
-
   }
-
 });
 
 // =====================================
@@ -444,22 +381,25 @@ disconnectBtn.addEventListener("click", async () => {
 
   try {
 
+    isManualDisconnect = true;
+
     await modal.disconnect();
 
-    finishSessionRestoration();
     resetDashboard();
+
+    isManualDisconnect = false;
 
   } catch (error) {
 
-    console.error(error);
+    isManualDisconnect = false;
+
+    console.error("Disconnect error:", error);
 
     setStatus(
       "Unable to disconnect wallet.",
       "error"
     );
-
   }
-
 });
 
 // =====================================
@@ -468,27 +408,11 @@ disconnectBtn.addEventListener("click", async () => {
 
 modal.subscribeState((state) => {
 
+  // Only react to a confirmed connected state.
+  // Ignore temporary disconnected states during restoration.
+
   if (state.isConnected) {
-
     refreshDashboard();
-
-  } else {
-
-    // Ignore initial disconnected state
-    // while AppKit restores saved session
-
-    if (isRestoringSession) {
-      return;
-    }
-
-    // Only reset if a session was previously active
-
-    if (hasConnectedSession) {
-
-      resetDashboard();
-
-    }
-
   }
 
 });
@@ -500,16 +424,7 @@ modal.subscribeState((state) => {
 modal.subscribeAccount((account) => {
 
   if (account.isConnected && account.address) {
-
     refreshDashboard();
-
-  } else if (
-    !isRestoringSession &&
-    hasConnectedSession
-  ) {
-
-    resetDashboard();
-
   }
 
 });
@@ -521,9 +436,7 @@ modal.subscribeAccount((account) => {
 modal.subscribeNetwork(() => {
 
   if (modal.getIsConnected()) {
-
     refreshDashboard();
-
   }
 
 });
@@ -538,17 +451,13 @@ document.getElementById("copyBtn").addEventListener(
 
     try {
 
-      await navigator.clipboard.writeText(
-        JJS_CONTRACT
-      );
+      await navigator.clipboard.writeText(JJS_CONTRACT);
 
       alert("JJS contract address copied!");
 
     } catch (error) {
 
-      alert(
-        "Please copy the contract address manually."
-      );
+      alert("Please copy the contract address manually.");
 
     }
 
@@ -556,67 +465,54 @@ document.getElementById("copyBtn").addEventListener(
 );
 
 // =====================================
-// RESTORE WALLET SESSION
+// RESTORE PREVIOUS WALLET SESSION
 // =====================================
 
-connectBtn.disabled = true;
-connectBtn.textContent = "Restoring Wallet...";
+async function restoreWalletSession() {
 
-setStatus("Restoring saved wallet session...");
+  setStatus("Restoring saved wallet session...");
 
-// Check whether Reown has restored the session
+  // Keep Connect Wallet available during restoration.
+  connectBtn.disabled = false;
+  connectBtn.textContent = "Connect Wallet";
 
-restoreTimer = setInterval(() => {
+  // Check AppKit session after initialization.
+  for (let attempt = 0; attempt < 40; attempt++) {
 
-  restoreAttempts++;
+    try {
 
-  try {
+      if (
+        modal.getIsConnected() &&
+        modal.getAddress()
+      ) {
 
-    if (
-      modal.getIsConnected() &&
-      modal.getAddress()
-    ) {
+        await refreshDashboard();
+        return;
+      }
 
-      finishSessionRestoration();
-      refreshDashboard();
+    } catch (error) {
 
-      return;
-
-    }
-
-  } catch (error) {
-
-    console.error("Session restoration check:", error);
-
-  }
-
-  // Stop waiting after 9 seconds
-
-  if (restoreAttempts >= MAX_RESTORE_ATTEMPTS) {
-
-    finishSessionRestoration();
-
-    if (!hasConnectedSession) {
-
-      resetDashboard();
+      console.error("Restore check:", error);
 
     }
 
+    await new Promise(resolve => setTimeout(resolve, 250));
   }
 
-}, RESTORE_INTERVAL);
+  // Do not force-disconnect or clear the saved session.
+  // AppKit may still restore the session later.
 
-// Immediate check
+  if (!activeAddress) {
 
-if (
-  modal.getIsConnected() &&
-  modal.getAddress()
-) {
+    document.getElementById("walletStatus").textContent =
+      "Waiting for wallet";
 
-  finishSessionRestoration();
-  refreshDashboard();
+    setStatus("No active wallet session detected.");
 
+  }
 }
+
+restoreWalletSession();
 
 </script>
 
