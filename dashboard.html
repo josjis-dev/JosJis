@@ -383,7 +383,7 @@ async function refreshDashboard() {
       "Loading...";
 
     setStatus(
-      "Connected successfully",
+      "Reading JJS balance from Polygon...",
       "connected"
     );
 
@@ -425,15 +425,24 @@ async function refreshDashboard() {
 
     console.error("Dashboard error:", error);
 
-    if (requestId !== refreshNumber) {
+    if (
+      requestId !== refreshNumber ||
+      activeAddress !== modal.getAddress()
+    ) {
       return;
     }
 
     jjsBalance.textContent =
       "Unable to load";
 
+    const errorMessage =
+      error?.shortMessage ||
+      error?.reason ||
+      error?.message ||
+      "Unknown error";
+
     setStatus(
-      "Connected, but balance could not be loaded.",
+      "Balance error: " + errorMessage,
       "error"
     );
 
@@ -479,7 +488,6 @@ disconnectBtn.addEventListener(
 
     try {
 
-      // Perbaikan: Gunakan connectionControllerClient untuk disconnect
       await modal.adapter?.connectionControllerClient?.disconnect();
 
       resetDashboard();
@@ -489,7 +497,8 @@ disconnectBtn.addEventListener(
       console.error("Disconnect error:", error);
 
       setStatus(
-        "Unable to disconnect wallet.",
+        "Unable to disconnect wallet: " +
+        (error?.message || "Unknown error"),
         "error"
       );
 
@@ -499,35 +508,31 @@ disconnectBtn.addEventListener(
 );
 
 // =====================================
-// APPKIT STATE LISTENER (DIPERBAIKI)
+// APPKIT STATE LISTENER
 // =====================================
 
-// Perbaikan: Gunakan subscribeProvider sebagai pengganti subscribeState
-modal.subscribeProvider((state) => {
+modal.subscribeState(() => {
 
-  // Tandai bahwa AppKit sudah siap setelah event pertama
-  if (!appReady) {
-    appReady = true;
-  }
+  appReady = true;
 
-  // Logika status koneksi
-  if (state.isConnected && state.address) {
-    // Jika alamat berubah, refresh dashboard
-    if (state.address !== activeAddress) {
-      refreshDashboard();
-    } else {
-      // Tetap perbarui tampilan meskipun alamat sama (misal: perubahan jaringan)
-      refreshDashboard();
-    }
-  } else {
-    // Jika terputus, reset dashboard
-    resetDashboard();
+  refreshDashboard();
+
+});
+
+// =====================================
+// ACCOUNT LISTENER
+// =====================================
+
+modal.subscribeAccount(() => {
+
+  if (appReady) {
+    refreshDashboard();
   }
 
 });
 
 // =====================================
-// NETWORK LISTENER (TETAP)
+// NETWORK LISTENER
 // =====================================
 
 modal.subscribeNetwork(() => {
