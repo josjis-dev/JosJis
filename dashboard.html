@@ -7,241 +7,292 @@
 <meta name="theme-color" content="#0c0914">
 
 <title>JosJis Dashboard | JJS Web3</title>
-<meta name="description" content="Connect your Web3 wallet and view your JosJis token balance on Polygon.">
+<meta name="description" content="Access your JosJis Web3 dashboard. Connect your wallet and view your JJS token balance on Polygon.">
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.5/dist/ethers.umd.min.js"></script>
 
 <style>
 :root {
-  --purple:#9b5cff;
-  --purple-dark:#6e35c5;
-  --bg:#0c0914;
-  --card:#171222;
-  --text:#f5f0ff;
-  --muted:#b8adc9;
-  --border:#342747;
+  --purple: #9b5cff;
+  --purple-dark: #6e35c5;
+  --bg: #0c0914;
+  --card: #171222;
+  --text: #f5f0ff;
+  --muted: #b8adc9;
+  --border: #342747;
 }
 
-* { box-sizing:border-box; }
+* {
+  box-sizing: border-box;
+}
 
 body {
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-  font-family:Arial,sans-serif;
-  line-height:1.7;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, sans-serif;
+  line-height: 1.7;
 }
 
 header {
-  padding:18px 7%;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  flex-wrap:wrap;
-  gap:15px;
-  border-bottom:1px solid #30243f;
-  position:sticky;
-  top:0;
-  background:rgba(12,9,20,.96);
-  z-index:10;
+  padding: 18px 7%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  border-bottom: 1px solid #30243f;
+  position: sticky;
+  top: 0;
+  background: rgba(12,9,20,0.96);
+  z-index: 10;
+  backdrop-filter: blur(12px);
 }
 
 .logo {
-  color:var(--purple);
-  font-size:25px;
-  font-weight:bold;
-  text-decoration:none;
+  color: var(--purple);
+  font-size: 25px;
+  font-weight: bold;
+  text-decoration: none;
 }
 
 nav {
-  display:flex;
-  flex-wrap:wrap;
-  gap:18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
 }
 
 nav a {
-  color:var(--muted);
-  text-decoration:none;
-  font-size:14px;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 14px;
+  transition: 0.2s;
 }
 
-nav a:hover, nav a.active {
-  color:var(--purple);
+nav a:hover,
+nav a.active {
+  color: var(--purple);
+}
+
+.connect-small {
+  background: var(--purple);
+  color: white;
+  border: none;
+  padding: 10px 17px;
+  border-radius: 9px;
+  font-weight: bold;
+  cursor: pointer;
 }
 
 .hero {
-  text-align:center;
-  padding:75px 20px 45px;
-  background:radial-gradient(circle at top,#352052 0%,#0c0914 65%);
+  text-align: center;
+  padding: 75px 20px 45px;
+  background: radial-gradient(circle at top, #352052 0%, #0c0914 65%);
 }
 
 .tag {
-  color:var(--purple);
-  letter-spacing:3px;
-  font-size:12px;
-  font-weight:bold;
+  color: var(--purple);
+  letter-spacing: 3px;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
 }
 
 .hero h1 {
-  font-size:clamp(36px,7vw,55px);
-  margin:12px 0;
+  font-size: clamp(36px, 7vw, 55px);
+  margin: 12px 0;
 }
 
 .hero h1 span {
-  color:var(--purple);
+  color: var(--purple);
 }
 
 .hero p {
-  color:var(--muted);
-  max-width:650px;
-  margin:auto;
+  color: var(--muted);
+  max-width: 650px;
+  margin: auto;
 }
 
 main {
-  max-width:1050px;
-  margin:auto;
-  padding:35px 20px 70px;
+  max-width: 1050px;
+  margin: auto;
+  padding: 35px 20px 70px;
 }
 
 .wallet-panel {
-  background:linear-gradient(135deg,#211633,#171222);
-  border:1px solid var(--border);
-  border-radius:18px;
-  padding:28px;
-  text-align:center;
-  margin-bottom:25px;
+  background: linear-gradient(135deg, #211633, #171222);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 28px;
+  text-align: center;
+  margin-bottom: 25px;
 }
 
 .wallet-icon {
-  width:65px;
-  height:65px;
-  margin:0 auto 15px;
-  border-radius:18px;
-  background:#302044;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:30px;
+  width: 65px;
+  height: 65px;
+  margin: 0 auto 15px;
+  border-radius: 18px;
+  background: #302044;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
 }
 
 .wallet-panel h2 {
-  margin:5px 0;
-  font-size:23px;
+  margin: 5px 0;
+  font-size: 23px;
 }
 
 .wallet-panel p {
-  color:var(--muted);
-  margin:5px 0 20px;
-  font-size:14px;
+  color: var(--muted);
+  margin: 5px 0 20px;
+  font-size: 14px;
 }
 
 .primary-btn {
-  background:linear-gradient(135deg,var(--purple),var(--purple-dark));
-  color:white;
-  border:none;
-  padding:13px 25px;
-  border-radius:10px;
-  font-weight:bold;
-  font-size:15px;
-  cursor:pointer;
+  background: linear-gradient(135deg, var(--purple), var(--purple-dark));
+  color: white;
+  border: none;
+  padding: 13px 25px;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.primary-btn:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
 }
 
 .secondary-btn {
-  background:transparent;
-  color:var(--muted);
-  border:1px solid var(--border);
-  padding:10px 18px;
-  border-radius:9px;
-  cursor:pointer;
-  margin-top:15px;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  padding: 10px 18px;
+  border-radius: 9px;
+  cursor: pointer;
+  margin-top: 15px;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .status {
-  display:block;
-  margin-top:15px;
-  color:var(--muted);
-  font-size:13px;
+  display: inline-block;
+  margin-top: 15px;
+  color: var(--muted);
+  font-size: 13px;
 }
 
-.status.connected { color:#65d99a; }
-.status.error { color:#ff7777; }
+.status.connected {
+  color: #65d99a;
+}
+
+.status.error {
+  color: #ff7777;
+}
 
 .dashboard-grid {
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:18px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
 }
 
 .card {
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:15px;
-  padding:22px;
-  min-width:0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  padding: 22px;
+  min-width: 0;
 }
 
 .card h3 {
-  color:var(--muted);
-  font-size:14px;
-  font-weight:normal;
-  margin:0 0 10px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: normal;
+  margin: 0 0 10px;
 }
 
-.value {
-  font-size:25px;
-  font-weight:bold;
-  overflow-wrap:anywhere;
+.card .value {
+  font-size: 25px;
+  font-weight: bold;
+  overflow-wrap: anywhere;
 }
 
-.purple { color:var(--purple); }
+.card .sub {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+.purple {
+  color: var(--purple);
+}
 
 .address {
-  font-size:14px;
-  word-break:break-all;
-}
-
-.sub {
-  color:var(--muted);
-  font-size:12px;
-  margin-top:6px;
+  font-size: 14px !important;
+  word-break: break-all;
 }
 
 .info-section {
-  margin-top:35px;
+  margin-top: 35px;
 }
 
 .info-section h2 {
-  color:var(--purple);
-  font-size:22px;
+  color: var(--purple);
+  font-size: 22px;
 }
 
 .info-section p {
-  color:var(--muted);
-  font-size:14px;
+  color: var(--muted);
+  font-size: 14px;
 }
 
 .contract {
-  background:#100d19;
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:14px;
-  font-size:12px;
-  word-break:break-all;
-  color:var(--muted);
+  background: #100d19;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 12px;
+  word-break: break-all;
+  color: var(--muted);
 }
 
 footer {
-  text-align:center;
-  border-top:1px solid #30243f;
-  padding:25px 15px;
-  color:var(--muted);
-  font-size:12px;
+  text-align: center;
+  border-top: 1px solid #30243f;
+  padding: 25px 15px;
+  color: var(--muted);
+  font-size: 12px;
 }
 
-@media(max-width:700px) {
-  header { justify-content:center; }
-  nav { justify-content:center; gap:13px; }
-  .dashboard-grid { grid-template-columns:1fr; }
-  .hero { padding-top:60px; }
-  .wallet-panel { padding:23px 15px; }
+@media(max-width: 700px) {
+  header {
+    justify-content: center;
+  }
+
+  nav {
+    justify-content: center;
+    gap: 13px;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero {
+    padding-top: 60px;
+  }
+
+  .wallet-panel {
+    padding: 23px 15px;
+  }
 }
 </style>
 </head>
@@ -267,8 +318,8 @@ footer {
   <div class="tag">JOSJIS WEB3 PLATFORM</div>
   <h1>My <span>Dashboard</span></h1>
   <p>
-    Connect your wallet and access your JosJis account.
-    View your JJS balance directly from Polygon.
+    Connect your wallet to access your JosJis account
+    and view your JJS token balance on the Polygon network.
   </p>
 </section>
 
@@ -277,25 +328,26 @@ footer {
   <section class="wallet-panel">
     <div class="wallet-icon">👛</div>
 
-    <h2 id="walletTitle">Checking Wallet...</h2>
+    <h2 id="walletTitle">Connect Your Wallet</h2>
 
     <p id="walletDescription">
-      Restoring your wallet session. Please wait.
+      Connect your MetaMask wallet to access your JosJis dashboard.
     </p>
 
-    <button class="primary-btn" id="connectBtn" style="display:none">
+    <button class="primary-btn" id="connectBtn" onclick="connectWallet()">
       Connect Wallet
     </button>
 
     <br>
 
-    <button class="secondary-btn" id="disconnectBtn" style="display:none">
-      Disconnect Wallet
+    <button class="secondary-btn" id="disconnectBtn"
+      onclick="disconnectWallet()" style="display:none">
+      Disconnect
     </button>
 
-    <span id="status" class="status">
-      Initializing wallet...
-    </span>
+    <div id="status" class="status">
+      Wallet not connected
+    </div>
   </section>
 
   <section class="dashboard-grid">
@@ -308,19 +360,19 @@ footer {
 
     <div class="card">
       <h3>Network</h3>
-      <div class="value" id="networkName">Checking...</div>
-      <div class="sub">Expected: Polygon Mainnet</div>
+      <div class="value" id="networkName">Not connected</div>
+      <div class="sub">Expected network: Polygon Mainnet</div>
     </div>
 
     <div class="card">
       <h3>Wallet Address</h3>
-      <div class="value address" id="walletAddress">Checking...</div>
+      <div class="value address" id="walletAddress">Not connected</div>
       <div class="sub">Connected wallet account</div>
     </div>
 
     <div class="card">
       <h3>Wallet Status</h3>
-      <div class="value" id="walletStatus">Checking...</div>
+      <div class="value" id="walletStatus">Disconnected</div>
       <div class="sub">Wallet connection status</div>
     </div>
 
@@ -329,9 +381,9 @@ footer {
   <section class="info-section">
     <h2>About Your Dashboard</h2>
     <p>
-      Your JJS balance is read from the Polygon blockchain.
-      Connecting your wallet does not transfer tokens or
-      authorize transactions.
+      This dashboard reads your JJS token balance directly from
+      the Polygon blockchain. Connecting your wallet does not
+      transfer tokens or authorize transactions.
     </p>
   </section>
 
@@ -340,7 +392,7 @@ footer {
     <div class="contract" id="contractAddress">
       0x52C8Ff13ada1431376b3E77E8219b644805122dF
     </div>
-    <button class="secondary-btn" id="copyBtn">
+    <button class="secondary-btn" onclick="copyContract()">
       Copy Contract Address
     </button>
   </section>
@@ -353,36 +405,8 @@ footer {
   Built on Polygon.
 </footer>
 
-<script type="module">
-
-// =====================================
-// IMPORT LIBRARIES
-// =====================================
-
-import { createAppKit } from
-  "https://esm.sh/@reown/appkit@1.8.24";
-
-import { EthersAdapter } from
-  "https://esm.sh/@reown/appkit-adapter-ethers@1.8.24";
-
-import { polygon } from
-  "https://esm.sh/@reown/appkit@1.8.24/networks";
-
-import {
-  Contract,
-  JsonRpcProvider,
-  formatUnits
-} from "https://esm.sh/ethers@6.15.0";
-
-// =====================================
-// JOSJIS CONFIGURATION
-// =====================================
-
-const PROJECT_ID =
-  "ea2b7e670f2c0331bca41ba7f66f0126";
-
-const JJS_CONTRACT =
-  "0x52C8Ff13ada1431376b3E77E8219b644805122dF";
+<script>
+const JJS_CONTRACT = "0x52C8Ff13ada1431376b3E77E8219b644805122dF";
 
 const JJS_ABI = [
   "function balanceOf(address account) view returns (uint256)",
@@ -390,227 +414,174 @@ const JJS_ABI = [
   "function symbol() view returns (string)"
 ];
 
-// =====================================
-// POLYGON PROVIDER
-// =====================================
+const POLYGON_CHAIN_ID = "0x89";
 
-const rpcProvider = new JsonRpcProvider(
-  "https://polygon-bor-rpc.publicnode.com"
-);
+let provider = null;
+let signer = null;
+let currentAccount = null;
 
-const token = new Contract(
-  JJS_CONTRACT,
-  JJS_ABI,
-  rpcProvider
-);
-
-// =====================================
-// WEBSITE METADATA
-// =====================================
-
-const metadata = {
-  name: "JosJis",
-  description: "Official JosJis Web3 Dashboard",
-  url: "https://josjis-dev.github.io/JosJis/",
-  icons: [
-    "https://josjis-dev.github.io/JosJis/josjis-logo.jpg"
-  ]
-};
-
-// =====================================
-// INITIALIZE REOWN APPKIT
-// =====================================
-
-const modal = createAppKit({
-  adapters: [new EthersAdapter()],
-  networks: [polygon],
-  defaultNetwork: polygon,
-  projectId: PROJECT_ID,
-  metadata,
-  features: {
-    analytics: true
-  }
-});
-
-// =====================================
-// HTML ELEMENTS
-// =====================================
-
-const connectBtn =
-  document.getElementById("connectBtn");
-
-const disconnectBtn =
-  document.getElementById("disconnectBtn");
-
-const statusBox =
-  document.getElementById("status");
-
-const walletTitle =
-  document.getElementById("walletTitle");
-
-const walletDescription =
-  document.getElementById("walletDescription");
-
-const walletAddress =
-  document.getElementById("walletAddress");
-
-const walletStatus =
-  document.getElementById("walletStatus");
-
-const networkName =
-  document.getElementById("networkName");
-
-const jjsBalance =
-  document.getElementById("jjsBalance");
-
-// =====================================
-// APPLICATION STATE
-// =====================================
-
-let activeAddress = null;
-let refreshNumber = 0;
-let appReady = false;
-
-// =====================================
-// STATUS FUNCTION
-// =====================================
+const connectBtn = document.getElementById("connectBtn");
+const disconnectBtn = document.getElementById("disconnectBtn");
+const statusBox = document.getElementById("status");
 
 function setStatus(message, type = "") {
-
   statusBox.textContent = message;
   statusBox.className = "status " + type;
-
 }
 
-// =====================================
-// RESET DASHBOARD
-// =====================================
+function shortAddress(address) {
+  return address.slice(0, 6) + "..." + address.slice(-4);
+}
 
 function resetDashboard() {
+  provider = null;
+  signer = null;
+  currentAccount = null;
 
-  activeAddress = null;
-  refreshNumber++;
-
-  walletTitle.textContent =
+  document.getElementById("walletTitle").textContent =
     "Connect Your Wallet";
 
-  walletDescription.textContent =
-    "Choose your preferred wallet to access your dashboard.";
+  document.getElementById("walletDescription").textContent =
+    "Connect your MetaMask wallet to access your JosJis dashboard.";
 
-  walletAddress.textContent =
+  document.getElementById("walletAddress").textContent =
     "Not connected";
 
-  walletStatus.textContent =
-    "Disconnected";
+  document.getElementById("jjsBalance").textContent = "-- JJS";
+  document.getElementById("networkName").textContent = "Not connected";
+  document.getElementById("walletStatus").textContent = "Disconnected";
 
-  networkName.textContent =
-    "Not connected";
-
-  jjsBalance.textContent =
-    "-- JJS";
-
-  connectBtn.style.display =
-    "inline-block";
-
-  disconnectBtn.style.display =
-    "none";
+  connectBtn.style.display = "inline-block";
+  disconnectBtn.style.display = "none";
 
   setStatus("Wallet not connected");
-
 }
 
-// =====================================
-// REFRESH DASHBOARD
-// =====================================
+async function connectWallet() {
+  if (!window.ethereum) {
+    setStatus(
+      "MetaMask not detected. Open this website in the MetaMask browser.",
+      "error"
+    );
+    return;
+  }
 
-async function refreshDashboard() {
-
-  const requestId = ++refreshNumber;
+  if (typeof ethers === "undefined") {
+    setStatus("Blockchain library failed to load. Please refresh.", "error");
+    return;
+  }
 
   try {
+    connectBtn.disabled = true;
+    connectBtn.textContent = "Connecting...";
 
-    const address = modal.getAddress();
-    const chainId = Number(modal.getChainId());
+    const accounts = await window.ethereum.request({
+      method: "eth_requestAccounts"
+    });
 
-    if (!modal.getIsConnected() || !address) {
+    if (!accounts || accounts.length === 0) {
+      throw new Error("No wallet account selected.");
+    }
 
-      if (appReady) {
-        resetDashboard();
+    const chainId = await window.ethereum.request({
+      method: "eth_chainId"
+    });
+
+    if (chainId.toLowerCase() !== POLYGON_CHAIN_ID) {
+      setStatus("Please switch to Polygon Mainnet.", "error");
+
+      try {
+        await window.ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: POLYGON_CHAIN_ID }]
+        });
+      } catch (switchError) {
+        if (switchError.code === 4902) {
+          await window.ethereum.request({
+            method: "wallet_addEthereumChain",
+            params: [{
+              chainId: POLYGON_CHAIN_ID,
+              chainName: "Polygon Mainnet",
+              nativeCurrency: {
+                name: "POL",
+                symbol: "POL",
+                decimals: 18
+              },
+              rpcUrls: ["https://polygon-bor-rpc.publicnode.com"],
+              blockExplorerUrls: ["https://polygonscan.com"]
+            }]
+          });
+        } else {
+          throw switchError;
+        }
       }
-
-      return;
     }
 
-    activeAddress = address;
+    await loadWallet();
 
-    walletTitle.textContent =
-      "Wallet Connected";
+  } catch (error) {
+    console.error(error);
+    setStatus(error.message || "Wallet connection failed.", "error");
+  } finally {
+    connectBtn.disabled = false;
+    connectBtn.textContent = "Connect Wallet";
+  }
+}
 
-    walletDescription.textContent =
-      "Your wallet is connected to JosJis.";
+async function loadWallet() {
+  if (!window.ethereum) return;
 
-    walletAddress.textContent =
-      address;
+  provider = new ethers.BrowserProvider(window.ethereum);
 
-    walletStatus.textContent =
-      "Connected";
+  const network = await provider.getNetwork();
 
-    connectBtn.style.display =
-      "none";
+  if (network.chainId !== 137n) {
+    resetDashboard();
+    setStatus("Please connect to Polygon Mainnet.", "error");
+    return;
+  }
 
-    disconnectBtn.style.display =
-      "inline-block";
+  signer = await provider.getSigner();
+  currentAccount = await signer.getAddress();
 
-    // Check Polygon network
+  document.getElementById("walletTitle").textContent =
+    "Wallet Connected";
 
-    if (chainId !== 137) {
+  document.getElementById("walletDescription").textContent =
+    "Your wallet is connected to the JosJis platform.";
 
-      networkName.textContent =
-        "Wrong Network";
+  document.getElementById("walletAddress").textContent =
+    currentAccount;
 
-      jjsBalance.textContent =
-        "Polygon required";
+  document.getElementById("networkName").textContent =
+    "Polygon Mainnet";
 
-      setStatus(
-        "Please switch to Polygon Mainnet.",
-        "error"
-      );
+  document.getElementById("walletStatus").textContent =
+    "Connected";
 
-      return;
-    }
+  connectBtn.style.display = "none";
+  disconnectBtn.style.display = "inline-block";
 
-    networkName.textContent =
-      "Polygon Mainnet";
+  setStatus("Connected successfully", "connected");
 
-    jjsBalance.textContent =
-      "Loading...";
+  await loadJJSBalance();
+}
 
-    setStatus(
-      "Connected successfully",
-      "connected"
+async function loadJJSBalance() {
+  try {
+    const token = new ethers.Contract(
+      JJS_CONTRACT,
+      JJS_ABI,
+      provider
     );
 
-    // Read token balance
-
     const [balance, decimals] = await Promise.all([
-      token.balanceOf(address),
+      token.balanceOf(currentAccount),
       token.decimals()
     ]);
 
-    // Prevent outdated results
-
-    if (
-      requestId !== refreshNumber ||
-      activeAddress !== address
-    ) {
-      return;
-    }
-
-    const formatted =
-      formatUnits(balance, decimals);
-
-    const number =
-      Number(formatted);
+    const formatted = ethers.formatUnits(balance, decimals);
+    const number = Number(formatted);
 
     const display = Number.isFinite(number)
       ? number.toLocaleString("en-US", {
@@ -618,170 +589,77 @@ async function refreshDashboard() {
         })
       : formatted;
 
-    jjsBalance.textContent =
+    document.getElementById("jjsBalance").textContent =
       display + " JJS";
 
   } catch (error) {
-
-    console.error("Dashboard error:", error);
-
-    if (requestId !== refreshNumber) {
-      return;
-    }
-
-    jjsBalance.textContent =
+    console.error(error);
+    document.getElementById("jjsBalance").textContent =
       "Unable to load";
-
-    setStatus(
-      "Connected, but balance could not be loaded.",
-      "error"
-    );
-
+    setStatus("Wallet connected, but JJS balance could not be loaded.", "error");
   }
-
 }
 
-// =====================================
-// CONNECT WALLET
-// =====================================
-
-connectBtn.addEventListener(
-  "click",
-  async () => {
-
-    try {
-
-      await modal.open({
-        view: "Connect"
-      });
-
-    } catch (error) {
-
-      console.error("Connect error:", error);
-
-      setStatus(
-        "Unable to open wallet selection.",
-        "error"
-      );
-
+async function disconnectWallet() {
+  try {
+    if (window.ethereum) {
+      try {
+        await window.ethereum.request({
+          method: "wallet_revokePermissions",
+          params: [{ eth_accounts: {} }]
+        });
+      } catch (error) {
+        // Some wallets do not support programmatic permission revocation.
+      }
     }
 
+    resetDashboard();
+
+  } catch (error) {
+    resetDashboard();
   }
-);
+}
 
-// =====================================
-// DISCONNECT WALLET
-// =====================================
+async function copyContract() {
+  const address = JJS_CONTRACT;
 
-disconnectBtn.addEventListener(
-  "click",
-  async () => {
+  try {
+    await navigator.clipboard.writeText(address);
+    alert("JJS contract address copied!");
+  } catch (error) {
+    alert("Unable to copy. Please copy the address manually.");
+  }
+}
 
-    try {
-
-      await modal.disconnect();
-
+if (window.ethereum) {
+  window.ethereum.on("accountsChanged", (accounts) => {
+    if (!accounts || accounts.length === 0) {
       resetDashboard();
-
-    } catch (error) {
-
-      console.error("Disconnect error:", error);
-
-      setStatus(
-        "Unable to disconnect wallet.",
-        "error"
-      );
-
+    } else {
+      loadWallet().catch((error) => {
+        console.error(error);
+        resetDashboard();
+        setStatus("Unable to load wallet account.", "error");
+      });
     }
+  });
 
-  }
-);
+  window.ethereum.on("chainChanged", () => {
+    window.location.reload();
+  });
 
-// =====================================
-// APPKIT STATE LISTENER
-// =====================================
-
-modal.subscribeState((state) => {
-
-  if (!state.initialized) {
-    return;
-  }
-
-  appReady = true;
-
-  if (state.isConnected) {
-
-    refreshDashboard();
-
-  } else {
-
-    resetDashboard();
-
-  }
-
-});
-
-// =====================================
-// ACCOUNT LISTENER
-// =====================================
-
-modal.subscribeAccount((account) => {
-
-  if (!appReady) {
-    return;
-  }
-
-  if (account.isConnected && account.address) {
-
-    refreshDashboard();
-
-  } else {
-
-    resetDashboard();
-
-  }
-
-});
-
-// =====================================
-// NETWORK LISTENER
-// =====================================
-
-modal.subscribeNetwork(() => {
-
-  if (appReady) {
-    refreshDashboard();
-  }
-
-});
-
-// =====================================
-// COPY CONTRACT ADDRESS
-// =====================================
-
-document.getElementById("copyBtn").addEventListener(
-  "click",
-  async () => {
-
-    try {
-
-      await navigator.clipboard.writeText(
-        JJS_CONTRACT
-      );
-
-      alert("JJS contract address copied!");
-
-    } catch (error) {
-
-      alert(
-        "Please copy the contract address manually."
-      );
-
+  // Restore the dashboard only if the wallet was previously authorized.
+  window.ethereum.request({
+    method: "eth_accounts"
+  }).then((accounts) => {
+    if (accounts && accounts.length > 0) {
+      loadWallet().catch((error) => {
+        console.error(error);
+        resetDashboard();
+      });
     }
-
-  }
-);
-
+  }).catch(() => {});
+}
 </script>
 
 </body>
