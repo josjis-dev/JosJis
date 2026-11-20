@@ -447,6 +447,18 @@ async function restoreWalletSession() {
 
 restoreWalletSession();
 
+// =====================================
+// AUTOMATIC BALANCE REFRESH
+// =====================================
+
+setInterval(() => {
+
+  if (modal.getIsConnected()) {
+    refreshDashboard();
+  }
+
+}, 15000);
+
 </script>
 
 </body>
