@@ -32,20 +32,19 @@
   <section class="wallet-panel">
     <div class="wallet-icon">👛</div>
 
-    <h2 id="walletTitle">Connect Your Wallet</h2>
+    <h2 id="walletTitle">Checking Wallet...</h2>
 
     <p id="walletDescription">
-      Choose your preferred wallet to access your dashboard.
+      Restoring your wallet session. Please wait.
     </p>
 
-    <button class="primary-btn" id="connectBtn" type="button">
+    <button class="primary-btn" id="connectBtn" type="button" style="display:none">
       Connect Wallet
     </button>
 
     <br>
 
-    <button class="secondary-btn" id="disconnectBtn"
-      type="button" style="display:none">
+    <button class="secondary-btn" id="disconnectBtn" type="button" style="display:none">
       Disconnect Wallet
     </button>
 
@@ -64,19 +63,19 @@
 
     <div class="card">
       <h3>Network</h3>
-      <div class="value" id="networkName">Not connected</div>
+      <div class="value" id="networkName">Checking...</div>
       <div class="sub">Expected: Polygon Mainnet</div>
     </div>
 
     <div class="card">
       <h3>Wallet Address</h3>
-      <div class="value address" id="walletAddress">Not connected</div>
+      <div class="value address" id="walletAddress">Checking...</div>
       <div class="sub">Connected wallet account</div>
     </div>
 
     <div class="card">
       <h3>Wallet Status</h3>
-      <div class="value" id="walletStatus">Disconnected</div>
+      <div class="value" id="walletStatus">Checking...</div>
       <div class="sub">Wallet connection status</div>
     </div>
 
@@ -95,7 +94,7 @@
     <h2>Official JJS Contract</h2>
 
     <div class="contract" id="contractAddress">
-      Loading contract address...
+      0x52C8Ff13ada1431376b3E77E8219b644805122dF
     </div>
 
     <button class="secondary-btn" id="copyBtn" type="button">
@@ -108,70 +107,130 @@
 <script type="module">
 
 // =====================================
-// IMPORT JOSJIS CONFIGURATION
+// IMPORT LIBRARIES
 // =====================================
 
+import { createAppKit } from
+  "https://esm.sh/@reown/appkit@1.8.24";
+
+import { EthersAdapter } from
+  "https://esm.sh/@reown/appkit-adapter-ethers@1.8.24";
+
+import { polygon } from
+  "https://esm.sh/@reown/appkit@1.8.24/networks";
+
 import {
-  JJS_CONFIG,
-  getJJSBalance
-} from "./web3-config.js";
+  Contract,
+  JsonRpcProvider,
+  formatUnits
+} from "https://esm.sh/ethers@6.15.0";
+
+// =====================================
+// JOSJIS CONFIGURATION
+// =====================================
+
+const PROJECT_ID =
+  "ea2b7e670f2c0331bca41ba7f66f0126";
+
+const JJS_CONTRACT =
+  "0x52C8Ff13ada1431376b3E77E8219b644805122dF";
+
+const JJS_ABI = [
+  "function balanceOf(address account) view returns (uint256)",
+  "function decimals() view returns (uint8)",
+  "function symbol() view returns (string)"
+];
+
+// =====================================
+// POLYGON PROVIDER
+// =====================================
+
+const rpcProvider = new JsonRpcProvider(
+  "https://polygon-bor-rpc.publicnode.com"
+);
+
+const token = new Contract(
+  JJS_CONTRACT,
+  JJS_ABI,
+  rpcProvider
+);
+
+// =====================================
+// WEBSITE METADATA
+// =====================================
+
+const metadata = {
+  name: "JosJis",
+  description: "Official JosJis Web3 Dashboard",
+  url: "https://josjis-dev.github.io/JosJis/",
+  icons: [
+    "https://josjis-dev.github.io/JosJis/josjis-logo.jpg"
+  ]
+};
+
+// =====================================
+// INITIALIZE REOWN APPKIT
+// =====================================
+
+const modal = createAppKit({
+  adapters: [new EthersAdapter()],
+  networks: [polygon],
+  defaultNetwork: polygon,
+  projectId: PROJECT_ID,
+  metadata,
+  features: {
+    analytics: true
+  }
+});
 
 // =====================================
 // HTML ELEMENTS
 // =====================================
 
-const connectBtn = document.getElementById("connectBtn");
-const disconnectBtn = document.getElementById("disconnectBtn");
+const connectBtn =
+  document.getElementById("connectBtn");
 
-const statusBox = document.getElementById("status");
-const walletTitle = document.getElementById("walletTitle");
-const walletDescription = document.getElementById("walletDescription");
+const disconnectBtn =
+  document.getElementById("disconnectBtn");
 
-const walletAddress = document.getElementById("walletAddress");
-const walletStatus = document.getElementById("walletStatus");
-const networkName = document.getElementById("networkName");
-const jjsBalance = document.getElementById("jjsBalance");
+const statusBox =
+  document.getElementById("status");
 
-const contractAddress = document.getElementById("contractAddress");
-const copyBtn = document.getElementById("copyBtn");
+const walletTitle =
+  document.getElementById("walletTitle");
+
+const walletDescription =
+  document.getElementById("walletDescription");
+
+const walletAddress =
+  document.getElementById("walletAddress");
+
+const walletStatus =
+  document.getElementById("walletStatus");
+
+const networkName =
+  document.getElementById("networkName");
+
+const jjsBalance =
+  document.getElementById("jjsBalance");
 
 // =====================================
 // APPLICATION STATE
 // =====================================
 
-let modal = null;
-let appReady = false;
 let activeAddress = null;
 let refreshNumber = 0;
-let isConnecting = false;
+let appReady = false;
 
 // =====================================
-// STATUS
+// STATUS FUNCTION
 // =====================================
 
 function setStatus(message, type = "") {
+
   statusBox.textContent = message;
   statusBox.className = "status " + type;
-}
 
-// =====================================
-// FORMAT BALANCE
-// =====================================
-
-function formatDisplayBalance(value) {
-
-  const parts = String(value).split(".");
-
-  const whole = parts[0].replace(
-    /\B(?=(\d{3})+(?!\d))/g,
-    ","
-  );
-
-  const fraction = (parts[1] || "").slice(0, 6);
-
-  return fraction
-    ? whole + "." + fraction + " JJS"
-    : whole + " JJS";
 }
 
 // =====================================
@@ -183,20 +242,32 @@ function resetDashboard() {
   activeAddress = null;
   refreshNumber++;
 
-  walletTitle.textContent = "Connect Your Wallet";
+  walletTitle.textContent =
+    "Connect Your Wallet";
 
   walletDescription.textContent =
     "Choose your preferred wallet to access your dashboard.";
 
-  walletAddress.textContent = "Not connected";
-  walletStatus.textContent = "Disconnected";
-  networkName.textContent = "Not connected";
-  jjsBalance.textContent = "-- JJS";
+  walletAddress.textContent =
+    "Not connected";
 
-  connectBtn.style.display = "inline-block";
-  disconnectBtn.style.display = "none";
+  walletStatus.textContent =
+    "Disconnected";
+
+  networkName.textContent =
+    "Not connected";
+
+  jjsBalance.textContent =
+    "-- JJS";
+
+  connectBtn.style.display =
+    "inline-block";
+
+  disconnectBtn.style.display =
+    "none";
 
   setStatus("Wallet not connected");
+
 }
 
 // =====================================
@@ -204,8 +275,6 @@ function resetDashboard() {
 // =====================================
 
 async function refreshDashboard() {
-
-  if (!modal || !appReady) return;
 
   const requestId = ++refreshNumber;
 
@@ -215,27 +284,43 @@ async function refreshDashboard() {
     const chainId = Number(modal.getChainId());
 
     if (!modal.getIsConnected() || !address) {
-      resetDashboard();
+
+      if (appReady) {
+        resetDashboard();
+      }
+
       return;
     }
 
     activeAddress = address;
 
-    walletTitle.textContent = "Wallet Connected";
+    walletTitle.textContent =
+      "Wallet Connected";
 
     walletDescription.textContent =
       "Your wallet is connected to JosJis.";
 
-    walletAddress.textContent = address;
-    walletStatus.textContent = "Connected";
+    walletAddress.textContent =
+      address;
 
-    connectBtn.style.display = "none";
-    disconnectBtn.style.display = "inline-block";
+    walletStatus.textContent =
+      "Connected";
 
-    if (chainId !== JJS_CONFIG.chainId) {
+    connectBtn.style.display =
+      "none";
 
-      networkName.textContent = "Wrong Network";
-      jjsBalance.textContent = "Polygon required";
+    disconnectBtn.style.display =
+      "inline-block";
+
+    // Check Polygon network
+
+    if (chainId !== 137) {
+
+      networkName.textContent =
+        "Wrong Network";
+
+      jjsBalance.textContent =
+        "Polygon required";
 
       setStatus(
         "Please switch to Polygon Mainnet.",
@@ -245,118 +330,178 @@ async function refreshDashboard() {
       return;
     }
 
-    networkName.textContent = "Polygon Mainnet";
-    jjsBalance.textContent = "Loading...";
+    networkName.textContent =
+      "Polygon Mainnet";
 
-    setStatus("Reading JJS balance...", "connected");
+    jjsBalance.textContent =
+      "Loading...";
 
-    const formatted = await getJJSBalance(address);
+    setStatus(
+      "Connected successfully",
+      "connected"
+    );
+
+    // Read token balance
+
+    const [balance, decimals] = await Promise.all([
+      token.balanceOf(address),
+      token.decimals()
+    ]);
+
+    // Prevent outdated results
 
     if (
       requestId !== refreshNumber ||
       activeAddress !== address
-    ) return;
+    ) {
+      return;
+    }
 
-    jjsBalance.textContent = formatDisplayBalance(formatted);
+    const formatted =
+      formatUnits(balance, decimals);
 
-    setStatus(
-      "JJS balance loaded successfully.",
-      "connected"
-    );
+    const number =
+      Number(formatted);
+
+    const display = Number.isFinite(number)
+      ? number.toLocaleString("en-US", {
+          maximumFractionDigits: 6
+        })
+      : formatted;
+
+    jjsBalance.textContent =
+      display + " JJS";
 
   } catch (error) {
 
     console.error("Dashboard error:", error);
 
-    if (
-      requestId !== refreshNumber ||
-      activeAddress === null
-    ) return;
+    if (requestId !== refreshNumber) {
+      return;
+    }
 
-    jjsBalance.textContent = "Unable to load";
+    jjsBalance.textContent =
+      "Unable to load";
 
     setStatus(
-      "Balance error: " +
-      (error.message || "Unknown error"),
+      "Connected, but balance could not be loaded.",
       "error"
     );
+
   }
+
 }
 
 // =====================================
 // CONNECT WALLET
 // =====================================
 
-connectBtn.addEventListener("click", async () => {
+connectBtn.addEventListener(
+  "click",
+  async () => {
 
-  if (isConnecting) return;
+    try {
 
-  try {
+      await modal.open({
+        view: "Connect"
+      });
 
-    if (!modal) {
-      throw new Error(
-        "Wallet service is not ready. Please reload the page."
+    } catch (error) {
+
+      console.error("Connect error:", error);
+
+      setStatus(
+        "Unable to open wallet selection.",
+        "error"
       );
+
     }
 
-    isConnecting = true;
+  }
+);
 
-    connectBtn.disabled = true;
-    connectBtn.textContent = "Opening Wallet...";
+// =====================================
+// DISCONNECT WALLET
+// =====================================
 
-    setStatus("Opening wallet selection...");
+disconnectBtn.addEventListener(
+  "click",
+  async () => {
 
-    await modal.open({
-      view: "Connect"
-    });
+    try {
 
-  } catch (error) {
+      await modal.disconnect();
 
-    console.error("Connect error:", error);
+      resetDashboard();
 
-    setStatus(
-      "Connection error: " +
-      (error.message || "Unable to open wallet."),
-      "error"
-    );
+    } catch (error) {
 
-  } finally {
+      console.error("Disconnect error:", error);
 
-    isConnecting = false;
+      setStatus(
+        "Unable to disconnect wallet.",
+        "error"
+      );
 
-    connectBtn.disabled = false;
-    connectBtn.textContent = "Connect Wallet";
+    }
+
+  }
+);
+
+// =====================================
+// APPKIT STATE LISTENER
+// =====================================
+
+modal.subscribeState((state) => {
+
+  if (!state.initialized) {
+    return;
+  }
+
+  appReady = true;
+
+  if (state.isConnected) {
+
+    refreshDashboard();
+
+  } else {
+
+    resetDashboard();
 
   }
 
 });
 
 // =====================================
-// DISCONNECT WALLET
+// ACCOUNT LISTENER
 // =====================================
 
-disconnectBtn.addEventListener("click", async () => {
+modal.subscribeAccount((account) => {
 
-  try {
+  if (!appReady) {
+    return;
+  }
 
-    if (!modal) return;
+  if (account.isConnected && account.address) {
 
-    setStatus("Disconnecting wallet...");
+    refreshDashboard();
 
-    await modal.disconnect();
+  } else {
 
     resetDashboard();
 
-  } catch (error) {
+  }
 
-    console.error("Disconnect error:", error);
+});
 
-    setStatus(
-      "Disconnect error: " +
-      (error.message || "Unknown error"),
-      "error"
-    );
+// =====================================
+// NETWORK LISTENER
+// =====================================
 
+modal.subscribeNetwork(() => {
+
+  if (appReady) {
+    refreshDashboard();
   }
 
 });
@@ -365,172 +510,28 @@ disconnectBtn.addEventListener("click", async () => {
 // COPY CONTRACT ADDRESS
 // =====================================
 
-contractAddress.textContent =
-  JJS_CONFIG.contractAddress;
+document.getElementById("copyBtn").addEventListener(
+  "click",
+  async () => {
 
-copyBtn.addEventListener("click", async () => {
+    try {
 
-  try {
-
-    await navigator.clipboard.writeText(
-      JJS_CONFIG.contractAddress
-    );
-
-    if (typeof showJJSAlert === "function") {
-
-      showJJSAlert(
-        "JJS Contract Address copied successfully!",
-        "success"
+      await navigator.clipboard.writeText(
+        JJS_CONTRACT
       );
 
-    } else {
+      alert("JJS contract address copied!");
 
-      setStatus("Contract address copied successfully.");
+    } catch (error) {
+
+      alert(
+        "Please copy the contract address manually."
+      );
 
     }
 
-  } catch (error) {
-
-    console.error("Copy error:", error);
-
-    setStatus(
-      "Copy failed. Please copy the address manually.",
-      "error"
-    );
-
   }
-
-});
-
-// =====================================
-// INITIALIZE REOWN APPKIT
-// =====================================
-
-async function initializeWallet() {
-
-  try {
-
-    setStatus("Loading wallet service...");
-
-    const [
-      appkitModule,
-      adapterModule,
-      networkModule
-    ] = await Promise.all([
-
-      import(
-        "https://esm.sh/@reown/appkit@1.8.24"
-      ),
-
-      import(
-        "https://esm.sh/@reown/appkit-adapter-ethers@1.8.24"
-      ),
-
-      import(
-        "https://esm.sh/@reown/appkit@1.8.24/networks"
-      )
-
-    ]);
-
-    const createAppKit = appkitModule.createAppKit;
-    const EthersAdapter = adapterModule.EthersAdapter;
-    const polygon = networkModule.polygon;
-
-    if (!createAppKit || !EthersAdapter || !polygon) {
-      throw new Error("Unable to load Reown AppKit modules.");
-    }
-
-    const PROJECT_ID =
-      "ea2b7e670f2c0331bca41ba7f66f0126";
-
-    const metadata = {
-      name: "JosJis",
-      description: "Official JosJis Web3 Dashboard",
-      url: "https://josjis-dev.github.io",
-      icons: [
-        "https://josjis-dev.github.io/JosJis/josjis-logo.jpg"
-      ]
-    };
-
-    modal = createAppKit({
-
-      adapters: [new EthersAdapter()],
-
-      networks: [polygon],
-
-      defaultNetwork: polygon,
-
-      projectId: PROJECT_ID,
-
-      metadata,
-
-      features: {
-        analytics: false
-      }
-
-    });
-
-    // Wait for AppKit initialization
-
-    modal.subscribeState((state) => {
-
-      if (!state.initialized) return;
-
-      appReady = true;
-
-      if (state.isConnected) {
-        refreshDashboard();
-      } else {
-        resetDashboard();
-      }
-
-    });
-
-    modal.subscribeAccount((account) => {
-
-      if (!appReady) return;
-
-      if (account.isConnected && account.address) {
-        refreshDashboard();
-      } else {
-        resetDashboard();
-      }
-
-    });
-
-    modal.subscribeNetwork(() => {
-
-      if (appReady) {
-        refreshDashboard();
-      }
-
-    });
-
-    setStatus("Wallet service ready. Connect your wallet.");
-
-  } catch (error) {
-
-    console.error("AppKit initialization error:", error);
-
-    modal = null;
-
-    setStatus(
-      "Wallet initialization failed: " +
-      (error.message || "Please reload the page."),
-      "error"
-    );
-
-  }
-
-}
-
-// =====================================
-// START APPLICATION
-// =====================================
-
-resetDashboard();
-
-initializeWallet();
+);
 
 </script>
 
