@@ -30,27 +30,32 @@
 <main>
 
   <section class="wallet-panel">
+
     <div class="wallet-icon">👛</div>
 
-    <h2 id="walletTitle">Checking Wallet...</h2>
+    <h2 id="walletTitle">Connect Your Wallet</h2>
 
     <p id="walletDescription">
-      Restoring your wallet session. Please wait.
+      Choose your preferred wallet to access your dashboard.
     </p>
 
-    <button class="primary-btn" id="connectBtn" type="button" style="display:none">
+    <button class="primary-btn" id="connectBtn" type="button">
       Connect Wallet
     </button>
 
+    <div id="walletOptions" style="display:none; margin-top:15px;"></div>
+
     <br>
 
-    <button class="secondary-btn" id="disconnectBtn" type="button" style="display:none">
+    <button class="secondary-btn" id="disconnectBtn"
+      type="button" style="display:none">
       Disconnect Wallet
     </button>
 
     <span id="status" class="status">
-      Initializing wallet...
+      Detecting available wallets...
     </span>
+
   </section>
 
   <section class="dashboard-grid">
@@ -63,19 +68,19 @@
 
     <div class="card">
       <h3>Network</h3>
-      <div class="value" id="networkName">Checking...</div>
+      <div class="value" id="networkName">Not connected</div>
       <div class="sub">Expected: Polygon Mainnet</div>
     </div>
 
     <div class="card">
       <h3>Wallet Address</h3>
-      <div class="value address" id="walletAddress">Checking...</div>
+      <div class="value address" id="walletAddress">Not connected</div>
       <div class="sub">Connected wallet account</div>
     </div>
 
     <div class="card">
       <h3>Wallet Status</h3>
-      <div class="value" id="walletStatus">Checking...</div>
+      <div class="value" id="walletStatus">Disconnected</div>
       <div class="sub">Wallet connection status</div>
     </div>
 
@@ -84,9 +89,9 @@
   <section class="info-section">
     <h2>About Your Dashboard</h2>
     <p>
-      Your JJS balance is read from the Polygon blockchain.
-      Connecting your wallet does not transfer tokens or
-      authorize transactions.
+      Your JJS balance is read directly from the Polygon blockchain.
+      Connecting your wallet does not transfer tokens or authorize
+      transactions.
     </p>
   </section>
 
@@ -107,17 +112,8 @@
 <script type="module">
 
 // =====================================
-// IMPORT LIBRARIES
+// IMPORT ETHERS
 // =====================================
-
-import { createAppKit } from
-  "https://esm.sh/@reown/appkit@1.8.24";
-
-import { EthersAdapter } from
-  "https://esm.sh/@reown/appkit-adapter-ethers@1.8.24";
-
-import { polygon } from
-  "https://esm.sh/@reown/appkit@1.8.24/networks";
 
 import {
   Contract,
@@ -129,9 +125,6 @@ import {
 // JOSJIS CONFIGURATION
 // =====================================
 
-const PROJECT_ID =
-  "ea2b7e670f2c0331bca41ba7f66f0126";
-
 const JJS_CONTRACT =
   "0x52C8Ff13ada1431376b3E77E8219b644805122dF";
 
@@ -141,8 +134,10 @@ const JJS_ABI = [
   "function symbol() view returns (string)"
 ];
 
+const POLYGON_CHAIN_ID = 137;
+
 // =====================================
-// POLYGON RPC FALLBACK
+// POLYGON RPC
 // =====================================
 
 const RPC_URLS = [
@@ -150,84 +145,6 @@ const RPC_URLS = [
   "https://polygon.drpc.org",
   "https://polygon.gateway.tenderly.co"
 ];
-
-async function readJJSBalance(address) {
-
-  let lastError;
-
-  for (const rpcUrl of RPC_URLS) {
-
-    let provider;
-
-    try {
-
-      provider = new JsonRpcProvider(rpcUrl);
-
-      const token = new Contract(
-        JJS_CONTRACT,
-        JJS_ABI,
-        provider
-      );
-
-      const [balance, decimals] = await Promise.all([
-        token.balanceOf(address),
-        token.decimals()
-      ]);
-
-      return {
-        balance,
-        decimals
-      };
-
-    } catch (error) {
-
-      console.error("RPC failed:", rpcUrl, error);
-
-      lastError = error;
-
-    } finally {
-
-      if (provider) {
-        provider.destroy();
-      }
-
-    }
-
-  }
-
-  throw lastError || new Error(
-    "All Polygon RPC endpoints failed."
-  );
-
-}
-
-// =====================================
-// WEBSITE METADATA
-// =====================================
-
-const metadata = {
-  name: "JosJis",
-  description: "Official JosJis Web3 Dashboard",
-  url: "https://josjis-dev.github.io/JosJis/",
-  icons: [
-    "https://josjis-dev.github.io/JosJis/josjis-logo.jpg"
-  ]
-};
-
-// =====================================
-// INITIALIZE REOWN APPKIT
-// =====================================
-
-const modal = createAppKit({
-  adapters: [new EthersAdapter()],
-  networks: [polygon],
-  defaultNetwork: polygon,
-  projectId: PROJECT_ID,
-  metadata,
-  features: {
-    analytics: true
-  }
-});
 
 // =====================================
 // HTML ELEMENTS
@@ -238,6 +155,9 @@ const connectBtn =
 
 const disconnectBtn =
   document.getElementById("disconnectBtn");
+
+const walletOptions =
+  document.getElementById("walletOptions");
 
 const statusBox =
   document.getElementById("status");
@@ -264,12 +184,15 @@ const jjsBalance =
 // APPLICATION STATE
 // =====================================
 
+let selectedProvider = null;
+let selectedWalletName = "";
 let activeAddress = null;
 let refreshNumber = 0;
-let appReady = false;
+let discoveredWallets = [];
+let providerListenersAdded = false;
 
 // =====================================
-// STATUS FUNCTION
+// STATUS
 // =====================================
 
 function setStatus(message, type = "") {
@@ -280,13 +203,293 @@ function setStatus(message, type = "") {
 }
 
 // =====================================
+// WALLET DETECTION
+// =====================================
+
+function addWallet(info, provider) {
+
+  if (!provider) return;
+
+  const exists = discoveredWallets.some(
+    wallet => wallet.provider === provider
+  );
+
+  if (exists) return;
+
+  discoveredWallets.push({
+    info: info || {},
+    provider
+  });
+
+}
+
+// EIP-6963 wallet announcement
+
+window.addEventListener(
+  "eip6963:announceProvider",
+  (event) => {
+
+    const detail = event.detail;
+
+    if (!detail || !detail.provider) return;
+
+    addWallet(detail.info, detail.provider);
+
+  }
+);
+
+// Detect injected wallets
+
+async function detectWallets() {
+
+  discoveredWallets = [];
+
+  // Request EIP-6963 providers
+
+  window.dispatchEvent(
+    new Event("eip6963:requestProvider")
+  );
+
+  // Wait for wallet announcements
+
+  await new Promise(resolve => setTimeout(resolve, 400));
+
+  // Legacy injected provider
+
+  if (window.ethereum) {
+
+    const providers = Array.isArray(
+      window.ethereum.providers
+    )
+      ? window.ethereum.providers
+      : [window.ethereum];
+
+    providers.forEach((provider) => {
+
+      let name = "Browser Wallet";
+
+      if (provider.isMetaMask) {
+        name = "MetaMask";
+      } else if (provider.isCoinbaseWallet) {
+        name = "Coinbase Wallet";
+      } else if (provider.isTrust) {
+        name = "Trust Wallet";
+      }
+
+      addWallet(
+        {
+          name,
+          rdns: ""
+        },
+        provider
+      );
+
+    });
+
+  }
+
+  return discoveredWallets;
+
+}
+
+// =====================================
+// DISPLAY WALLET OPTIONS
+// =====================================
+
+async function showWalletOptions() {
+
+  connectBtn.disabled = true;
+
+  setStatus("Searching for available wallets...");
+
+  walletOptions.innerHTML = "";
+  walletOptions.style.display = "none";
+
+  try {
+
+    const wallets = await detectWallets();
+
+    if (wallets.length === 0) {
+
+      setStatus(
+        "No compatible wallet detected. Open this website inside your wallet's DApp browser.",
+        "error"
+      );
+
+      return;
+    }
+
+    walletOptions.style.display = "block";
+
+    wallets.forEach((wallet) => {
+
+      const button = document.createElement("button");
+
+      button.type = "button";
+      button.className = "secondary-btn";
+      button.style.display = "block";
+      button.style.width = "100%";
+      button.style.marginBottom = "10px";
+
+      const name =
+        wallet.info.name || "Browser Wallet";
+
+      button.textContent = "Connect " + name;
+
+      button.addEventListener("click", () => {
+        connectWallet(wallet);
+      });
+
+      walletOptions.appendChild(button);
+
+    });
+
+    setStatus(
+      "Select your preferred wallet."
+    );
+
+  } catch (error) {
+
+    console.error("Wallet detection error:", error);
+
+    setStatus(
+      "Unable to detect wallets: " +
+      (error.message || "Unknown error"),
+      "error"
+    );
+
+  } finally {
+
+    connectBtn.disabled = false;
+
+  }
+
+}
+
+// =====================================
+// CONNECT WALLET
+// =====================================
+
+async function connectWallet(wallet) {
+
+  try {
+
+    setStatus("Connecting wallet...");
+
+    const provider = wallet.provider;
+
+    const accounts = await provider.request({
+      method: "eth_requestAccounts"
+    });
+
+    if (!accounts || accounts.length === 0) {
+      throw new Error("No wallet account was returned.");
+    }
+
+    selectedProvider = provider;
+
+    selectedWalletName =
+      wallet.info.name || "Browser Wallet";
+
+    activeAddress = accounts[0];
+
+    walletOptions.style.display = "none";
+
+    connectBtn.style.display = "none";
+
+    disconnectBtn.style.display = "inline-block";
+
+    walletTitle.textContent =
+      "Wallet Connected";
+
+    walletDescription.textContent =
+      "Connected using " + selectedWalletName;
+
+    walletAddress.textContent =
+      activeAddress;
+
+    walletStatus.textContent =
+      "Connected";
+
+    addProviderListeners();
+
+    await refreshDashboard();
+
+  } catch (error) {
+
+    console.error("Wallet connection error:", error);
+
+    setStatus(
+      error.message || "Unable to connect wallet.",
+      "error"
+    );
+
+  }
+
+}
+
+// =====================================
+// PROVIDER LISTENERS
+// =====================================
+
+function addProviderListeners() {
+
+  if (!selectedProvider || providerListenersAdded) {
+    return;
+  }
+
+  providerListenersAdded = true;
+
+  selectedProvider.on?.(
+    "accountsChanged",
+    (accounts) => {
+
+      if (!accounts || accounts.length === 0) {
+
+        resetDashboard();
+
+        return;
+      }
+
+      activeAddress = accounts[0];
+
+      refreshDashboard();
+
+    }
+  );
+
+  selectedProvider.on?.(
+    "chainChanged",
+    () => {
+
+      refreshDashboard();
+
+    }
+  );
+
+  selectedProvider.on?.(
+    "disconnect",
+    () => {
+
+      resetDashboard();
+
+    }
+  );
+
+}
+
+// =====================================
 // RESET DASHBOARD
 // =====================================
 
 function resetDashboard() {
 
-  activeAddress = null;
   refreshNumber++;
+
+  activeAddress = null;
+  selectedProvider = null;
+  selectedWalletName = "";
+  providerListenersAdded = false;
 
   walletTitle.textContent =
     "Connect Your Wallet";
@@ -312,7 +515,73 @@ function resetDashboard() {
   disconnectBtn.style.display =
     "none";
 
-  setStatus("Wallet not connected");
+  walletOptions.style.display =
+    "none";
+
+  setStatus(
+    "Wallet disconnected."
+  );
+
+}
+
+// =====================================
+// READ JJS BALANCE
+// =====================================
+
+async function readJJSBalance(address) {
+
+  let lastError;
+
+  for (const rpcUrl of RPC_URLS) {
+
+    let provider;
+
+    try {
+
+      provider = new JsonRpcProvider(
+        rpcUrl,
+        POLYGON_CHAIN_ID
+      );
+
+      const token = new Contract(
+        JJS_CONTRACT,
+        JJS_ABI,
+        provider
+      );
+
+      const [balance, decimals] = await Promise.all([
+        token.balanceOf(address),
+        token.decimals()
+      ]);
+
+      return {
+        balance,
+        decimals
+      };
+
+    } catch (error) {
+
+      console.error(
+        "RPC failed:",
+        rpcUrl,
+        error
+      );
+
+      lastError = error;
+
+    } finally {
+
+      if (provider) {
+        provider.destroy();
+      }
+
+    }
+
+  }
+
+  throw lastError || new Error(
+    "All Polygon RPC endpoints failed."
+  );
 
 }
 
@@ -326,41 +595,32 @@ async function refreshDashboard() {
 
   try {
 
-    const address = modal.getAddress();
-    const chainId = Number(modal.getChainId());
-
-    if (!modal.getIsConnected() || !address) {
-
-      if (appReady) {
-        resetDashboard();
-      }
-
+    if (!selectedProvider || !activeAddress) {
       return;
     }
 
-    activeAddress = address;
+    const address = activeAddress;
 
-    walletTitle.textContent =
-      "Wallet Connected";
+    const chainId = Number(
+      await selectedProvider.request({
+        method: "eth_chainId"
+      })
+    );
 
-    walletDescription.textContent =
-      "Your wallet is connected to JosJis.";
+    if (
+      requestId !== refreshNumber ||
+      activeAddress !== address
+    ) {
+      return;
+    }
 
-    walletAddress.textContent =
-      address;
+    walletAddress.textContent = address;
 
-    walletStatus.textContent =
-      "Connected";
+    walletStatus.textContent = "Connected";
 
-    connectBtn.style.display =
-      "none";
+    walletTitle.textContent = "Wallet Connected";
 
-    disconnectBtn.style.display =
-      "inline-block";
-
-    // Check Polygon network
-
-    if (chainId !== 137) {
+    if (chainId !== POLYGON_CHAIN_ID) {
 
       networkName.textContent =
         "Wrong Network";
@@ -369,7 +629,7 @@ async function refreshDashboard() {
         "Polygon required";
 
       setStatus(
-        "Please switch to Polygon Mainnet.",
+        "Please switch your wallet to Polygon Mainnet.",
         "error"
       );
 
@@ -383,16 +643,10 @@ async function refreshDashboard() {
       "Loading...";
 
     setStatus(
-      "Reading JJS balance from Polygon...",
-      "connected"
+      "Reading JJS balance from Polygon..."
     );
 
-    // Read JJS balance with RPC fallback
-
-    const { balance, decimals } =
-      await readJJSBalance(address);
-
-    // Prevent outdated results
+    const result = await readJJSBalance(address);
 
     if (
       requestId !== refreshNumber ||
@@ -401,11 +655,12 @@ async function refreshDashboard() {
       return;
     }
 
-    const formatted =
-      formatUnits(balance, decimals);
+    const formatted = formatUnits(
+      result.balance,
+      result.decimals
+    );
 
-    const number =
-      Number(formatted);
+    const number = Number(formatted);
 
     const display = Number.isFinite(number)
       ? number.toLocaleString("en-US", {
@@ -423,26 +678,26 @@ async function refreshDashboard() {
 
   } catch (error) {
 
-    console.error("Dashboard error:", error);
+    console.error(
+      "Dashboard error:",
+      error
+    );
 
-    if (
-      requestId !== refreshNumber ||
-      activeAddress !== modal.getAddress()
-    ) {
+    if (requestId !== refreshNumber) {
       return;
     }
 
     jjsBalance.textContent =
       "Unable to load";
 
-    const errorMessage =
-      error?.shortMessage ||
-      error?.reason ||
-      error?.message ||
+    const message =
+      error.shortMessage ||
+      error.reason ||
+      error.message ||
       "Unknown error";
 
     setStatus(
-      "Balance error: " + errorMessage,
+      "Balance error: " + message,
       "error"
     );
 
@@ -451,97 +706,29 @@ async function refreshDashboard() {
 }
 
 // =====================================
-// CONNECT WALLET
+// CONNECT BUTTON
 // =====================================
 
 connectBtn.addEventListener(
   "click",
-  async () => {
-
-    try {
-
-      await modal.open({
-        view: "Connect"
-      });
-
-    } catch (error) {
-
-      console.error("Connect error:", error);
-
-      setStatus(
-        "Unable to open wallet selection.",
-        "error"
-      );
-
-    }
-
-  }
+  showWalletOptions
 );
 
 // =====================================
-// DISCONNECT WALLET
+// DISCONNECT BUTTON
 // =====================================
 
 disconnectBtn.addEventListener(
   "click",
-  async () => {
+  () => {
 
-    try {
+    // Disconnect the dashboard session locally.
+    // Wallet permissions remain managed by the wallet app.
 
-      await modal.adapter?.connectionControllerClient?.disconnect();
-
-      resetDashboard();
-
-    } catch (error) {
-
-      console.error("Disconnect error:", error);
-
-      setStatus(
-        "Unable to disconnect wallet: " +
-        (error?.message || "Unknown error"),
-        "error"
-      );
-
-    }
+    resetDashboard();
 
   }
 );
-
-// =====================================
-// APPKIT STATE LISTENER
-// =====================================
-
-modal.subscribeState(() => {
-
-  appReady = true;
-
-  refreshDashboard();
-
-});
-
-// =====================================
-// ACCOUNT LISTENER
-// =====================================
-
-modal.subscribeAccount(() => {
-
-  if (appReady) {
-    refreshDashboard();
-  }
-
-});
-
-// =====================================
-// NETWORK LISTENER
-// =====================================
-
-modal.subscribeNetwork(() => {
-
-  if (appReady) {
-    refreshDashboard();
-  }
-
-});
 
 // =====================================
 // COPY CONTRACT ADDRESS
@@ -569,6 +756,32 @@ document.getElementById("copyBtn").addEventListener(
 
   }
 );
+
+// =====================================
+// INITIALIZE DASHBOARD
+// =====================================
+
+async function initializeDashboard() {
+
+  const wallets = await detectWallets();
+
+  if (wallets.length > 0) {
+
+    setStatus(
+      wallets.length + " compatible wallet(s) detected."
+    );
+
+  } else {
+
+    setStatus(
+      "No wallet detected. Open using a wallet DApp browser."
+    );
+
+  }
+
+}
+
+initializeDashboard();
 
 </script>
 
