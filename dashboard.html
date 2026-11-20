@@ -142,18 +142,64 @@ const JJS_ABI = [
 ];
 
 // =====================================
-// POLYGON PROVIDER
+// POLYGON RPC FALLBACK
 // =====================================
 
-const rpcProvider = new JsonRpcProvider(
-  "https://polygon-bor-rpc.publicnode.com"
-);
+const RPC_URLS = [
+  "https://polygon-bor-rpc.publicnode.com",
+  "https://polygon.drpc.org",
+  "https://polygon.gateway.tenderly.co"
+];
 
-const token = new Contract(
-  JJS_CONTRACT,
-  JJS_ABI,
-  rpcProvider
-);
+async function readJJSBalance(address) {
+
+  let lastError;
+
+  for (const rpcUrl of RPC_URLS) {
+
+    let provider;
+
+    try {
+
+      provider = new JsonRpcProvider(rpcUrl);
+
+      const token = new Contract(
+        JJS_CONTRACT,
+        JJS_ABI,
+        provider
+      );
+
+      const [balance, decimals] = await Promise.all([
+        token.balanceOf(address),
+        token.decimals()
+      ]);
+
+      return {
+        balance,
+        decimals
+      };
+
+    } catch (error) {
+
+      console.error("RPC failed:", rpcUrl, error);
+
+      lastError = error;
+
+    } finally {
+
+      if (provider) {
+        provider.destroy();
+      }
+
+    }
+
+  }
+
+  throw lastError || new Error(
+    "All Polygon RPC endpoints failed."
+  );
+
+}
 
 // =====================================
 // WEBSITE METADATA
@@ -341,12 +387,10 @@ async function refreshDashboard() {
       "connected"
     );
 
-    // Read token balance
+    // Read JJS balance with RPC fallback
 
-    const [balance, decimals] = await Promise.all([
-      token.balanceOf(address),
-      token.decimals()
-    ]);
+    const { balance, decimals } =
+      await readJJSBalance(address);
 
     // Prevent outdated results
 
@@ -371,6 +415,11 @@ async function refreshDashboard() {
 
     jjsBalance.textContent =
       display + " JJS";
+
+    setStatus(
+      "JJS balance loaded successfully.",
+      "connected"
+    );
 
   } catch (error) {
 
