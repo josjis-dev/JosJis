@@ -1,0 +1,596 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#171326">
+<title>JosJis Safe Message Signer</title>
+
+<style>
+:root {
+  --bg:#100d1c;
+  --panel:#1b172b;
+  --text:#f7f4ff;
+  --muted:#b9b1cc;
+  --purple:#9b78ff;
+  --line:#39304f;
+  --green:#35c98a;
+  --red:#ff7272;
+}
+
+* { box-sizing:border-box; }
+
+body {
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font:15px/1.55 system-ui,sans-serif;
+}
+
+.wrap {
+  max-width:850px;
+  margin:auto;
+  padding:24px 16px 50px;
+}
+
+header {
+  text-align:center;
+  padding:20px 0;
+}
+
+.logo {
+  width:55px;
+  height:55px;
+  border-radius:17px;
+  background:linear-gradient(135deg,#b79aff,#6844d7);
+  display:grid;
+  place-items:center;
+  margin:auto auto 12px;
+  font-size:24px;
+  font-weight:900;
+}
+
+h1 { font-size:30px; margin:0; }
+
+.sub { color:var(--muted); }
+
+.card {
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:17px;
+  padding:18px;
+  margin:15px 0;
+}
+
+h2 { font-size:18px; margin-top:0; }
+
+label {
+  display:block;
+  font-weight:650;
+  margin:12px 0 6px;
+}
+
+input,textarea {
+  width:100%;
+  background:#110e1e;
+  border:1px solid #4a405f;
+  border-radius:10px;
+  padding:12px;
+  color:white;
+  font:inherit;
+}
+
+textarea {
+  min-height:260px;
+  resize:vertical;
+  font-size:13px;
+}
+
+button {
+  width:100%;
+  border:0;
+  border-radius:10px;
+  padding:13px;
+  margin-top:10px;
+  background:linear-gradient(135deg,#9b78ff,#7451df);
+  color:white;
+  font-weight:700;
+  cursor:pointer;
+}
+
+button:disabled {
+  opacity:.5;
+  cursor:not-allowed;
+}
+
+.secondary {
+  background:#332a49;
+  border:1px solid #51446e;
+}
+
+.status {
+  background:#110e1e;
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:12px;
+  color:var(--muted);
+  overflow-wrap:anywhere;
+  white-space:pre-wrap;
+  margin-top:12px;
+}
+
+.good { color:#aaf0d0; }
+.bad { color:#ffb7b7; }
+
+.small {
+  color:var(--muted);
+  font-size:12px;
+}
+
+a { color:#c8b5ff; }
+
+footer {
+  text-align:center;
+  color:var(--muted);
+  font-size:12px;
+  padding:20px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+<header>
+  <div class="logo">J</div>
+  <h1>Safe Message Signer</h1>
+  <p class="sub">JosJis · Polygon · Multisig Message</p>
+</header>
+
+<section class="card">
+
+<h2>1. Connect Safe Owner Wallet</h2>
+
+<label>Safe Wallet Address</label>
+
+<input
+id="safeAddress"
+value="0x6F7279389C2c22120D8136EE4B75fC141FF1Aa0E"
+>
+
+<label>Network</label>
+<input value="Polygon (Chain ID 137)" disabled>
+
+<button id="connectBtn">
+Connect Wallet & Check Safe
+</button>
+
+<div id="walletStatus" class="status">
+Wallet belum terhubung.
+</div>
+
+<p class="small">
+Connected signer: <span id="signer">—</span><br>
+Safe threshold: <span id="threshold">—</span>
+</p>
+
+</section>
+
+<section class="card">
+
+<h2>2. Message to Sign</h2>
+
+<label>Official Message</label>
+
+<textarea id="message">JOSJIS ($JJS) — OFFICIAL MULTISIG OWNERSHIP CONFIRMATION
+
+We hereby officially confirm that the JosJis ($JJS) token contract on the Polygon network is owned and administered through the JosJis Safe Multisig wallet.
+
+Official Token: JosJis ($JJS)
+
+Network: Polygon
+
+Official Token Contract:
+0x52C8Ff13ada1431376b3E77E8219b644805122dF
+
+Previous Owner:
+0x43e09C301697722F7a77c3eeFe7f894f612BAAF9
+
+Current Owner — JosJis Safe Multisig:
+0x6F7279389C2c22120D8136EE4B75fC141FF1Aa0E
+
+Multisig Approval Threshold: 3 out of 5 signers.
+
+This statement confirms the successful transfer of ownership from the previous owner wallet to the JosJis Safe Multisig wallet.
+
+All administrative functions controlled by the token contract's ownership privileges are now governed through the Safe Multisig approval process.
+
+The following remain unchanged:
+
+- The official JJS token contract address.
+- All existing token balances.
+- The fixed total supply of 10²⁵ JJS.
+- The token's existing ERC-20 functionality.
+
+This confirmation is intended to provide transparency and publicly document the ownership and governance structure of the JosJis ($JJS) token.
+
+Official JosJis Channels
+
+Website: https://josjis-dev.github.io/JosJis/
+X: https://x.com/JosJisToken
+Telegram: https://t.me/josjis_token
+TikTok: https://www.tiktok.com/@josjistoken
+
+#JosJis #JJS #Polygon #SafeMultisig #MultisigGovernance #CryptoGovernance #Blockchain #Decentralization #Transparency #CommunityDriven #Web3 #DeFi</textarea>
+
+<p class="small">
+Semua signer harus menandatangani pesan yang sama persis.
+</p>
+
+<button id="proposeBtn" disabled>
+Sign & Submit Message
+</button>
+
+<button id="signBtn" class="secondary" disabled>
+Sign Existing Message
+</button>
+
+<button id="refreshBtn" class="secondary" disabled>
+Check Message Status
+</button>
+
+</section>
+
+<section class="card">
+
+<h2>3. Signature Status</h2>
+
+<div id="messageHash" class="status">
+Message hash: —
+</div>
+
+<div id="approvalStatus" class="status">
+Approvals: —
+</div>
+
+<div id="actionStatus" class="status">
+Belum ada proses tanda tangan.
+</div>
+
+</section>
+
+<section class="card">
+
+<h2>Important Security Notice</h2>
+
+<p class="small">
+This is an experimental interface and has not been audited.
+Never enter your seed phrase or private key.
+Only connect an authorized Safe owner wallet.
+Test with a non-sensitive message before signing an official declaration.
+</p>
+
+<p class="small">
+Official documentation:
+</p>
+
+<a href="https://docs.safe.global/sdk/protocol-kit/guides/signatures/messages" target="_blank">
+Safe Message Signatures
+</a>
+
+<br><br>
+
+<a href="https://docs.safe.global/core-api/safe-queue-service-overview" target="_blank">
+Safe Queue Service
+</a>
+
+</section>
+
+<footer>
+JosJis Safe Message Signer
+</footer>
+
+</div>
+
+<script type="module">
+
+const SAFE_API = "https://api.safe.global/queue";
+const CHAIN_ID = 137;
+
+let safe;
+let signerAddress;
+let safeApi;
+let SafeApiKit;
+let safeThreshold = 0;
+
+const $ = id => document.getElementById(id);
+
+function status(id,text,type="") {
+  $(id).textContent = text;
+  $(id).className = "status " + type;
+}
+
+async function loadLibraries() {
+
+  const [ethers,protocol,api] = await Promise.all([
+
+    import("https://esm.sh/ethers@6.13.5"),
+
+    import("https://esm.sh/@safe-global/protocol-kit"),
+
+    import("https://esm.sh/@safe-global/api-kit")
+
+  ]);
+
+  SafeApiKit = api.default;
+
+  return {
+    BrowserProvider:ethers.BrowserProvider,
+    Safe:protocol.default
+  };
+}
+
+async function connectWallet() {
+
+  try {
+
+    if(!window.ethereum) {
+      throw new Error("Wallet tidak ditemukan. Buka halaman dari browser wallet.");
+    }
+
+    status("walletStatus","Menghubungkan wallet...");
+
+    const libs = await loadLibraries();
+
+    await window.ethereum.request({
+      method:"eth_requestAccounts"
+    });
+
+    const chain = await window.ethereum.request({
+      method:"eth_chainId"
+    });
+
+    if(parseInt(chain,16)!==CHAIN_ID) {
+      throw new Error("Silakan pindah ke jaringan Polygon.");
+    }
+
+    const provider = new libs.BrowserProvider(window.ethereum);
+
+    const signer = await provider.getSigner();
+
+    signerAddress = await signer.getAddress();
+
+    const safeAddress = $("safeAddress").value.trim();
+
+    safe = await libs.Safe.init({
+      provider:window.ethereum,
+      signer,
+      safeAddress
+    });
+
+    safeApi = new SafeApiKit({
+      chainId:BigInt(CHAIN_ID)
+    });
+
+    const owners = await safe.getOwners();
+
+    safeThreshold = await safe.getThreshold();
+
+    if(!owners.some(
+      owner=>owner.toLowerCase()===signerAddress.toLowerCase()
+    )) {
+      throw new Error("Wallet ini bukan owner Safe JosJis.");
+    }
+
+    $("signer").textContent = signerAddress;
+
+    $("threshold").textContent =
+      `${safeThreshold} dari ${owners.length} signer`;
+
+    $("proposeBtn").disabled = false;
+    $("signBtn").disabled = false;
+    $("refreshBtn").disabled = false;
+
+    status(
+      "walletStatus",
+      "Wallet terhubung. Safe berhasil diperiksa.",
+      "good"
+    );
+
+  } catch(error) {
+
+    console.error(error);
+
+    status(
+      "walletStatus",
+      error.message || String(error),
+      "bad"
+    );
+
+  }
+}
+
+async function proposeMessage() {
+
+  try {
+
+    if(!safe) throw new Error("Hubungkan wallet dahulu.");
+
+    const message = $("message").value;
+
+    if(!message.trim()) {
+      throw new Error("Pesan tidak boleh kosong.");
+    }
+
+    if(!confirm(
+      "Pastikan alamat Safe dan isi pesan benar. Lanjutkan tanda tangan?"
+    )) return;
+
+    status("actionStatus","Meminta tanda tangan wallet...");
+
+    const safeMessage = safe.createMessage(message);
+
+    const signedMessage = await safe.signMessage(safeMessage);
+
+    const body = {
+      message:message,
+      signature:signedMessage.encodedSignatures()
+    };
+
+    const response = await fetch(
+      `${SAFE_API}/api/v1/safes/${$("safeAddress").value}/messages`,
+      {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(body)
+      }
+    );
+
+    const result = await response.text();
+
+    if(!response.ok) {
+      throw new Error(
+        `Safe API error ${response.status}: ${result}`
+      );
+    }
+
+    status(
+      "actionStatus",
+      "Pesan berhasil diajukan. Signer berikutnya harus menyetujui pesan yang sama.",
+      "good"
+    );
+
+    await refreshStatus();
+
+  } catch(error) {
+
+    console.error(error);
+
+    status("actionStatus",error.message,"bad");
+
+  }
+}
+
+async function findMessage() {
+
+  const response = await fetch(
+    `${SAFE_API}/api/v1/safes/${$("safeAddress").value}/messages?chainId=${CHAIN_ID}`
+  );
+
+  const result = await response.json();
+
+  if(!response.ok) {
+    throw new Error("Gagal membaca pesan dari Safe API.");
+  }
+
+  const messages = result.results || [];
+
+  const message = messages.find(
+    item=>item.message===$("message").value
+  );
+
+  if(!message) {
+    throw new Error("Pesan yang sama belum ditemukan.");
+  }
+
+  return message;
+}
+
+async function signExistingMessage() {
+
+  try {
+
+    if(!safe) throw new Error("Hubungkan wallet dahulu.");
+
+    if(!confirm(
+      "Pastikan pesan ini sama persis dengan pesan yang diajukan signer pertama. Lanjutkan?"
+    )) return;
+
+    status("actionStatus","Mencari pesan...");
+
+    const message = await findMessage();
+
+    const signed = await safe.signMessage(message);
+
+    const hash = message.messageHash || message.message_hash;
+
+    const signature = signed.getSignature(signerAddress)?.data;
+
+    if(!signature) {
+      throw new Error("Signature signer tidak ditemukan.");
+    }
+
+    const response = await fetch(
+      `${SAFE_API}/api/v1/messages/${hash}/confirmations`,
+      {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({signature})
+      }
+    );
+
+    const result = await response.text();
+
+    if(!response.ok) {
+      throw new Error(result);
+    }
+
+    status(
+      "actionStatus",
+      "Tanda tangan berhasil dikirim.",
+      "good"
+    );
+
+    await refreshStatus();
+
+  } catch(error) {
+
+    console.error(error);
+
+    status("actionStatus",error.message,"bad");
+
+  }
+}
+
+async function refreshStatus() {
+
+  try {
+
+    const message = await findMessage();
+
+    const confirmations = message.confirmations || [];
+
+    const hash = message.messageHash || message.message_hash;
+
+    $("messageHash").textContent =
+      "Message hash: " + hash;
+
+    $("approvalStatus").textContent =
+      `Approvals: ${confirmations.length} / ${safeThreshold}`;
+
+    status(
+      "actionStatus",
+      confirmations.length>=safeThreshold
+        ? "Threshold persetujuan tercapai. Verifikasi hasil melalui Safe."
+        : "Menunggu tanda tangan signer lainnya."
+    );
+
+  } catch(error) {
+
+    status("actionStatus",error.message,"bad");
+
+  }
+
+}
+
+$("connectBtn").onclick = connectWallet;
+$("proposeBtn").onclick = proposeMessage;
+$("signBtn").onclick = signExistingMessage;
+$("refreshBtn").onclick = refreshStatus;
+
+</script>
+
+</body>
+</html>
