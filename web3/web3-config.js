@@ -60,7 +60,7 @@ const metadata = {
   description: "Official JosJis Web3 Dashboard",
   url: "https://josjis-dev.github.io",
   icons: [
-    "https://josjis-dev.github.io/JosJis/josjis-logo.jpg"
+    "https://josjis-dev.github.io/JosJis/assets/images/josjis-logo.jpg"
   ]
 };
 
