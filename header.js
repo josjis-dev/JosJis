@@ -24,6 +24,10 @@ const headerHTML = `
 
         <a href="index.html" data-page="index.html">Home</a>
 
+        <a href="buy-jjs.html" data-page="buy-jjs.html">
+            How to Buy
+        </a>
+
         <a href="about.html" data-page="about.html">About</a>
 
         <!-- TOKEN DROPDOWN -->
