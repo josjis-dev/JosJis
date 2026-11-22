@@ -20,52 +20,60 @@ let walletState = {
 };
 
 // =====================================
-// UPDATE WALLET STATE
+// DISPATCH WALLET EVENT
 // =====================================
 
-function updateWalletState() {
+function dispatchWalletEvent() {
 
-    const isConnected = modal.getIsConnected();
-    const address = modal.getAddress();
-    const chainId = modal.getChainId();
-
-    walletState = {
-        isConnected: Boolean(isConnected && address),
-        address: address || null,
-        chainId: chainId ? Number(chainId) : null,
-        status: isConnected && address
-            ? "connected"
-            : "disconnected"
-    };
-
-    // Notify other scripts on this page.
     window.dispatchEvent(
         new CustomEvent("josjis:wallet", {
             detail: { ...walletState }
         })
     );
 
-    return walletState;
 }
 
 // =====================================
-// INITIALIZE WALLET LISTENERS
+// UPDATE WALLET STATE
 // =====================================
 
-modal.subscribeState(() => {
-    updateWalletState();
-});
+function updateWalletState() {
 
-modal.subscribeAccount(() => {
-    updateWalletState();
-});
+    try {
 
-modal.subscribeNetwork(() => {
-    updateWalletState();
-});
+        const isConnected = modal.getIsConnected();
+        const address = modal.getAddress();
+        const chainId = modal.getChainId();
+
+        walletState = {
+            isConnected: Boolean(isConnected && address),
+            address: address || null,
+            chainId: chainId ? Number(chainId) : null,
+            status: isConnected && address
+                ? "connected"
+                : "disconnected"
+        };
+
+        dispatchWalletEvent();
+
+        return { ...walletState };
+
+    } catch (error) {
+
+        console.error(
+            "JosJis wallet state error:",
+            error
+        );
+
+        return { ...walletState };
+
+    }
+
+}
 
 // =====================================
 // CONNECT WALLET
+// Same method as dashboard.html
 // =====================================
 
 async function connect() {
@@ -86,7 +94,9 @@ async function connect() {
         );
 
         throw error;
+
     }
+
 }
 
 // =====================================
@@ -109,7 +119,9 @@ async function disconnect() {
         );
 
         throw error;
+
     }
+
 }
 
 // =====================================
@@ -119,10 +131,11 @@ async function disconnect() {
 function getAddress() {
 
     return modal.getAddress() || null;
+
 }
 
 // =====================================
-// GET CONNECTION STATUS
+// CHECK CONNECTION
 // =====================================
 
 function isConnected() {
@@ -131,6 +144,7 @@ function isConnected() {
         modal.getIsConnected() &&
         modal.getAddress()
     );
+
 }
 
 // =====================================
@@ -142,24 +156,27 @@ function getChainId() {
     const chainId = modal.getChainId();
 
     return chainId ? Number(chainId) : null;
+
 }
 
 // =====================================
-// CHECK POLYGON NETWORK
+// CHECK POLYGON
 // =====================================
 
 function isPolygon() {
 
     return getChainId() === 137;
+
 }
 
 // =====================================
-// GET WALLET SNAPSHOT
+// GET WALLET STATE
 // =====================================
 
 function getState() {
 
     return updateWalletState();
+
 }
 
 // =====================================
@@ -182,10 +199,104 @@ window.JosJisWallet = Object.freeze({
 });
 
 // =====================================
-// INITIAL SESSION CHECK
+// WALLET MANAGER READY
+// =====================================
+
+window.dispatchEvent(
+    new CustomEvent("josjis:wallet-ready")
+);
+
+// =====================================
+// APPKIT STATE LISTENER
+// Same pattern as dashboard.html
+// =====================================
+
+modal.subscribeState((state) => {
+
+    if (state.isConnected) {
+
+        updateWalletState();
+
+    }
+
+});
+
+// =====================================
+// ACCOUNT LISTENER
+// =====================================
+
+modal.subscribeAccount((account) => {
+
+    if (account.isConnected && account.address) {
+
+        updateWalletState();
+
+    }
+
+});
+
+// =====================================
+// NETWORK LISTENER
+// =====================================
+
+modal.subscribeNetwork(() => {
+
+    if (modal.getIsConnected()) {
+
+        updateWalletState();
+
+    }
+
+});
+
+// =====================================
+// RESTORE WALLET SESSION
+// Same checking pattern as dashboard
+// =====================================
+
+async function restoreWalletSession() {
+
+    for (let attempt = 0; attempt < 40; attempt++) {
+
+        try {
+
+            if (
+                modal.getIsConnected() &&
+                modal.getAddress()
+            ) {
+
+                updateWalletState();
+
+                return;
+
+            }
+
+        } catch (error) {
+
+            console.error(
+                "JosJis wallet restore error:",
+                error
+            );
+
+        }
+
+        await new Promise(resolve =>
+            setTimeout(resolve, 250)
+        );
+
+    }
+
+    updateWalletState();
+
+}
+
+// =====================================
+// INITIALIZE
 // =====================================
 
 updateWalletState();
+
+restoreWalletSession();
 
 console.log(
     "JosJis Global Wallet Manager initialized."
