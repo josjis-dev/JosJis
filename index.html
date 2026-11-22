@@ -1,22 +1,9 @@
-
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0c0914">
-
-<title>JosJis ($JJS) | Official Website</title>
-
-<meta name="description" content="Welcome to JosJis ($JJS), a community-driven Polygon token project. Explore its tokenomics, utilities, ecosystem and development roadmap.">
-
-<link rel="stylesheet" href="assets/css/style.css">
-
-<script src="assets/js/header.js" defer></script>
-<script src="assets/js/footer.js" defer></script>
-<script src="assets/js/components.js" defer></script>
-
-<style>
+<meta name="theme-color" content="#0c0914"><title>JosJis ($JJS) | Official Website</title>
+<meta name="description" content="Welcome to JosJis ($JJS), a community-driven Polygon token project. Explore its tokenomics, utilities, ecosystem and development roadmap."><link rel="stylesheet" href="assets/css/style.css"><script src="assets/js/header.js" defer></script><script src="assets/js/footer.js" defer></script><script src="assets/js/components.js" defer></script><style>
 /* HOME PAGE SPECIFIC STYLES */
 
 .home-hero {
@@ -206,332 +193,286 @@
         font-size: 25px;
     }
 }
-</style>
-</head>
+</style></head><body><!-- SHARED HEADER LOADED FROM header.js --><!-- HERO --><div class="home-hero"><img src="assets/images/josjis-logo.jpg" alt="Official JosJis Logo">
 
-<body>
+<div class="home-tag">WELCOME TO THE JOSJIS PROJECT</div>
 
-<!-- SHARED HEADER LOADED FROM header.js -->
+<h1>Welcome to <span>JosJis</span></h1>
 
-<!-- HERO -->
-<div class="home-hero">
+<div class="home-token-value">$JJS TOKEN</div>
 
-    <img src="assets/images/josjis-logo.jpg" alt="Official JosJis Logo">
+<p>
+    A community-driven token project built on Polygon.
+    One token. One community. Many possibilities.
+</p>
 
-    <div class="home-tag">WELCOME TO THE JOSJIS PROJECT</div>
+<a class="home-btn"
+href="https://link.metamask.io/asset?assetId=eip155%3A137%2Ferc20%3A0x52C8Ff13ada1431376b3E77E8219b644805122dF"
+target="_blank" rel="noopener noreferrer">
+    🦊 Buy JJS on MetaMask
+</a>
 
-    <h1>Welcome to <span>JosJis</span></h1>
+<a class="home-btn home-btn-outline"
+href="https://polygonscan.com/token/0x52C8Ff13ada1431376b3E77E8219b644805122dF"
+target="_blank" rel="noopener noreferrer">
+    View Contract
+</a>
 
-    <div class="home-token-value">$JJS TOKEN</div>
-
+</div><main class="container"><section>
+    <div class="home-heading">
+        <h2>About JosJis</h2>
+        <p>Community · Transparency · Innovation</p>
+    </div><div class="home-card home-center">
     <p>
-        A community-driven token project built on Polygon.
-        One token. One community. Many possibilities.
+        JosJis is a Polygon-based token project focused
+        on community participation, transparency and
+        exploring practical utilities within its ecosystem.
     </p>
 
-    <a class="home-btn"
-    href="https://link.metamask.io/asset?assetId=eip155%3A137%2Ferc20%3A0x52C8Ff13ada1431376b3E77E8219b644805122dF"
-    target="_blank" rel="noopener noreferrer">
-        🦊 Buy JJS on MetaMask
+    <p>
+        Our vision is to gradually build and develop
+        useful blockchain services around the JosJis community.
+    </p>
+
+    <a href="about.html" class="home-btn">
+        Discover JosJis →
     </a>
+</div>
+
+</section><section>
+    <div class="home-heading">
+        <h2>JJS Token Overview</h2>
+        <p>Official token information</p>
+    </div><div class="home-grid">
+    <div class="home-card">
+        <h3>Token Name</h3>
+        <div class="home-value">JosJis</div>
+    </div>
+
+    <div class="home-card">
+        <h3>Symbol</h3>
+        <div class="home-value">$JJS</div>
+    </div>
+
+    <div class="home-card">
+        <h3>Network</h3>
+        <div class="home-value">Polygon</div>
+    </div>
+
+    <div class="home-card">
+        <h3>Standard</h3>
+        <div class="home-value">ERC-20</div>
+    </div>
+
+    <div class="home-card">
+        <h3>Decimals</h3>
+        <div class="home-value">18</div>
+    </div>
+
+    <div class="home-card">
+        <h3>Fixed Supply</h3>
+        <div class="home-value">10²⁵ JJS</div>
+        <p>No additional mint function.</p>
+    </div>
+</div>
+
+<div class="home-center home-section-action">
+    <a href="tokenomics.html" class="home-btn">
+        Explore Tokenomics →
+    </a>
+</div>
+
+</section><section>
+    <div class="home-heading">
+        <h2>Official Contract</h2>
+        <p>Always verify the JJS contract before interacting</p>
+    </div><div class="home-card">
+    <h3>JosJis ($JJS) · Polygon</h3>
+
+    <div class="home-address" id="contract">
+        0x52C8Ff13ada1431376b3E77E8219b644805122dF
+    </div>
+
+    <button
+        type="button"
+        class="primary-btn"
+        onclick="copyContract()">
+        Copy Address
+    </button>
 
     <a class="home-btn home-btn-outline"
     href="https://polygonscan.com/token/0x52C8Ff13ada1431376b3E77E8219b644805122dF"
     target="_blank" rel="noopener noreferrer">
-        View Contract
+        Verify on PolygonScan
     </a>
 
+    <p id="copied" class="home-copy-message" aria-live="polite"></p>
 </div>
 
-<main class="container">
-
-<section>
-    <div class="home-heading">
-        <h2>About JosJis</h2>
-        <p>Community · Transparency · Innovation</p>
-    </div>
-
-    <div class="home-card home-center">
-        <p>
-            JosJis is a Polygon-based token project focused
-            on community participation, transparency and
-            exploring practical utilities within its ecosystem.
-        </p>
-
-        <p>
-            Our vision is to gradually build and develop
-            useful blockchain services around the JosJis community.
-        </p>
-
-        <a href="about.html" class="home-btn">
-            Discover JosJis →
-        </a>
-    </div>
-</section>
-
-<section>
-    <div class="home-heading">
-        <h2>JJS Token Overview</h2>
-        <p>Official token information</p>
-    </div>
-
-    <div class="home-grid">
-        <div class="home-card">
-            <h3>Token Name</h3>
-            <div class="home-value">JosJis</div>
-        </div>
-
-        <div class="home-card">
-            <h3>Symbol</h3>
-            <div class="home-value">$JJS</div>
-        </div>
-
-        <div class="home-card">
-            <h3>Network</h3>
-            <div class="home-value">Polygon</div>
-        </div>
-
-        <div class="home-card">
-            <h3>Standard</h3>
-            <div class="home-value">ERC-20</div>
-        </div>
-
-        <div class="home-card">
-            <h3>Decimals</h3>
-            <div class="home-value">18</div>
-        </div>
-
-        <div class="home-card">
-            <h3>Fixed Supply</h3>
-            <div class="home-value">10²⁵ JJS</div>
-            <p>No additional mint function.</p>
-        </div>
-    </div>
-
-    <div class="home-center home-section-action">
-        <a href="tokenomics.html" class="home-btn">
-            Explore Tokenomics →
-        </a>
-    </div>
-</section>
-
-<section>
-    <div class="home-heading">
-        <h2>Official Contract</h2>
-        <p>Always verify the JJS contract before interacting</p>
-    </div>
-
-    <div class="home-card">
-        <h3>JosJis ($JJS) · Polygon</h3>
-
-        <div class="home-address" id="contract">
-            0x52C8Ff13ada1431376b3E77E8219b644805122dF
-        </div>
-
-        <button
-            type="button"
-            class="primary-btn"
-            onclick="copyContract()">
-            Copy Address
-        </button>
-
-        <a class="home-btn home-btn-outline"
-        href="https://polygonscan.com/token/0x52C8Ff13ada1431376b3E77E8219b644805122dF"
-        target="_blank" rel="noopener noreferrer">
-            Verify on PolygonScan
-        </a>
-
-        <p id="copied" class="home-copy-message" aria-live="polite"></p>
-    </div>
-</section>
-
-<section>
+</section><section>
     <div class="home-heading">
         <h2>JosJis Utility</h2>
         <p>Exploring practical uses for JJS</p>
+    </div><div class="home-grid">
+    <div class="home-card">
+        <div class="home-card-icon">🔒</div>
+        <h3>Flexible Utility Staking</h3>
+        <p>
+            A planned flexible staking system designed
+            to connect JJS participation with ecosystem
+            membership and utility benefits.
+        </p>
+        <span class="home-status">Planned</span>
     </div>
 
-    <div class="home-grid">
-        <div class="home-card">
-            <div class="home-card-icon">🔒</div>
-            <h3>Flexible Utility Staking</h3>
-            <p>
-                A planned flexible staking system designed
-                to connect JJS participation with ecosystem
-                membership and utility benefits.
-            </p>
-            <span class="home-status">Planned</span>
-        </div>
-
-        <div class="home-card">
-            <div class="home-card-icon">🏆</div>
-            <h3>Membership NFTs</h3>
-            <p>
-                Seven planned membership levels represented
-                by digital NFT badges and staking tiers.
-            </p>
-            <span class="home-status">Planned</span>
-        </div>
+    <div class="home-card">
+        <div class="home-card-icon">🏆</div>
+        <h3>Membership NFTs</h3>
+        <p>
+            Seven planned membership levels represented
+            by digital NFT badges and staking tiers.
+        </p>
+        <span class="home-status">Planned</span>
     </div>
+</div>
 
-    <div class="home-center home-section-action">
-        <a href="utility.html" class="home-btn">
-            Explore Utilities →
-        </a>
-    </div>
-</section>
+<div class="home-center home-section-action">
+    <a href="utility.html" class="home-btn">
+        Explore Utilities →
+    </a>
+</div>
 
-<section>
+</section><section>
     <div class="home-heading">
         <h2>JosJis Ecosystem</h2>
         <p>One token. One connected vision.</p>
+    </div><div class="home-grid">
+    <div class="home-card">
+        <div class="home-card-icon">🪙</div>
+        <h3>Token Foundation</h3>
+        <p>JJS as the core digital token on Polygon.</p>
+        <span class="home-status home-status-live">Deployed</span>
     </div>
 
-    <div class="home-grid">
-        <div class="home-card">
-            <div class="home-card-icon">🪙</div>
-            <h3>Token Foundation</h3>
-            <p>JJS as the core digital token on Polygon.</p>
-            <span class="home-status home-status-live">Deployed</span>
-        </div>
-
-        <div class="home-card">
-            <div class="home-card-icon">🌐</div>
-            <h3>Multi-Chain Expansion</h3>
-            <p>Exploring cross-chain connectivity for JJS.</p>
-            <span class="home-status">Planned</span>
-        </div>
-
-        <div class="home-card">
-            <div class="home-card-icon">📊</div>
-            <h3>JGPS</h3>
-            <p>A planned global reference system for JJS market data.</p>
-            <span class="home-status">Research</span>
-        </div>
-
-        <div class="home-card">
-            <div class="home-card-icon">⚙️</div>
-            <h3>Future Infrastructure</h3>
-            <p>
-                Exploring additional decentralized services
-                and future blockchain infrastructure.
-            </p>
-            <span class="home-status">Long-Term Vision</span>
-        </div>
+    <div class="home-card">
+        <div class="home-card-icon">🌐</div>
+        <h3>Multi-Chain Expansion</h3>
+        <p>Exploring cross-chain connectivity for JJS.</p>
+        <span class="home-status">Planned</span>
     </div>
 
-    <div class="home-center home-section-action">
-        <a href="ecosystem.html" class="home-btn">
-            Explore Ecosystem →
-        </a>
+    <div class="home-card">
+        <div class="home-card-icon">📊</div>
+        <h3>JGPS</h3>
+        <p>A planned global reference system for JJS market data.</p>
+        <span class="home-status">Research</span>
     </div>
-</section>
 
-<section>
+    <div class="home-card">
+        <div class="home-card-icon">⚙️</div>
+        <h3>Future Infrastructure</h3>
+        <p>
+            Exploring additional decentralized services
+            and future blockchain infrastructure.
+        </p>
+        <span class="home-status">Long-Term Vision</span>
+    </div>
+</div>
+
+<div class="home-center home-section-action">
+    <a href="ecosystem.html" class="home-btn">
+        Explore Ecosystem →
+    </a>
+</div>
+
+</section><section>
     <div class="home-heading">
         <h2>Development Roadmap</h2>
         <p>Building JosJis step by step</p>
-    </div>
+    </div><div class="home-card home-center">
+    <p>
+        JosJis is being developed gradually, starting
+        from its token foundation and expanding toward
+        utilities, cross-chain connectivity and
+        future infrastructure.
+    </p>
 
-    <div class="home-card home-center">
-        <p>
-            JosJis is being developed gradually, starting
-            from its token foundation and expanding toward
-            utilities, cross-chain connectivity and
-            future infrastructure.
-        </p>
+    <a href="roadmap.html" class="home-btn">
+        View Full Roadmap →
+    </a>
+</div>
 
-        <a href="roadmap.html" class="home-btn">
-            View Full Roadmap →
-        </a>
-    </div>
-</section>
-
-<section>
+</section><section>
     <div class="home-card home-notice">
-        <h3>Important: Contract Migration</h3>
+        <h3>Important: Contract Migration</h3>    <p>
+        JosJis has a new official token contract.
+        Always verify the contract address before buying
+        or transferring tokens.
+    </p>
 
-        <p>
-            JosJis has a new official token contract.
-            Always verify the contract address before buying
-            or transferring tokens.
-        </p>
+    <p>
+        <b>New Official Contract:</b><br>
+        0x52C8Ff13ada1431376b3E77E8219b644805122dF
+    </p>
 
-        <p>
-            <b>New Official Contract:</b><br>
-            0x52C8Ff13ada1431376b3E77E8219b644805122dF
-        </p>
+    <p>
+        <b>Previous Contract:</b><br>
+        0x300FB296AF304496bdf36b053595896d9eCB2453
+    </p>
 
-        <p>
-            <b>Previous Contract:</b><br>
-            0x300FB296AF304496bdf36b053595896d9eCB2453
-        </p>
+    <p>
+        The previous token does not automatically convert
+        into the new token. They are separate contracts.
+    </p>
+</div>
 
-        <p>
-            The previous token does not automatically convert
-            into the new token. They are separate contracts.
-        </p>
-    </div>
-</section>
-
-<section>
+</section><section>
     <div class="home-heading">
         <h2>Join the Community</h2>
         <p>Follow official JosJis channels</p>
-    </div>
-
-    <div class="home-grid">
-        <div class="home-card home-center">
-            <h3>𝕏 Official X</h3>
-            <p>Announcements and project updates.</p>
-            <a class="home-btn" href="https://x.com/JosJisToken" target="_blank" rel="noopener noreferrer">
-                Follow on X
-            </a>
-        </div>
-
-        <div class="home-card home-center">
-            <h3>✈️ Telegram</h3>
-            <p>Join the JosJis community.</p>
-            <a class="home-btn" href="https://t.me/josjis_token" target="_blank" rel="noopener noreferrer">
-                Join Telegram
-            </a>
-        </div>
-
-        <div class="home-card home-center">
-            <h3>🎵 TikTok</h3>
-            <p>Watch tutorials and project videos.</p>
-            <a class="home-btn" href="https://www.tiktok.com/@josjistoken" target="_blank" rel="noopener noreferrer">
-                Follow on TikTok
-            </a>
-        </div>
-
-        <div class="home-card home-center">
-            <h3>💻 GitHub</h3>
-            <p>Explore website development.</p>
-            <a class="home-btn" href="https://github.com/josjis-dev/JosJis" target="_blank" rel="noopener noreferrer">
-                Visit GitHub
-            </a>
-        </div>
-    </div>
-
-    <div class="home-center home-section-action">
-        <a href="contact.html" class="home-btn home-btn-outline">
-            All Official Links →
+    </div><div class="home-grid">
+    <div class="home-card home-center">
+        <h3>𝕏 Official X</h3>
+        <p>Announcements and project updates.</p>
+        <a class="home-btn" href="https://x.com/JosJisToken" target="_blank" rel="noopener noreferrer">
+            Follow on X
         </a>
     </div>
-</section>
 
-</main>
+    <div class="home-card home-center">
+        <h3>✈️ Telegram</h3>
+        <p>Join the JosJis community.</p>
+        <a class="home-btn" href="https://t.me/josjis_token" target="_blank" rel="noopener noreferrer">
+            Join Telegram
+        </a>
+    </div>
 
-<!-- PROJECT DISCLAIMER -->
-<div class="home-disclaimer">
-    This website does not promise profits or investment returns.
+    <div class="home-card home-center">
+        <h3>🎵 TikTok</h3>
+        <p>Watch tutorials and project videos.</p>
+        <a class="home-btn" href="https://www.tiktok.com/@josjistoken" target="_blank" rel="noopener noreferrer">
+            Follow on TikTok
+        </a>
+    </div>
+
+    <div class="home-card home-center">
+        <h3>💻 GitHub</h3>
+        <p>Explore website development.</p>
+        <a class="home-btn" href="https://github.com/josjis-dev/JosJis" target="_blank" rel="noopener noreferrer">
+            Visit GitHub
+        </a>
+    </div>
 </div>
 
-<!-- SHARED FOOTER LOADED FROM footer.js -->
+<div class="home-center home-section-action">
+    <a href="contact.html" class="home-btn home-btn-outline">
+        All Official Links →
+    </a>
+</div>
 
-<!-- COPY CONTRACT SCRIPT -->
-<script>
+</section></main><!-- PROJECT DISCLAIMER --><div class="home-disclaimer">
+    This website does not promise profits or investment returns.
+</div><!-- SHARED FOOTER LOADED FROM footer.js --><!-- COPY CONTRACT SCRIPT --><script>
 async function copyContract() {
     const address = document
         .getElementById("contract")
@@ -558,11 +499,5 @@ async function copyContract() {
         }
     }
 }
-</script>
-
-<!-- GLOBAL WALLET -->
-<script type="module" src="assets/js/wallet.js"></script>
-
-</body>
+</script></body>
 </html>
-a
