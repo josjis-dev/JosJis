@@ -106,10 +106,22 @@ const headerHTML = `
 </header>
 `;
 
-// DROPDOWN ARROW STYLE
+
+// =====================================
+// DROPDOWN STYLE
+// =====================================
+
 const arrowStyle = document.createElement("style");
 
 arrowStyle.textContent = `
+    .nav-dropdown .dropdown-menu {
+        display: none;
+    }
+
+    .nav-dropdown.open .dropdown-menu {
+        display: block;
+    }
+
     .dropdown-arrow {
         display: inline-block;
         font-size: 20px;
@@ -126,6 +138,10 @@ arrowStyle.textContent = `
 document.head.appendChild(arrowStyle);
 
 
+// =====================================
+// INITIALIZE HEADER
+// =====================================
+
 document.addEventListener("DOMContentLoaded", () => {
 
     document.body.insertAdjacentHTML("afterbegin", headerHTML);
@@ -135,12 +151,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const navLinks = document.querySelectorAll(".main-nav a");
 
+    const menuToggle = document.getElementById("menuToggle");
+    const mainNav = document.getElementById("mainNav");
+
+
+    // =====================================
     // ACTIVE PAGE
+    // =====================================
+
     navLinks.forEach(link => {
 
         if (link.dataset.page === currentPage) {
 
             link.classList.add("active");
+
             link.setAttribute("aria-current", "page");
 
             const dropdown = link.closest(".nav-dropdown");
@@ -153,55 +177,101 @@ document.addEventListener("DOMContentLoaded", () => {
 
     });
 
-    const menuToggle = document.getElementById("menuToggle");
-    const mainNav = document.getElementById("mainNav");
 
+    // =====================================
+    // CLOSE ALL DROPDOWNS
+    // =====================================
+
+    function closeAllDropdowns() {
+
+        document.querySelectorAll(".nav-dropdown").forEach(dropdown => {
+
+            dropdown.classList.remove("open");
+
+            const button =
+                dropdown.querySelector(".dropdown-toggle");
+
+            if (button) {
+                button.setAttribute("aria-expanded", "false");
+            }
+
+        });
+
+    }
+
+
+    // =====================================
     // MOBILE MAIN MENU
+    // =====================================
+
     menuToggle.addEventListener("click", () => {
 
         const isOpen = mainNav.classList.toggle("open");
 
         menuToggle.classList.toggle("active", isOpen);
-        menuToggle.setAttribute("aria-expanded", String(isOpen));
+
+        menuToggle.setAttribute(
+            "aria-expanded",
+            String(isOpen)
+        );
+
+        // Close dropdowns when main menu closes
+        if (!isOpen) {
+            closeAllDropdowns();
+        }
 
     });
 
+
+    // =====================================
     // DROPDOWN MENUS
+    // =====================================
+
     document.querySelectorAll(".dropdown-toggle").forEach(button => {
 
         button.addEventListener("click", () => {
 
-            const dropdown = button.closest(".nav-dropdown");
+            const currentDropdown =
+                button.closest(".nav-dropdown");
 
-            const isOpen = dropdown.classList.toggle("open");
+            const isCurrentlyOpen =
+                currentDropdown.classList.contains("open");
 
-            button.setAttribute("aria-expanded", String(isOpen));
+            // Close all dropdowns first
+            closeAllDropdowns();
+
+            // Open only if it was previously closed
+            if (!isCurrentlyOpen) {
+
+                currentDropdown.classList.add("open");
+
+                button.setAttribute("aria-expanded", "true");
+
+            }
 
         });
 
     });
 
+
+    // =====================================
     // CLOSE MENUS AFTER NAVIGATION
+    // =====================================
+
     navLinks.forEach(link => {
 
         link.addEventListener("click", () => {
 
             mainNav.classList.remove("open");
+
             menuToggle.classList.remove("active");
-            menuToggle.setAttribute("aria-expanded", "false");
 
-            document.querySelectorAll(".nav-dropdown").forEach(dropdown => {
+            menuToggle.setAttribute(
+                "aria-expanded",
+                "false"
+            );
 
-                dropdown.classList.remove("open");
-
-                const button =
-                    dropdown.querySelector(".dropdown-toggle");
-
-                if (button) {
-                    button.setAttribute("aria-expanded", "false");
-                }
-
-            });
+            closeAllDropdowns();
 
         });
 
