@@ -31,7 +31,6 @@ const headerHTML = `
 
         <a href="about.html" data-page="about.html">About</a>
 
-        <!-- TOKEN DROPDOWN -->
         <div class="nav-dropdown">
 
             <button
@@ -68,7 +67,6 @@ const headerHTML = `
             Dashboard
         </a>
 
-        <!-- COMMUNITY DROPDOWN -->
         <div class="nav-dropdown">
 
             <button
@@ -104,7 +102,6 @@ const headerHTML = `
 
     </nav>
 
-    <!-- GLOBAL WALLET -->
     <div class="global-wallet">
 
         <button
@@ -120,7 +117,7 @@ const headerHTML = `
             class="global-wallet-status"
             aria-live="polite"
         >
-            Checking wallet...
+            Initializing wallet...
         </span>
 
     </div>
@@ -367,44 +364,67 @@ document.addEventListener("DOMContentLoaded", () => {
             address.slice(0, 6) + "..." + address.slice(-4);
 
         walletStatus.textContent =
-            state.chainId === 137
+            Number(state.chainId) === 137
                 ? "Polygon Connected"
                 : "Wrong Network";
     }
 
 
-    // Initial wallet state
+    // =====================================
+    // INITIALIZE WALLET MANAGER
+    // =====================================
 
-    function checkWallet() {
+    function initializeWallet() {
 
-        if (window.JosJisWallet) {
+        if (!window.JosJisWallet) {
+            return false;
+        }
+
+        try {
 
             updateWalletUI(
                 window.JosJisWallet.getState()
             );
 
-        } else {
+            return true;
 
-            walletStatus.textContent =
-                "Wallet manager unavailable";
+        } catch (error) {
 
+            console.error(
+                "JosJis wallet initialization error:",
+                error
+            );
+
+            walletStatus.textContent = "Wallet initialization failed";
+
+            return false;
         }
 
     }
 
-    checkWallet();
+
+    // Listen for wallet manager readiness.
+    window.addEventListener(
+        "josjis:wallet-ready",
+        initializeWallet
+    );
 
 
-    // Listen to wallet changes
-
+    // Listen for wallet changes.
     window.addEventListener("josjis:wallet", event => {
-
         updateWalletUI(event.detail);
-
     });
 
 
-    // Connect button
+    // Check if wallet manager is already available.
+    if (!initializeWallet()) {
+        walletStatus.textContent = "Waiting for wallet manager...";
+    }
+
+
+    // =====================================
+    // CONNECT BUTTON
+    // =====================================
 
     walletBtn.addEventListener("click", async () => {
 
@@ -420,7 +440,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (window.JosJisWallet.isConnected()) {
 
-                checkWallet();
+                initializeWallet();
                 return;
 
             }
@@ -430,14 +450,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
             await window.JosJisWallet.connect();
 
-            checkWallet();
+            initializeWallet();
 
         } catch (error) {
 
             console.error("Global wallet error:", error);
 
-            walletStatus.textContent =
-                "Connection failed";
+            walletStatus.textContent = "Connection failed";
 
         } finally {
 
