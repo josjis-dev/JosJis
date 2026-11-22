@@ -25,9 +25,8 @@
 ├── tokenomics.html
 ├── tree.txt
 ├── utility.html
-├── verification.html
 └── web3
     ├── README.md
     └── web3-config.js
 
-6 directories, 25 files
+6 directories, 24 files
