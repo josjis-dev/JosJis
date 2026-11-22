@@ -1,3 +1,4 @@
+
 // JOSJIS SHARED HEADER
 
 const headerHTML = `
@@ -103,17 +104,39 @@ const headerHTML = `
 
     </nav>
 
+    <!-- GLOBAL WALLET -->
+    <div class="global-wallet">
+
+        <button
+            id="globalWalletBtn"
+            class="global-wallet-btn"
+            type="button"
+        >
+            Connect Wallet
+        </button>
+
+        <span
+            id="globalWalletStatus"
+            class="global-wallet-status"
+            aria-live="polite"
+        >
+            Checking wallet...
+        </span>
+
+    </div>
+
 </header>
 `;
 
 
 // =====================================
-// DROPDOWN STYLE
+// HEADER STYLE
 // =====================================
 
 const arrowStyle = document.createElement("style");
 
 arrowStyle.textContent = `
+
     .nav-dropdown .dropdown-menu {
         display: none;
     }
@@ -124,7 +147,7 @@ arrowStyle.textContent = `
 
     .dropdown-arrow {
         display: inline-block;
-        font-size: 20px;
+        font-size: 28px;
         margin-left: 5px;
         line-height: 1;
         transition: transform 0.25s ease;
@@ -133,6 +156,49 @@ arrowStyle.textContent = `
     .nav-dropdown.open .dropdown-arrow {
         transform: rotate(180deg);
     }
+
+    /* GLOBAL WALLET */
+
+    .global-wallet {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: 12px;
+    }
+
+    .global-wallet-btn {
+        padding: 10px 14px;
+        border: 0;
+        border-radius: 8px;
+        background: #e6a800;
+        color: #111;
+        font-weight: 700;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .global-wallet-btn:disabled {
+        opacity: 0.6;
+        cursor: wait;
+    }
+
+    .global-wallet-status {
+        font-size: 12px;
+        opacity: 0.8;
+        overflow-wrap: anywhere;
+    }
+
+    @media (max-width: 768px) {
+
+        .global-wallet {
+            width: 100%;
+            margin: 12px 0;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+    }
+
 `;
 
 document.head.appendChild(arrowStyle);
@@ -153,7 +219,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const menuToggle = document.getElementById("menuToggle");
     const mainNav = document.getElementById("mainNav");
-
 
     // =====================================
     // ACTIVE PAGE
@@ -215,7 +280,6 @@ document.addEventListener("DOMContentLoaded", () => {
             String(isOpen)
         );
 
-        // Close dropdowns when main menu closes
         if (!isOpen) {
             closeAllDropdowns();
         }
@@ -237,10 +301,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const isCurrentlyOpen =
                 currentDropdown.classList.contains("open");
 
-            // Close all dropdowns first
             closeAllDropdowns();
 
-            // Open only if it was previously closed
             if (!isCurrentlyOpen) {
 
                 currentDropdown.classList.add("open");
@@ -274,6 +336,114 @@ document.addEventListener("DOMContentLoaded", () => {
             closeAllDropdowns();
 
         });
+
+    });
+
+
+    // =====================================
+    // GLOBAL WALLET
+    // =====================================
+
+    const walletBtn =
+        document.getElementById("globalWalletBtn");
+
+    const walletStatus =
+        document.getElementById("globalWalletStatus");
+
+
+    function updateWalletUI(state) {
+
+        if (!state || !state.isConnected || !state.address) {
+
+            walletBtn.textContent = "Connect Wallet";
+            walletStatus.textContent = "Not connected";
+
+            return;
+        }
+
+        const address = state.address;
+
+        walletBtn.textContent =
+            address.slice(0, 6) + "..." + address.slice(-4);
+
+        walletStatus.textContent =
+            state.chainId === 137
+                ? "Polygon Connected"
+                : "Wrong Network";
+    }
+
+
+    // Initial wallet state
+
+    function checkWallet() {
+
+        if (window.JosJisWallet) {
+
+            updateWalletUI(
+                window.JosJisWallet.getState()
+            );
+
+        } else {
+
+            walletStatus.textContent =
+                "Wallet manager unavailable";
+
+        }
+
+    }
+
+    checkWallet();
+
+
+    // Listen to wallet changes
+
+    window.addEventListener("josjis:wallet", event => {
+
+        updateWalletUI(event.detail);
+
+    });
+
+
+    // Connect button
+
+    walletBtn.addEventListener("click", async () => {
+
+        try {
+
+            if (!window.JosJisWallet) {
+
+                throw new Error(
+                    "Wallet manager is not loaded."
+                );
+
+            }
+
+            if (window.JosJisWallet.isConnected()) {
+
+                checkWallet();
+                return;
+
+            }
+
+            walletBtn.disabled = true;
+            walletBtn.textContent = "Connecting...";
+
+            await window.JosJisWallet.connect();
+
+            checkWallet();
+
+        } catch (error) {
+
+            console.error("Global wallet error:", error);
+
+            walletStatus.textContent =
+                "Connection failed";
+
+        } finally {
+
+            walletBtn.disabled = false;
+
+        }
 
     });
 
