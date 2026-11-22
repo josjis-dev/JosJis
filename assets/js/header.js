@@ -1,3 +1,4 @@
+
 // JOSJIS SHARED HEADER
 
 const headerHTML = `
@@ -103,17 +104,41 @@ const headerHTML = `
 
     </nav>
 
+    <!-- GLOBAL WALLET BUTTON -->
+    <div class="global-wallet">
+
+        <button
+            id="globalWalletBtn"
+            class="global-wallet-btn"
+            type="button"
+        >
+            Connect Wallet
+        </button>
+
+        <span
+            id="globalWalletStatus"
+            class="global-wallet-status"
+            aria-live="polite"
+        >
+            Not connected
+        </span>
+
+    </div>
+
 </header>
 `;
 
 
 // =====================================
-// DROPDOWN STYLE
+// HEADER STYLE
 // =====================================
 
-const arrowStyle = document.createElement("style");
+const headerStyle = document.createElement("style");
 
-arrowStyle.textContent = `
+headerStyle.textContent = `
+
+    /* DROPDOWN */
+
     .nav-dropdown .dropdown-menu {
         display: none;
     }
@@ -124,7 +149,7 @@ arrowStyle.textContent = `
 
     .dropdown-arrow {
         display: inline-block;
-        font-size: 20px;
+        font-size: 28px;
         margin-left: 5px;
         line-height: 1;
         transition: transform 0.25s ease;
@@ -133,9 +158,74 @@ arrowStyle.textContent = `
     .nav-dropdown.open .dropdown-arrow {
         transform: rotate(180deg);
     }
+
+
+    /* GLOBAL WALLET */
+
+    .global-wallet {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        margin-left: 18px;
+        flex-shrink: 0;
+    }
+
+    .global-wallet-btn {
+        background: linear-gradient(
+            135deg,
+            #8b5cf6,
+            #6d28d9
+        );
+        color: #ffffff;
+        border: 1px solid #a78bfa;
+        border-radius: 9px;
+        padding: 10px 16px;
+        font-size: 13px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.25s ease;
+        white-space: nowrap;
+    }
+
+    .global-wallet-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(139,92,246,0.3);
+    }
+
+    .global-wallet-status {
+        color: #a78bfa;
+        font-size: 10px;
+        text-align: center;
+    }
+
+    .global-wallet-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+
+    /* MOBILE */
+
+    @media (max-width: 900px) {
+
+        .global-wallet {
+            width: 100%;
+            margin: 15px 0 5px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .global-wallet-btn {
+            width: 100%;
+            max-width: 260px;
+        }
+
+    }
+
 `;
 
-document.head.appendChild(arrowStyle);
+document.head.appendChild(headerStyle);
 
 
 // =====================================
@@ -144,7 +234,10 @@ document.head.appendChild(arrowStyle);
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    document.body.insertAdjacentHTML("afterbegin", headerHTML);
+    document.body.insertAdjacentHTML(
+        "afterbegin",
+        headerHTML
+    );
 
     const currentPage =
         window.location.pathname.split("/").pop() || "index.html";
@@ -215,7 +308,6 @@ document.addEventListener("DOMContentLoaded", () => {
             String(isOpen)
         );
 
-        // Close dropdowns when main menu closes
         if (!isOpen) {
             closeAllDropdowns();
         }
@@ -237,10 +329,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const isCurrentlyOpen =
                 currentDropdown.classList.contains("open");
 
-            // Close all dropdowns first
             closeAllDropdowns();
 
-            // Open only if it was previously closed
             if (!isCurrentlyOpen) {
 
                 currentDropdown.classList.add("open");
