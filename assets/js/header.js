@@ -106,6 +106,26 @@ const headerHTML = `
 </header>
 `;
 
+// DROPDOWN ARROW STYLE
+const arrowStyle = document.createElement("style");
+
+arrowStyle.textContent = `
+    .dropdown-arrow {
+        display: inline-block;
+        font-size: 20px;
+        margin-left: 5px;
+        line-height: 1;
+        transition: transform 0.25s ease;
+    }
+
+    .nav-dropdown.open .dropdown-arrow {
+        transform: rotate(180deg);
+    }
+`;
+
+document.head.appendChild(arrowStyle);
+
+
 document.addEventListener("DOMContentLoaded", () => {
 
     document.body.insertAdjacentHTML("afterbegin", headerHTML);
@@ -142,7 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const isOpen = mainNav.classList.toggle("open");
 
         menuToggle.classList.toggle("active", isOpen);
-        menuToggle.setAttribute("aria-expanded", isOpen);
+        menuToggle.setAttribute("aria-expanded", String(isOpen));
 
     });
 
@@ -152,9 +172,10 @@ document.addEventListener("DOMContentLoaded", () => {
         button.addEventListener("click", () => {
 
             const dropdown = button.closest(".nav-dropdown");
+
             const isOpen = dropdown.classList.toggle("open");
 
-            button.setAttribute("aria-expanded", isOpen);
+            button.setAttribute("aria-expanded", String(isOpen));
 
         });
 
@@ -173,7 +194,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 dropdown.classList.remove("open");
 
-                const button = dropdown.querySelector(".dropdown-toggle");
+                const button =
+                    dropdown.querySelector(".dropdown-toggle");
 
                 if (button) {
                     button.setAttribute("aria-expanded", "false");
