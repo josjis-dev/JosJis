@@ -232,6 +232,7 @@
     padding: 20px;
     margin-bottom: 12px;
     transition: border-color 0.2s ease;
+    min-width: 0;
 }
 
 .asset-card:hover {
@@ -263,7 +264,7 @@
 }
 
 .asset-info {
-    flex: 1;
+    flex: 1 1 auto;
     min-width: 0;
 }
 
@@ -280,15 +281,20 @@
 }
 
 .asset-balance {
-    text-align: right;
+    flex: 0 1 48%;
+    max-width: 48%;
     min-width: 0;
+    text-align: right;
 }
 
 .asset-balance strong {
     display: block;
+    max-width: 100%;
     color: #ffffff;
     font-size: 17px;
     overflow-wrap: anywhere;
+    word-break: break-word;
+    line-height: 1.5;
 }
 
 .asset-balance small {
@@ -352,19 +358,54 @@
         flex-direction: column;
     }
 
+    /* Asset card mobile layout */
+
     .asset-card {
-        padding: 16px 13px;
+        display: grid;
+        grid-template-columns: 40px minmax(0, 1fr);
+        align-items: center;
         gap: 12px;
+        padding: 18px 15px;
     }
 
     .asset-icon {
         width: 40px;
         height: 40px;
         font-size: 18px;
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .asset-info {
+        grid-column: 2;
+        grid-row: 1;
+        min-width: 0;
+    }
+
+    .asset-info h3 {
+        font-size: 16px;
+    }
+
+    .asset-balance {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        text-align: left;
+        padding-top: 8px;
+        border-top: 1px solid #30263f;
     }
 
     .asset-balance strong {
-        font-size: 14px;
+        font-size: 15px;
+        line-height: 1.6;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    .asset-balance small {
+        font-size: 12px;
     }
 
     .assets-section-heading {
