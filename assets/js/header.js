@@ -221,6 +221,7 @@ function initializeWalletButton() {
     if (!walletBtn || !balanceElement) return;
 
     let balanceRequest = 0;
+    let lastAddress = "";
 
 
     // =====================================
@@ -242,7 +243,10 @@ function initializeWalletButton() {
 
             if (requestId !== balanceRequest) return;
 
-            if (modal.getAddress()?.toLowerCase() !== address.toLowerCase()) {
+            if (
+                modal.getAddress()?.toLowerCase() !==
+                address.toLowerCase()
+            ) {
                 return;
             }
 
@@ -260,7 +264,10 @@ function initializeWalletButton() {
             console.error("JJS Balance Error:", error);
 
             if (requestId === balanceRequest) {
-                balanceElement.textContent = "Balance unavailable";
+
+                balanceElement.textContent =
+                    "Balance unavailable";
+
             }
 
         }
@@ -283,6 +290,7 @@ function initializeWalletButton() {
             if (!connected || !address) {
 
                 balanceRequest++;
+                lastAddress = "";
 
                 walletBtn.textContent = "Connect Wallet";
                 walletBtn.title = "Connect your wallet";
@@ -295,11 +303,13 @@ function initializeWalletButton() {
             if (chainId !== 137) {
 
                 balanceRequest++;
+                lastAddress = "";
 
                 walletBtn.textContent = "Wrong Network";
                 walletBtn.title = "Switch to Polygon";
 
-                balanceElement.textContent = "Polygon required";
+                balanceElement.textContent =
+                    "Polygon required";
 
                 return;
             }
@@ -311,7 +321,18 @@ function initializeWalletButton() {
 
             walletBtn.title = "Connected to Polygon";
 
-            updateJJSBalance(address);
+            // Only fetch when wallet address changes
+
+            const normalizedAddress =
+                address.toLowerCase();
+
+            if (lastAddress !== normalizedAddress) {
+
+                lastAddress = normalizedAddress;
+
+                updateJJSBalance(address);
+
+            }
 
         } catch (error) {
 
@@ -358,15 +379,21 @@ function initializeWalletButton() {
     // =====================================
 
     modal.subscribeState(() => {
+
         updateWalletButton();
+
     });
 
     modal.subscribeAccount(() => {
+
         updateWalletButton();
+
     });
 
     modal.subscribeNetwork(() => {
+
         updateWalletButton();
+
     });
 
 
@@ -384,7 +411,10 @@ function initializeWalletButton() {
 
         attempts++;
 
-        if (modal.getIsConnected() || attempts >= 40) {
+        if (
+            modal.getIsConnected() ||
+            attempts >= 40
+        ) {
 
             clearInterval(restoreSession);
 
@@ -407,7 +437,9 @@ function initializeWalletButton() {
             const address = modal.getAddress();
 
             if (address) {
+
                 updateJJSBalance(address);
+
             }
 
         }
@@ -441,7 +473,9 @@ function initializeHeader() {
         document.getElementById("mainNav");
 
 
+    // =====================================
     // ACTIVE PAGE
+    // =====================================
 
     navLinks.forEach(link => {
 
@@ -451,10 +485,13 @@ function initializeHeader() {
 
             link.setAttribute("aria-current", "page");
 
-            const dropdown = link.closest(".nav-dropdown");
+            const dropdown =
+                link.closest(".nav-dropdown");
 
             if (dropdown) {
+
                 dropdown.classList.add("has-active");
+
             }
 
         }
@@ -462,7 +499,9 @@ function initializeHeader() {
     });
 
 
+    // =====================================
     // CLOSE ALL DROPDOWNS
+    // =====================================
 
     function closeAllDropdowns() {
 
@@ -474,7 +513,12 @@ function initializeHeader() {
                 dropdown.querySelector(".dropdown-toggle");
 
             if (button) {
-                button.setAttribute("aria-expanded", "false");
+
+                button.setAttribute(
+                    "aria-expanded",
+                    "false"
+                );
+
             }
 
         });
@@ -482,11 +526,14 @@ function initializeHeader() {
     }
 
 
+    // =====================================
     // MOBILE MAIN MENU
+    // =====================================
 
     menuToggle.addEventListener("click", () => {
 
-        const isOpen = mainNav.classList.toggle("open");
+        const isOpen =
+            mainNav.classList.toggle("open");
 
         menuToggle.classList.toggle("active", isOpen);
 
@@ -496,13 +543,17 @@ function initializeHeader() {
         );
 
         if (!isOpen) {
+
             closeAllDropdowns();
+
         }
 
     });
 
 
+    // =====================================
     // DROPDOWN MENUS
+    // =====================================
 
     document.querySelectorAll(".dropdown-toggle").forEach(button => {
 
@@ -520,7 +571,10 @@ function initializeHeader() {
 
                 currentDropdown.classList.add("open");
 
-                button.setAttribute("aria-expanded", "true");
+                button.setAttribute(
+                    "aria-expanded",
+                    "true"
+                );
 
             }
 
@@ -529,7 +583,9 @@ function initializeHeader() {
     });
 
 
+    // =====================================
     // CLOSE MENUS AFTER NAVIGATION
+    // =====================================
 
     navLinks.forEach(link => {
 
@@ -551,7 +607,9 @@ function initializeHeader() {
     });
 
 
+    // =====================================
     // INITIALIZE WALLET
+    // =====================================
 
     initializeWalletButton();
 
