@@ -1,0 +1,583 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Member Area | JosJis</title>
+
+    <meta name="description" content="Welcome to the official JosJis Web3 Member Area.">
+
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <style>
+        .member-page {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 45px 20px 70px;
+            color: var(--text-color, inherit);
+        }
+
+        .member-hero {
+            margin-bottom: 30px;
+        }
+
+        .member-label {
+            color: #a78bfa;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .member-hero h1 {
+            font-size: clamp(28px, 5vw, 42px);
+            margin: 12px 0;
+        }
+
+        .member-hero p {
+            opacity: .7;
+            line-height: 1.7;
+        }
+
+        .member-card {
+            background: var(--card-bg, rgba(128,128,128,.08));
+            border: 1px solid var(--border-color, rgba(128,128,128,.2));
+            border-radius: 18px;
+            padding: 22px;
+            margin-bottom: 20px;
+        }
+
+        .member-wallet {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .member-wallet-address {
+            font-size: 16px;
+            font-weight: 600;
+            overflow-wrap: anywhere;
+            margin-top: 10px;
+        }
+
+        .member-status {
+            display: inline-block;
+            padding: 7px 12px;
+            border-radius: 30px;
+            background: rgba(128,128,128,.15);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .member-status.connected {
+            color: #22c55e;
+            background: rgba(34,197,94,.12);
+        }
+
+        .member-status.warning {
+            color: #f59e0b;
+            background: rgba(245,158,11,.12);
+        }
+
+        .member-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+            margin: 20px 0;
+        }
+
+        .member-stat {
+            min-height: 145px;
+        }
+
+        .member-stat h3 {
+            font-size: 13px;
+            opacity: .7;
+            margin: 0 0 18px;
+        }
+
+        .member-stat strong {
+            display: block;
+            font-size: clamp(20px, 4vw, 28px);
+            overflow-wrap: anywhere;
+        }
+
+        .member-stat small {
+            display: block;
+            opacity: .6;
+            margin-top: 10px;
+        }
+
+        .member-services {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 15px;
+        }
+
+        .service-card {
+            border: 1px solid var(--border-color, rgba(128,128,128,.2));
+            border-radius: 15px;
+            padding: 20px;
+            background: var(--card-bg, rgba(128,128,128,.06));
+        }
+
+        .service-card .service-icon {
+            font-size: 27px;
+            margin-bottom: 12px;
+        }
+
+        .service-card h3 {
+            font-size: 16px;
+            margin: 0 0 8px;
+        }
+
+        .service-card p {
+            font-size: 13px;
+            opacity: .65;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .coming-soon {
+            display: inline-block;
+            font-size: 10px;
+            margin-top: 15px;
+            padding: 5px 9px;
+            border-radius: 20px;
+            background: rgba(167,139,250,.13);
+            color: #a78bfa;
+            font-weight: 700;
+        }
+
+        .member-button {
+            border: none;
+            border-radius: 10px;
+            padding: 12px 20px;
+            background: #8b5cf6;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .member-button:hover {
+            background: #7c3aed;
+        }
+
+        .member-message {
+            line-height: 1.6;
+            font-size: 14px;
+            opacity: .75;
+        }
+
+        .member-footer-note {
+            text-align: center;
+            opacity: .55;
+            font-size: 12px;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 700px) {
+            .member-services {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 480px) {
+            .member-page {
+                padding: 30px 15px 50px;
+            }
+
+            .member-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .member-services {
+                grid-template-columns: 1fr;
+            }
+
+            .member-wallet {
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<main class="member-page">
+
+    <section class="member-hero">
+        <div class="member-label">JOSJIS WEB3 ECOSYSTEM</div>
+        <h1>Member Area</h1>
+        <p>
+            Welcome to your JosJis Web3 space.
+            Connect your wallet to access your member information
+            and explore the JosJis ecosystem.
+        </p>
+    </section>
+
+    <!-- WALLET PROFILE -->
+
+    <section class="member-card">
+
+        <div class="member-wallet">
+            <div>
+                <div class="member-label">WALLET PROFILE</div>
+
+                <div
+                    class="member-wallet-address"
+                    id="memberWalletAddress">
+                    Not connected
+                </div>
+            </div>
+
+            <span
+                class="member-status"
+                id="memberWalletStatus">
+                Disconnected
+            </span>
+        </div>
+
+        <p class="member-message" id="memberMessage">
+            Connect your wallet to enter your Member Area.
+        </p>
+
+        <button
+            class="member-button"
+            id="memberConnectBtn"
+            type="button">
+            Connect Wallet
+        </button>
+
+    </section>
+
+    <!-- MEMBER CONTENT -->
+
+    <div id="memberContent" hidden>
+
+        <section class="member-grid">
+
+            <div class="member-card member-stat">
+                <h3>MY JJS BALANCE</h3>
+
+                <strong id="memberJJSBalance">
+                    Loading...
+                </strong>
+
+                <small>JosJis Token · Polygon</small>
+            </div>
+
+            <div class="member-card member-stat">
+                <h3>MEMBERSHIP STATUS</h3>
+
+                <strong id="memberMembership">
+                    Wallet Connected
+                </strong>
+
+                <small id="memberMembershipNote">
+                    Wallet-based access
+                </small>
+            </div>
+
+        </section>
+
+        <!-- MEMBER SERVICES -->
+
+        <section class="member-card">
+
+            <div class="member-label">JOSJIS ECOSYSTEM</div>
+
+            <h2>Member Services</h2>
+
+            <p class="member-message">
+                Explore services being developed for the JosJis community.
+            </p>
+
+            <div class="member-services">
+
+                <div class="service-card">
+                    <div class="service-icon">💰</div>
+                    <h3>My Assets</h3>
+                    <p>
+                        Explore your JosJis token information
+                        and wallet assets.
+                    </p>
+                    <span class="coming-soon">COMING SOON</span>
+                </div>
+
+                <div class="service-card">
+                    <div class="service-icon">🔒</div>
+                    <h3>Staking</h3>
+                    <p>
+                        A future service for staking JJS
+                        through smart contracts.
+                    </p>
+                    <span class="coming-soon">COMING SOON</span>
+                </div>
+
+                <div class="service-card">
+                    <div class="service-icon">🏛️</div>
+                    <h3>Governance</h3>
+                    <p>
+                        Participate in future community
+                        proposals and governance.
+                    </p>
+                    <span class="coming-soon">COMING SOON</span>
+                </div>
+
+                <div class="service-card">
+                    <div class="service-icon">🛠️</div>
+                    <h3>Utilities</h3>
+                    <p>
+                        Discover useful services
+                        within the JosJis ecosystem.
+                    </p>
+                    <span class="coming-soon">COMING SOON</span>
+                </div>
+
+                <div class="service-card">
+                    <div class="service-icon">👥</div>
+                    <h3>Community</h3>
+                    <p>
+                        Connect with other JosJis
+                        community members.
+                    </p>
+                    <span class="coming-soon">COMING SOON</span>
+                </div>
+
+                <div class="service-card">
+                    <div class="service-icon">🎁</div>
+                    <h3>Member Benefits</h3>
+                    <p>
+                        Explore potential benefits
+                        for JosJis community members.
+                    </p>
+                    <span class="coming-soon">COMING SOON</span>
+                </div>
+
+            </div>
+        </section>
+
+    </div>
+
+    <div class="member-footer-note">
+        JosJis Web3 Ecosystem · Powered by Polygon
+    </div>
+
+</main>
+
+<!-- SHARED WEBSITE SCRIPTS -->
+
+<script type="module" src="assets/js/header.js"></script>
+<script src="assets/js/footer.js" defer></script>
+<script src="assets/js/components.js" defer></script>
+
+<!-- MEMBER WALLET LOGIC -->
+
+<script type="module">
+
+import {
+    modal,
+    token,
+    formatUnits
+} from "./web3/web3-config.js";
+
+const walletAddress =
+    document.getElementById("memberWalletAddress");
+
+const walletStatus =
+    document.getElementById("memberWalletStatus");
+
+const memberMessage =
+    document.getElementById("memberMessage");
+
+const connectButton =
+    document.getElementById("memberConnectBtn");
+
+const memberContent =
+    document.getElementById("memberContent");
+
+const balanceElement =
+    document.getElementById("memberJJSBalance");
+
+const membershipElement =
+    document.getElementById("memberMembership");
+
+const membershipNote =
+    document.getElementById("memberMembershipNote");
+
+let balanceRequest = 0;
+
+function formatTokenAmount(value) {
+    const parts = value.split(".");
+    const integerPart = parts[0].replace(
+        /\B(?=(\d{3})+(?!\d))/g,
+        ","
+    );
+
+    const decimalPart = (parts[1] || "")
+        .slice(0, 4)
+        .replace(/0+$/, "");
+
+    return decimalPart
+        ? integerPart + "." + decimalPart
+        : integerPart;
+}
+
+async function updateBalance(address) {
+    const requestId = ++balanceRequest;
+
+    balanceElement.textContent = "Loading...";
+
+    try {
+        const [balance, decimals] = await Promise.all([
+            token.balanceOf(address),
+            token.decimals()
+        ]);
+
+        if (requestId !== balanceRequest) return;
+
+        const formatted = formatUnits(balance, decimals);
+
+        balanceElement.textContent =
+            formatTokenAmount(formatted) + " JJS";
+
+        if (balance > 0n) {
+            membershipElement.textContent = "JJS Holder";
+            membershipNote.textContent =
+                "Wallet holds JosJis tokens";
+        } else {
+            membershipElement.textContent = "Wallet Connected";
+            membershipNote.textContent =
+                "No JJS balance detected";
+        }
+
+    } catch (error) {
+        if (requestId !== balanceRequest) return;
+
+        console.error("JJS balance error:", error);
+        balanceElement.textContent = "Unavailable";
+    }
+}
+
+async function updateMemberArea() {
+    try {
+        const connected = await modal.getIsConnected();
+
+        const address = connected
+            ? await modal.getAddress()
+            : null;
+
+        const chainId = connected
+            ? await modal.getChainId()
+            : null;
+
+        if (!connected || !address) {
+            balanceRequest++;
+
+            walletAddress.textContent = "Not connected";
+            walletStatus.textContent = "Disconnected";
+            walletStatus.className = "member-status";
+
+            memberMessage.textContent =
+                "Connect your wallet to enter your Member Area.";
+
+            connectButton.hidden = false;
+            connectButton.textContent = "Connect Wallet";
+
+            memberContent.hidden = true;
+            return;
+        }
+
+        walletAddress.textContent = address;
+
+        connectButton.hidden = true;
+        memberContent.hidden = false;
+
+        if (Number(chainId) !== 137) {
+            balanceRequest++;
+
+            walletStatus.textContent = "Wrong Network";
+            walletStatus.className =
+                "member-status warning";
+
+            memberMessage.textContent =
+                "Please switch your wallet to Polygon Mainnet.";
+
+            balanceElement.textContent = "Wrong Network";
+            membershipElement.textContent = "Network Required";
+            membershipNote.textContent = "Please select Polygon";
+
+            return;
+        }
+
+        walletStatus.textContent = "Connected";
+        walletStatus.className =
+            "member-status connected";
+
+        memberMessage.textContent =
+            "Your wallet is connected to Polygon. Welcome to JosJis!";
+
+        await updateBalance(address);
+
+    } catch (error) {
+        console.error("Member update error:", error);
+    }
+}
+
+// CONNECT WALLET
+
+connectButton.addEventListener("click", async () => {
+    try {
+        await modal.open({ view: "Connect" });
+    } catch (error) {
+        console.error("Wallet connection error:", error);
+    }
+});
+
+// SAME APPKIT INSTANCE AS THE WEBSITE
+
+modal.subscribeState(() => {
+    updateMemberArea();
+});
+
+modal.subscribeAccount(() => {
+    updateMemberArea();
+});
+
+modal.subscribeNetwork(() => {
+    updateMemberArea();
+});
+
+// RESTORE EXISTING WALLET SESSION
+
+async function restoreWallet() {
+    for (let i = 0; i < 40; i++) {
+        if (await modal.getIsConnected()) {
+            await updateMemberArea();
+            return;
+        }
+
+        await new Promise(resolve =>
+            setTimeout(resolve, 250)
+        );
+    }
+
+    await updateMemberArea();
+}
+
+restoreWallet();
+
+// REFRESH JJS BALANCE EVERY 15 SECONDS
+
+setInterval(() => {
+    updateMemberArea();
+}, 15000);
+
+</script>
+
+</body>
+</html>
