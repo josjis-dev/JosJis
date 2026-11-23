@@ -1,13 +1,4 @@
-
-import {
-    modal,
-    token,
-    formatUnits
-} from "../../web3/web3-config.js";
-
-// =====================================
 // JOSJIS SHARED HEADER
-// =====================================
 
 const headerHTML = `
 <header class="site-header">
@@ -39,6 +30,7 @@ const headerHTML = `
 
         <a href="about.html" data-page="about.html">About</a>
 
+        <!-- TOKEN DROPDOWN -->
         <div class="nav-dropdown">
 
             <button
@@ -75,6 +67,7 @@ const headerHTML = `
             Dashboard
         </a>
 
+        <!-- COMMUNITY DROPDOWN -->
         <div class="nav-dropdown">
 
             <button
@@ -108,27 +101,6 @@ const headerHTML = `
 
         </div>
 
-        <!-- WALLET INFO -->
-
-        <div class="header-wallet-info">
-
-            <span
-                id="headerJJSBalance"
-                class="header-jjs-balance"
-            >
-                0 JJS
-            </span>
-
-            <button
-                id="headerWalletBtn"
-                class="wallet-connect-btn"
-                type="button"
-            >
-                Connect Wallet
-            </button>
-
-        </div>
-
     </nav>
 
 </header>
@@ -136,13 +108,12 @@ const headerHTML = `
 
 
 // =====================================
-// HEADER STYLE
+// DROPDOWN STYLE
 // =====================================
 
-const headerStyle = document.createElement("style");
+const arrowStyle = document.createElement("style");
 
-headerStyle.textContent = `
-
+arrowStyle.textContent = `
     .nav-dropdown .dropdown-menu {
         display: none;
     }
@@ -162,315 +133,26 @@ headerStyle.textContent = `
     .nav-dropdown.open .dropdown-arrow {
         transform: rotate(180deg);
     }
-
-    .header-wallet-info {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-
-    .header-jjs-balance {
-        padding: 9px 12px;
-        border-radius: 8px;
-        background: #241637;
-        border: 1px solid #56358a;
-        color: #c4a5ff;
-        font-size: 13px;
-        font-weight: 700;
-        white-space: nowrap;
-    }
-
-    .wallet-connect-btn {
-        padding: 10px 16px;
-        border: 0;
-        border-radius: 8px;
-        background: #8b5cf6;
-        color: #ffffff;
-        font-weight: 600;
-        cursor: pointer;
-        white-space: nowrap;
-    }
-
-    .wallet-connect-btn:hover {
-        background: #7c3aed;
-    }
-
-    .wallet-connect-btn:disabled {
-        opacity: 0.6;
-        cursor: wait;
-    }
-
 `;
 
-document.head.appendChild(headerStyle);
-
-
-// =====================================
-// WALLET BUTTON & JJS BALANCE
-// =====================================
-
-function initializeWalletButton() {
-
-    const walletBtn =
-        document.getElementById("headerWalletBtn");
-
-    const balanceElement =
-        document.getElementById("headerJJSBalance");
-
-    if (!walletBtn || !balanceElement) return;
-
-    let balanceRequest = 0;
-    let lastAddress = "";
-
-
-    // =====================================
-    // UPDATE JJS BALANCE
-    // =====================================
-
-    async function updateJJSBalance(address) {
-
-        const requestId = ++balanceRequest;
-
-        try {
-
-            balanceElement.textContent = "Loading...";
-
-            const [balance, decimals] = await Promise.all([
-                token.balanceOf(address),
-                token.decimals()
-            ]);
-
-            if (requestId !== balanceRequest) return;
-
-            if (
-                modal.getAddress()?.toLowerCase() !==
-                address.toLowerCase()
-            ) {
-                return;
-            }
-
-            const formattedBalance = Number(
-                formatUnits(balance, decimals)
-            ).toLocaleString("en-US", {
-                maximumFractionDigits: 4
-            });
-
-            balanceElement.textContent =
-                formattedBalance + " JJS";
-
-        } catch (error) {
-
-            console.error("JJS Balance Error:", error);
-
-            if (requestId === balanceRequest) {
-
-                balanceElement.textContent =
-                    "Balance unavailable";
-
-            }
-
-        }
-
-    }
-
-
-    // =====================================
-    // UPDATE WALLET BUTTON
-    // =====================================
-
-    function updateWalletButton() {
-
-        try {
-
-            const connected = modal.getIsConnected();
-            const address = modal.getAddress();
-            const chainId = Number(modal.getChainId());
-
-            if (!connected || !address) {
-
-                balanceRequest++;
-                lastAddress = "";
-
-                walletBtn.textContent = "Connect Wallet";
-                walletBtn.title = "Connect your wallet";
-
-                balanceElement.textContent = "0 JJS";
-
-                return;
-            }
-
-            if (chainId !== 137) {
-
-                balanceRequest++;
-                lastAddress = "";
-
-                walletBtn.textContent = "Wrong Network";
-                walletBtn.title = "Switch to Polygon";
-
-                balanceElement.textContent =
-                    "Polygon required";
-
-                return;
-            }
-
-            walletBtn.textContent =
-                address.slice(0, 6) +
-                "..." +
-                address.slice(-4);
-
-            walletBtn.title = "Connected to Polygon";
-
-            // Only fetch when wallet address changes
-
-            const normalizedAddress =
-                address.toLowerCase();
-
-            if (lastAddress !== normalizedAddress) {
-
-                lastAddress = normalizedAddress;
-
-                updateJJSBalance(address);
-
-            }
-
-        } catch (error) {
-
-            console.error("Wallet state error:", error);
-
-        }
-
-    }
-
-
-    // =====================================
-    // CONNECT WALLET
-    // =====================================
-
-    walletBtn.addEventListener("click", async () => {
-
-        try {
-
-            walletBtn.disabled = true;
-
-            await modal.open({
-                view: "Connect"
-            });
-
-        } catch (error) {
-
-            console.error("Header Wallet Error:", error);
-
-            alert("Unable to open wallet connection.");
-
-        } finally {
-
-            walletBtn.disabled = false;
-
-            updateWalletButton();
-
-        }
-
-    });
-
-
-    // =====================================
-    // APPKIT LISTENERS
-    // =====================================
-
-    modal.subscribeState(() => {
-
-        updateWalletButton();
-
-    });
-
-    modal.subscribeAccount(() => {
-
-        updateWalletButton();
-
-    });
-
-    modal.subscribeNetwork(() => {
-
-        updateWalletButton();
-
-    });
-
-
-    // =====================================
-    // INITIAL SESSION
-    // =====================================
-
-    updateWalletButton();
-
-    let attempts = 0;
-
-    const restoreSession = setInterval(() => {
-
-        updateWalletButton();
-
-        attempts++;
-
-        if (
-            modal.getIsConnected() ||
-            attempts >= 40
-        ) {
-
-            clearInterval(restoreSession);
-
-        }
-
-    }, 250);
-
-
-    // =====================================
-    // AUTO REFRESH EVERY 15 SECONDS
-    // =====================================
-
-    setInterval(() => {
-
-        if (
-            modal.getIsConnected() &&
-            Number(modal.getChainId()) === 137
-        ) {
-
-            const address = modal.getAddress();
-
-            if (address) {
-
-                updateJJSBalance(address);
-
-            }
-
-        }
-
-    }, 15000);
-
-}
+document.head.appendChild(arrowStyle);
 
 
 // =====================================
 // INITIALIZE HEADER
 // =====================================
 
-function initializeHeader() {
+document.addEventListener("DOMContentLoaded", () => {
 
-    document.body.insertAdjacentHTML(
-        "afterbegin",
-        headerHTML
-    );
+    document.body.insertAdjacentHTML("afterbegin", headerHTML);
 
     const currentPage =
         window.location.pathname.split("/").pop() || "index.html";
 
-    const navLinks =
-        document.querySelectorAll(".main-nav a");
+    const navLinks = document.querySelectorAll(".main-nav a");
 
-    const menuToggle =
-        document.getElementById("menuToggle");
-
-    const mainNav =
-        document.getElementById("mainNav");
+    const menuToggle = document.getElementById("menuToggle");
+    const mainNav = document.getElementById("mainNav");
 
 
     // =====================================
@@ -485,13 +167,10 @@ function initializeHeader() {
 
             link.setAttribute("aria-current", "page");
 
-            const dropdown =
-                link.closest(".nav-dropdown");
+            const dropdown = link.closest(".nav-dropdown");
 
             if (dropdown) {
-
                 dropdown.classList.add("has-active");
-
             }
 
         }
@@ -513,12 +192,7 @@ function initializeHeader() {
                 dropdown.querySelector(".dropdown-toggle");
 
             if (button) {
-
-                button.setAttribute(
-                    "aria-expanded",
-                    "false"
-                );
-
+                button.setAttribute("aria-expanded", "false");
             }
 
         });
@@ -532,8 +206,7 @@ function initializeHeader() {
 
     menuToggle.addEventListener("click", () => {
 
-        const isOpen =
-            mainNav.classList.toggle("open");
+        const isOpen = mainNav.classList.toggle("open");
 
         menuToggle.classList.toggle("active", isOpen);
 
@@ -542,10 +215,9 @@ function initializeHeader() {
             String(isOpen)
         );
 
+        // Close dropdowns when main menu closes
         if (!isOpen) {
-
             closeAllDropdowns();
-
         }
 
     });
@@ -565,16 +237,15 @@ function initializeHeader() {
             const isCurrentlyOpen =
                 currentDropdown.classList.contains("open");
 
+            // Close all dropdowns first
             closeAllDropdowns();
 
+            // Open only if it was previously closed
             if (!isCurrentlyOpen) {
 
                 currentDropdown.classList.add("open");
 
-                button.setAttribute(
-                    "aria-expanded",
-                    "true"
-                );
+                button.setAttribute("aria-expanded", "true");
 
             }
 
@@ -606,29 +277,4 @@ function initializeHeader() {
 
     });
 
-
-    // =====================================
-    // INITIALIZE WALLET
-    // =====================================
-
-    initializeWalletButton();
-
-}
-
-
-// =====================================
-// DOM READY
-// =====================================
-
-if (document.readyState === "loading") {
-
-    document.addEventListener(
-        "DOMContentLoaded",
-        initializeHeader
-    );
-
-} else {
-
-    initializeHeader();
-
-}
+});
