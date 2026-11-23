@@ -1,5 +1,9 @@
 
-import { modal } from "../../web3/web3-config.js";
+import {
+    modal,
+    token,
+    formatUnits
+} from "../../web3/web3-config.js";
 
 // =====================================
 // JOSJIS SHARED HEADER
@@ -35,7 +39,6 @@ const headerHTML = `
 
         <a href="about.html" data-page="about.html">About</a>
 
-        <!-- TOKEN DROPDOWN -->
         <div class="nav-dropdown">
 
             <button
@@ -72,7 +75,6 @@ const headerHTML = `
             Dashboard
         </a>
 
-        <!-- COMMUNITY DROPDOWN -->
         <div class="nav-dropdown">
 
             <button
@@ -106,14 +108,26 @@ const headerHTML = `
 
         </div>
 
-        <!-- CONNECT WALLET -->
-        <button
-            id="headerWalletBtn"
-            class="wallet-connect-btn"
-            type="button"
-        >
-            Connect Wallet
-        </button>
+        <!-- WALLET INFO -->
+
+        <div class="header-wallet-info">
+
+            <span
+                id="headerJJSBalance"
+                class="header-jjs-balance"
+            >
+                0 JJS
+            </span>
+
+            <button
+                id="headerWalletBtn"
+                class="wallet-connect-btn"
+                type="button"
+            >
+                Connect Wallet
+            </button>
+
+        </div>
 
     </nav>
 
@@ -128,6 +142,7 @@ const headerHTML = `
 const headerStyle = document.createElement("style");
 
 headerStyle.textContent = `
+
     .nav-dropdown .dropdown-menu {
         display: none;
     }
@@ -146,6 +161,24 @@ headerStyle.textContent = `
 
     .nav-dropdown.open .dropdown-arrow {
         transform: rotate(180deg);
+    }
+
+    .header-wallet-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .header-jjs-balance {
+        padding: 9px 12px;
+        border-radius: 8px;
+        background: #241637;
+        border: 1px solid #56358a;
+        color: #c4a5ff;
+        font-size: 13px;
+        font-weight: 700;
+        white-space: nowrap;
     }
 
     .wallet-connect-btn {
@@ -167,13 +200,14 @@ headerStyle.textContent = `
         opacity: 0.6;
         cursor: wait;
     }
+
 `;
 
 document.head.appendChild(headerStyle);
 
 
 // =====================================
-// WALLET BUTTON
+// WALLET BUTTON & JJS BALANCE
 // =====================================
 
 function initializeWalletButton() {
@@ -181,10 +215,62 @@ function initializeWalletButton() {
     const walletBtn =
         document.getElementById("headerWalletBtn");
 
-    if (!walletBtn) return;
+    const balanceElement =
+        document.getElementById("headerJJSBalance");
+
+    if (!walletBtn || !balanceElement) return;
+
+    let balanceRequest = 0;
 
 
+    // =====================================
+    // UPDATE JJS BALANCE
+    // =====================================
+
+    async function updateJJSBalance(address) {
+
+        const requestId = ++balanceRequest;
+
+        try {
+
+            balanceElement.textContent = "Loading...";
+
+            const [balance, decimals] = await Promise.all([
+                token.balanceOf(address),
+                token.decimals()
+            ]);
+
+            if (requestId !== balanceRequest) return;
+
+            if (modal.getAddress()?.toLowerCase() !== address.toLowerCase()) {
+                return;
+            }
+
+            const formattedBalance = Number(
+                formatUnits(balance, decimals)
+            ).toLocaleString("en-US", {
+                maximumFractionDigits: 4
+            });
+
+            balanceElement.textContent =
+                formattedBalance + " JJS";
+
+        } catch (error) {
+
+            console.error("JJS Balance Error:", error);
+
+            if (requestId === balanceRequest) {
+                balanceElement.textContent = "Balance unavailable";
+            }
+
+        }
+
+    }
+
+
+    // =====================================
     // UPDATE WALLET BUTTON
+    // =====================================
 
     function updateWalletButton() {
 
@@ -196,16 +282,24 @@ function initializeWalletButton() {
 
             if (!connected || !address) {
 
+                balanceRequest++;
+
                 walletBtn.textContent = "Connect Wallet";
                 walletBtn.title = "Connect your wallet";
+
+                balanceElement.textContent = "0 JJS";
 
                 return;
             }
 
             if (chainId !== 137) {
 
+                balanceRequest++;
+
                 walletBtn.textContent = "Wrong Network";
                 walletBtn.title = "Switch to Polygon";
+
+                balanceElement.textContent = "Polygon required";
 
                 return;
             }
@@ -217,6 +311,8 @@ function initializeWalletButton() {
 
             walletBtn.title = "Connected to Polygon";
 
+            updateJJSBalance(address);
+
         } catch (error) {
 
             console.error("Wallet state error:", error);
@@ -226,7 +322,9 @@ function initializeWalletButton() {
     }
 
 
-    // CONNECT WALLET BUTTON
+    // =====================================
+    // CONNECT WALLET
+    // =====================================
 
     walletBtn.addEventListener("click", async () => {
 
@@ -255,7 +353,9 @@ function initializeWalletButton() {
     });
 
 
-    // APPKIT STATE LISTENERS
+    // =====================================
+    // APPKIT LISTENERS
+    // =====================================
 
     modal.subscribeState(() => {
         updateWalletButton();
@@ -270,7 +370,9 @@ function initializeWalletButton() {
     });
 
 
-    // RESTORE EXISTING SESSION
+    // =====================================
+    // INITIAL SESSION
+    // =====================================
 
     updateWalletButton();
 
@@ -289,6 +391,28 @@ function initializeWalletButton() {
         }
 
     }, 250);
+
+
+    // =====================================
+    // AUTO REFRESH EVERY 15 SECONDS
+    // =====================================
+
+    setInterval(() => {
+
+        if (
+            modal.getIsConnected() &&
+            Number(modal.getChainId()) === 137
+        ) {
+
+            const address = modal.getAddress();
+
+            if (address) {
+                updateJJSBalance(address);
+            }
+
+        }
+
+    }, 15000);
 
 }
 
@@ -330,9 +454,7 @@ function initializeHeader() {
             const dropdown = link.closest(".nav-dropdown");
 
             if (dropdown) {
-
                 dropdown.classList.add("has-active");
-
             }
 
         }
@@ -352,9 +474,7 @@ function initializeHeader() {
                 dropdown.querySelector(".dropdown-toggle");
 
             if (button) {
-
                 button.setAttribute("aria-expanded", "false");
-
             }
 
         });
@@ -376,9 +496,7 @@ function initializeHeader() {
         );
 
         if (!isOpen) {
-
             closeAllDropdowns();
-
         }
 
     });
