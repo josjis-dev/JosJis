@@ -16,7 +16,6 @@
     box-sizing: border-box;
 }
 
-
 /* PAGE HEADER */
 
 .assets-hero {
@@ -56,7 +55,6 @@
     color: #ffffff;
 }
 
-
 /* GENERAL CARD */
 
 .assets-card,
@@ -87,7 +85,6 @@
     font-size: 21px;
 }
 
-
 /* WALLET STATUS */
 
 .assets-status {
@@ -109,7 +106,6 @@
     font-size: 14px;
     word-break: break-all;
 }
-
 
 /* BUTTONS */
 
@@ -165,7 +161,6 @@
     margin: 16px 0 0;
 }
 
-
 /* NETWORK INFORMATION */
 
 .assets-network {
@@ -200,7 +195,6 @@
     border-radius: 50%;
 }
 
-
 /* ASSET SECTION */
 
 .assets-section {
@@ -222,7 +216,6 @@
     cursor: not-allowed;
 }
 
-
 /* ASSET CARDS */
 
 .asset-card {
@@ -231,8 +224,8 @@
     gap: 16px;
     padding: 20px;
     margin-bottom: 12px;
-    transition: border-color 0.2s ease;
     min-width: 0;
+    transition: border-color 0.2s ease;
 }
 
 .asset-card:hover {
@@ -304,7 +297,6 @@
     font-size: 12px;
 }
 
-
 /* INFORMATION */
 
 .assets-note {
@@ -325,7 +317,6 @@
     margin: 8px 0;
 }
 
-
 /* FOOTER */
 
 .assets-footer {
@@ -335,10 +326,9 @@
     padding-top: 10px;
 }
 
+/* MOBILE & TABLET RESPONSIVE */
 
-/* MOBILE RESPONSIVE */
-
-@media (max-width: 600px) {
+@media (max-width: 900px) {
 
     .assets-page {
         padding: 28px 15px 45px;
@@ -358,7 +348,7 @@
         flex-direction: column;
     }
 
-    /* Asset card mobile layout */
+    /* ASSET CARD LAYOUT */
 
     .asset-card {
         display: grid;
@@ -393,15 +383,16 @@
         max-width: 100%;
         min-width: 0;
         text-align: left;
-        padding-top: 8px;
+        padding-top: 10px;
         border-top: 1px solid #30263f;
     }
 
     .asset-balance strong {
+        width: 100%;
         font-size: 15px;
-        line-height: 1.6;
+        line-height: 1.7;
         overflow-wrap: anywhere;
-        word-break: break-word;
+        word-break: break-all;
     }
 
     .asset-balance small {
@@ -415,5 +406,4 @@
     .refresh-button {
         padding: 9px 12px;
     }
-
 }
