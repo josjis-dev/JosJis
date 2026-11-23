@@ -1,5 +1,7 @@
+
 // =====================================
-// JOSJIS WEB3 CONFIGURATION
+// JOSJIS GLOBAL WEB3 CONFIGURATION
+// Powered by Reown AppKit + Ethers
 // =====================================
 
 import { createAppKit } from
@@ -17,6 +19,7 @@ import {
   formatUnits
 } from "https://esm.sh/ethers@6.15.0";
 
+
 // =====================================
 // PROJECT CONFIGURATION
 // =====================================
@@ -27,19 +30,26 @@ export const PROJECT_ID =
 export const JJS_CONTRACT =
   "0x52C8Ff13ada1431376b3E77E8219b644805122dF";
 
+
+// =====================================
+// JJS ABI
+// =====================================
+
 const JJS_ABI = [
   "function balanceOf(address account) view returns (uint256)",
   "function decimals() view returns (uint8)",
   "function symbol() view returns (string)"
 ];
 
+
 // =====================================
-// POLYGON RPC PROVIDER
+// POLYGON RPC
 // =====================================
 
 export const rpcProvider = new JsonRpcProvider(
   "https://polygon-bor-rpc.publicnode.com"
 );
+
 
 // =====================================
 // JJS TOKEN CONTRACT
@@ -51,21 +61,23 @@ export const token = new Contract(
   rpcProvider
 );
 
+
 // =====================================
 // WEBSITE METADATA
 // =====================================
 
 const metadata = {
   name: "JosJis",
-  description: "Official JosJis Web3 Dashboard",
-  url: "https://josjis-dev.github.io",
+  description: "Official JosJis Web3 Ecosystem",
+  url: "https://josjis-dev.github.io/josjis/",
   icons: [
-    "https://josjis-dev.github.io/JosJis/assets/images/josjis-logo.jpg"
+    "https://josjis-dev.github.io/josjis/assets/images/josjis-logo.jpg"
   ]
 };
 
+
 // =====================================
-// INITIALIZE REOWN APPKIT
+// SINGLE REOWN APPKIT INSTANCE
 // =====================================
 
 export const modal = createAppKit({
@@ -80,8 +92,75 @@ export const modal = createAppKit({
   }
 });
 
+
 // =====================================
-// EXPORT ETHERS FUNCTION
+// GLOBAL JOSJIS WEB3 API
+// =====================================
+
+const JosJisWeb3 = Object.freeze({
+
+  modal,
+
+  token,
+
+  rpcProvider,
+
+  formatUnits,
+
+  PROJECT_ID,
+
+  JJS_CONTRACT,
+
+  getAddress() {
+    return modal.getAddress() || null;
+  },
+
+  isConnected() {
+    return Boolean(
+      modal.getIsConnected() &&
+      modal.getAddress()
+    );
+  },
+
+  getChainId() {
+    const chainId = modal.getChainId();
+    return chainId ? Number(chainId) : null;
+  },
+
+  isPolygon() {
+    return modal.getChainId() === 137;
+  },
+
+  connect() {
+    return modal.open({
+      view: "Connect"
+    });
+  },
+
+  disconnect() {
+    return modal.disconnect();
+  }
+
+});
+
+
+// =====================================
+// EXPOSE GLOBAL API
+// =====================================
+
+window.JosJisWeb3 = JosJisWeb3;
+
+window.dispatchEvent(
+  new CustomEvent("josjis:web3-ready", {
+    detail: JosJisWeb3
+  })
+);
+
+console.log("JosJis Global Web3 initialized.");
+
+
+// =====================================
+// EXPORT ETHERS
 // =====================================
 
 export { formatUnits };
