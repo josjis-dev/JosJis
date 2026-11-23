@@ -4,7 +4,7 @@
 const headerHTML = `
 <header class="site-header">
 
-    <a href="index.html" class="logo">
+    <a href="/josjis/index.html" class="logo">
         JosJis
     </a>
 
@@ -23,13 +23,13 @@ const headerHTML = `
 
     <nav id="mainNav" class="main-nav">
 
-        <a href="index.html" data-page="index.html">Home</a>
+        <a href="/josjis/index.html" data-page="index.html">Home</a>
 
-        <a href="buy-jjs.html" data-page="buy-jjs.html">
+        <a href="/josjis/buy-jjs.html" data-page="buy-jjs.html">
             How to Buy
         </a>
 
-        <a href="about.html" data-page="about.html">About</a>
+        <a href="/josjis/about.html" data-page="about.html">About</a>
 
         <!-- TOKEN DROPDOWN -->
         <div class="nav-dropdown">
@@ -46,12 +46,12 @@ const headerHTML = `
 
             <div class="dropdown-menu" id="tokenSubmenu">
 
-                <a href="tokenomics.html"
+                <a href="/josjis/tokenomics.html"
                    data-page="tokenomics.html">
                     Tokenomics
                 </a>
 
-                <a href="utility.html"
+                <a href="/josjis/utility.html"
                    data-page="utility.html">
                     Utility
                 </a>
@@ -60,16 +60,16 @@ const headerHTML = `
 
         </div>
 
-        <a href="ecosystem.html" data-page="ecosystem.html">
+        <a href="/josjis/ecosystem.html" data-page="ecosystem.html">
             Ecosystem
         </a>
 
-        <a href="dashboard.html" data-page="dashboard.html">
+        <a href="/josjis/dashboard.html" data-page="dashboard.html">
             Dashboard
         </a>
 
         <!-- MEMBER AREA -->
-        <a href="member.html" data-page="member.html">
+        <a href="/josjis/member.html" data-page="member.html">
             Member Area
         </a>
 
@@ -88,17 +88,17 @@ const headerHTML = `
 
             <div class="dropdown-menu" id="communitySubmenu">
 
-                <a href="crypto-donations.html"
+                <a href="/josjis/crypto-donations.html"
                    data-page="crypto-donations.html">
                     Donate
                 </a>
 
-                <a href="roadmap.html"
+                <a href="/josjis/roadmap.html"
                    data-page="roadmap.html">
                     Roadmap
                 </a>
 
-                <a href="contact.html"
+                <a href="/josjis/contact.html"
                    data-page="contact.html">
                     Contact
                 </a>
