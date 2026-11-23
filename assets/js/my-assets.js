@@ -27,6 +27,7 @@ const explorerLink = document.getElementById("explorerLink");
 let currentAddress = null;
 let refreshInterval = null;
 let isRefreshing = false;
+let refreshNumber = 0;
 
 
 // =====================================
@@ -56,7 +57,7 @@ function formatBalance(value, decimals = 4) {
 
 
 // =====================================
-// WALLET DISPLAY
+// SHOW CONNECTED WALLET
 // =====================================
 
 function showWallet(address) {
@@ -75,17 +76,16 @@ function showWallet(address) {
 
     refreshBtn.disabled = false;
 
-    assetsMessage.textContent =
-        "Wallet connected. Loading assets...";
 }
 
 
 // =====================================
-// DISCONNECTED
+// SHOW DISCONNECTED
 // =====================================
 
 function showDisconnected() {
 
+    refreshNumber++;
     currentAddress = null;
 
     walletAddress.textContent = "Not connected";
@@ -117,6 +117,7 @@ function showDisconnected() {
 
 function showWrongNetwork(address) {
 
+    refreshNumber++;
     currentAddress = null;
 
     walletAddress.textContent = address;
@@ -134,11 +135,6 @@ function showWrongNetwork(address) {
     assetsMessage.textContent =
         "Please switch to Polygon Mainnet.";
 
-    if (refreshInterval) {
-        clearInterval(refreshInterval);
-        refreshInterval = null;
-    }
-
 }
 
 
@@ -153,6 +149,7 @@ async function refreshAssets() {
     }
 
     const address = currentAddress;
+    const requestId = refreshNumber;
 
     isRefreshing = true;
     refreshBtn.disabled = true;
@@ -174,7 +171,11 @@ async function refreshAssets() {
             ]);
 
         // Ignore outdated results
-        if (currentAddress !== address) {
+
+        if (
+            currentAddress !== address ||
+            requestId !== refreshNumber
+        ) {
             return;
         }
 
@@ -201,7 +202,10 @@ async function refreshAssets() {
 
         console.error("My Assets Error:", error);
 
-        if (currentAddress === address) {
+        if (
+            currentAddress === address &&
+            requestId === refreshNumber
+        ) {
 
             assetsMessage.textContent =
                 "Unable to load balances. Check Polygon RPC connection.";
@@ -222,6 +226,58 @@ async function refreshAssets() {
 
 
 // =====================================
+// CHECK WALLET AND NETWORK
+// =====================================
+
+function syncWallet() {
+
+    const connected = modal.getIsConnected();
+    const address = modal.getAddress();
+    const chainId = modal.getChainId();
+
+    if (!connected || !address) {
+        return;
+    }
+
+    if (Number(chainId) !== 137) {
+
+        showWrongNetwork(address);
+        return;
+
+    }
+
+    const addressChanged =
+        !currentAddress ||
+        currentAddress.toLowerCase() !== address.toLowerCase();
+
+    if (addressChanged) {
+
+        refreshNumber++;
+
+        showWallet(address);
+
+        assetsMessage.textContent =
+            "Wallet connected. Loading assets...";
+
+    }
+
+    if (!refreshInterval) {
+
+        refreshInterval = setInterval(() => {
+
+            syncWallet();
+            refreshAssets();
+
+        }, 15000);
+
+    }
+
+    refreshAssets();
+
+}
+
+
+// =====================================
 // CONNECT WALLET
 // =====================================
 
@@ -229,7 +285,9 @@ connectBtn.addEventListener("click", async () => {
 
     try {
 
-        await modal.open();
+        await modal.open({
+            view: "Connect"
+        });
 
     } catch (error) {
 
@@ -284,79 +342,46 @@ refreshBtn.addEventListener("click", () => {
 
 
 // =====================================
-// CHECK WALLET SESSION
+// APPKIT STATE LISTENER
 // =====================================
 
-function checkWallet() {
+modal.subscribeState((state) => {
 
-    const connected = modal.getIsConnected();
-    const address = modal.getAddress();
-    const chainId = modal.getChainId();
-
-    if (!connected || !address) {
-
-        showDisconnected();
-        return;
-
+    if (state.isConnected) {
+        syncWallet();
     }
-
-    if (Number(chainId) !== 137) {
-
-        showWrongNetwork(address);
-        return;
-
-    }
-
-    const addressChanged =
-        currentAddress?.toLowerCase() !== address.toLowerCase();
-
-    if (addressChanged) {
-
-        showWallet(address);
-
-        refreshAssets();
-
-    }
-
-    if (!refreshInterval) {
-
-        refreshInterval = setInterval(() => {
-
-            checkWallet();
-            refreshAssets();
-
-        }, 15000);
-
-    }
-
-}
-
-
-// =====================================
-// APPKIT LISTENERS
-// =====================================
-
-modal.subscribeState(() => {
-
-    checkWallet();
 
 });
 
-modal.subscribeAccount(() => {
 
-    checkWallet();
+// =====================================
+// ACCOUNT LISTENER
+// =====================================
+
+modal.subscribeAccount((account) => {
+
+    if (account.isConnected && account.address) {
+        syncWallet();
+    }
 
 });
+
+
+// =====================================
+// NETWORK LISTENER
+// =====================================
 
 modal.subscribeNetwork(() => {
 
-    checkWallet();
+    if (modal.getIsConnected()) {
+        syncWallet();
+    }
 
 });
 
 
 // =====================================
-// RESTORE WALLET SESSION
+// RESTORE PREVIOUS WALLET SESSION
 // =====================================
 
 async function restoreWalletSession() {
@@ -366,18 +391,26 @@ async function restoreWalletSession() {
     assetsMessage.textContent =
         "Restoring wallet session...";
 
-    for (let i = 0; i < 40; i++) {
+    connectBtn.disabled = false;
+    connectBtn.textContent = "Connect Wallet";
 
-        checkWallet();
+    for (let attempt = 0; attempt < 40; attempt++) {
 
-        if (
-            modal.getIsConnected() &&
-            Number(modal.getChainId()) === 137 &&
-            modal.getAddress()
-        ) {
+        try {
 
-            refreshAssets();
-            return;
+            if (
+                modal.getIsConnected() &&
+                modal.getAddress()
+            ) {
+
+                syncWallet();
+                return;
+
+            }
+
+        } catch (error) {
+
+            console.error("Restore check:", error);
 
         }
 
@@ -387,14 +420,15 @@ async function restoreWalletSession() {
 
     }
 
-    checkWallet();
+    // Do not clear the saved AppKit session.
+    // AppKit may restore it after this check.
 
-    if (!modal.getIsConnected()) {
+    if (!currentAddress) {
 
-        walletStatus.textContent = "Disconnected";
+        walletStatus.textContent = "Waiting for wallet";
 
         assetsMessage.textContent =
-            "Connect your wallet to view your assets.";
+            "No active wallet session detected. Connect your wallet.";
 
     }
 
@@ -406,3 +440,4 @@ async function restoreWalletSession() {
 // =====================================
 
 restoreWalletSession();
+
