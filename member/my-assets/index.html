@@ -1,0 +1,248 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0c0914">
+
+    <title>My Assets | JosJis</title>
+
+    <meta
+        name="description"
+        content="View your JosJis wallet assets on Polygon."
+    >
+
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="../../assets/css/my-assets.css">
+</head>
+
+<body>
+
+    <main class="assets-page">
+
+        <!-- PAGE HEADER -->
+
+        <section class="assets-hero">
+
+            <div class="assets-label">
+                JOSJIS WEB3 ECOSYSTEM
+            </div>
+
+            <h1>My Assets</h1>
+
+            <p>
+                View your wallet information and cryptocurrency
+                balances on the Polygon network.
+            </p>
+
+            <a href="../../member.html" class="assets-back-link">
+                ← Back to Member Area
+            </a>
+
+        </section>
+
+
+        <!-- WALLET INFORMATION -->
+
+        <section class="assets-card">
+
+            <div class="assets-card-heading">
+
+                <div>
+                    <div class="assets-label">
+                        WALLET INFORMATION
+                    </div>
+
+                    <h2>Your Wallet</h2>
+                </div>
+
+                <span
+                    id="walletStatus"
+                    class="assets-status">
+                    Checking...
+                </span>
+
+            </div>
+
+            <div
+                id="walletAddress"
+                class="assets-address">
+                Not connected
+            </div>
+
+            <div class="assets-actions">
+
+                <button
+                    id="connectBtn"
+                    class="assets-button"
+                    type="button">
+                    Connect Wallet
+                </button>
+
+                <button
+                    id="copyBtn"
+                    class="assets-button secondary"
+                    type="button"
+                    hidden>
+                    Copy Address
+                </button>
+
+                <a
+                    id="explorerLink"
+                    class="assets-button secondary"
+                    href="#"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    hidden>
+                    View on PolygonScan
+                </a>
+
+            </div>
+
+            <p
+                id="assetsMessage"
+                class="assets-message">
+                Restoring wallet session...
+            </p>
+
+        </section>
+
+
+        <!-- NETWORK INFORMATION -->
+
+        <section class="assets-network">
+
+            <div>
+                <span class="network-dot"></span>
+
+                <strong>Polygon Mainnet</strong>
+            </div>
+
+            <span>Chain ID: 137</span>
+
+        </section>
+
+
+        <!-- ASSET BALANCES -->
+
+        <section class="assets-section">
+
+            <div class="assets-section-heading">
+
+                <div>
+                    <div class="assets-label">
+                        YOUR PORTFOLIO
+                    </div>
+
+                    <h2>Asset Balances</h2>
+                </div>
+
+                <button
+                    id="refreshBtn"
+                    class="refresh-button"
+                    type="button"
+                    disabled>
+                    ↻ Refresh
+                </button>
+
+            </div>
+
+
+            <!-- JJS TOKEN -->
+
+            <article class="asset-card">
+
+                <div class="asset-icon jjs-icon">
+                    J
+                </div>
+
+                <div class="asset-info">
+
+                    <h3>JosJis</h3>
+
+                    <p>JJS · Polygon</p>
+
+                </div>
+
+                <div class="asset-balance">
+
+                    <strong id="jjsBalance">--</strong>
+
+                    <small>JJS</small>
+
+                </div>
+
+            </article>
+
+
+            <!-- POL TOKEN -->
+
+            <article class="asset-card">
+
+                <div class="asset-icon pol-icon">
+                    P
+                </div>
+
+                <div class="asset-info">
+
+                    <h3>POL</h3>
+
+                    <p>Polygon Native Token</p>
+
+                </div>
+
+                <div class="asset-balance">
+
+                    <strong id="polBalance">--</strong>
+
+                    <small>POL</small>
+
+                </div>
+
+            </article>
+
+        </section>
+
+
+        <!-- INFORMATION -->
+
+        <section class="assets-note">
+
+            <h3>About My Assets</h3>
+
+            <p>
+                Your asset balances are retrieved directly
+                from the Polygon blockchain.
+            </p>
+
+            <p>
+                JosJis does not store or control your
+                private keys or cryptocurrency funds.
+            </p>
+
+        </section>
+
+
+        <!-- FOOTER NOTE -->
+
+        <div class="assets-footer">
+
+            JosJis Web3 Ecosystem · Powered by Polygon
+
+        </div>
+
+    </main>
+
+
+    <!-- SHARED WEBSITE SCRIPTS -->
+
+    <script src="../../assets/js/header.js" defer></script>
+    <script src="../../assets/js/footer.js" defer></script>
+    <script src="../../assets/js/components.js" defer></script>
+
+    <!-- MY ASSETS JAVASCRIPT WILL BE ADDED LATER -->
+
+</body>
+</html>
