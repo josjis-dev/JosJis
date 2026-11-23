@@ -1,0 +1,349 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>JosJis Liquidity Center</title>
+
+    <meta name="description" content="Support the JosJis ecosystem through liquidity provision on Uniswap V4 Polygon.">
+
+    <meta name="theme-color" content="#100d1c">
+
+    <link rel="stylesheet" href="liquidity.css">
+</head>
+
+<body>
+
+    <header class="header">
+        <a href="../" class="brand">
+            <img src="../assets/images/josjis-logo.jpg" alt="JosJis Logo">
+            <span>JosJis</span>
+        </a>
+
+        <span class="network-badge">
+            Polygon Network
+        </span>
+    </header>
+
+    <main>
+
+        <!-- HERO SECTION -->
+        <section class="hero">
+
+            <span class="eyebrow">
+                JOSJIS ECOSYSTEM
+            </span>
+
+            <h1>
+                JosJis<br>
+                <span>Liquidity Center</span>
+            </h1>
+
+            <p>
+                Support the JosJis ecosystem by providing
+                liquidity and helping create a better trading
+                experience for the community.
+            </p>
+
+            <a
+                href="#pool"
+                class="primary-button"
+            >
+                Explore Liquidity Pool
+            </a>
+
+        </section>
+
+
+        <!-- POOL INFORMATION -->
+        <section class="section" id="pool">
+
+            <div class="section-heading">
+                <span class="eyebrow">UNISWAP V4</span>
+                <h2>Featured Liquidity Pool</h2>
+                <p>
+                    Official JosJis trading pair on Polygon.
+                </p>
+            </div>
+
+            <div class="pool-card">
+
+                <div class="pool-title">
+                    <div class="token-pair">
+                        <img
+                            src="../assets/images/josjis-logo-circle.png"
+                            alt="JJS"
+                        >
+
+                        <img
+                            src="../assets/images/usdt0-logo.png"
+                            alt="USDT0"
+                        >
+                    </div>
+
+                    <div>
+                        <h3>JJS / USDT0</h3>
+                        <span>Polygon · Uniswap V4</span>
+                    </div>
+                </div>
+
+                <div class="pool-details">
+
+                    <div class="detail-item">
+                        <span>Network</span>
+                        <strong>Polygon</strong>
+                    </div>
+
+                    <div class="detail-item">
+                        <span>DEX</span>
+                        <strong>Uniswap V4</strong>
+                    </div>
+
+                    <div class="detail-item">
+                        <span>Fee Tier</span>
+                        <strong>0.25%</strong>
+                    </div>
+
+                    <div class="detail-item">
+                        <span>Pool Type</span>
+                        <strong>Concentrated Liquidity</strong>
+                    </div>
+
+                </div>
+
+                <div class="pool-id">
+                    <span>Pool ID</span>
+
+                    <code id="poolId">
+                        0x7bbe48850b54f72c3356f62ef1f2f9edde13d317649c46d6aa94a45c4b89a6aa
+                    </code>
+
+                    <button id="copyPoolId" type="button">
+                        Copy Pool ID
+                    </button>
+                </div>
+
+                <a
+                    href="https://app.uniswap.org/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="primary-button full-button"
+                >
+                    Open Uniswap
+                </a>
+
+            </div>
+
+        </section>
+
+
+        <!-- LIVE STATISTICS -->
+        <section class="section">
+
+            <div class="section-heading">
+                <span class="eyebrow">POOL OVERVIEW</span>
+                <h2>Pool Statistics</h2>
+                <p>
+                    Live pool statistics will be displayed here
+                    when the data integration is implemented.
+                </p>
+            </div>
+
+            <div class="stats-grid">
+
+                <div class="stat-card">
+                    <span>Total Liquidity</span>
+                    <strong id="totalLiquidity">—</strong>
+                </div>
+
+                <div class="stat-card">
+                    <span>24H Volume</span>
+                    <strong id="volume24h">—</strong>
+                </div>
+
+                <div class="stat-card">
+                    <span>JJS Reserve</span>
+                    <strong id="jjsReserve">—</strong>
+                </div>
+
+                <div class="stat-card">
+                    <span>USDT0 Reserve</span>
+                    <strong id="usdtReserve">—</strong>
+                </div>
+
+            </div>
+
+            <p class="update-info" id="lastUpdated">
+                Live data integration pending.
+            </p>
+
+        </section>
+
+
+        <!-- WHY PROVIDE LIQUIDITY -->
+        <section class="section">
+
+            <div class="section-heading">
+                <span class="eyebrow">COMMUNITY PARTICIPATION</span>
+                <h2>Why Provide Liquidity?</h2>
+            </div>
+
+            <div class="benefit-card">
+
+                <h3>Support Trading Activity</h3>
+
+                <p>
+                    Liquidity helps facilitate token swaps
+                    and can improve trading depth.
+                </p>
+
+            </div>
+
+            <div class="benefit-card">
+
+                <h3>Support the Ecosystem</h3>
+
+                <p>
+                    Community liquidity providers can
+                    contribute to the development of
+                    the JosJis ecosystem.
+                </p>
+
+            </div>
+
+            <div class="benefit-card">
+
+                <h3>Potential Trading Fees</h3>
+
+                <p>
+                    Liquidity providers may receive a share
+                    of eligible trading fees. Fees are variable
+                    and never guaranteed.
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- HOW TO PROVIDE LIQUIDITY -->
+        <section class="section">
+
+            <div class="section-heading">
+                <span class="eyebrow">GET STARTED</span>
+                <h2>How to Provide Liquidity</h2>
+            </div>
+
+            <div class="step-card">
+                <span>01</span>
+                <div>
+                    <h3>Connect Your Wallet</h3>
+                    <p>
+                        Open Uniswap using a compatible wallet
+                        on the Polygon network.
+                    </p>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <span>02</span>
+                <div>
+                    <h3>Select the JJS / USDT0 Pool</h3>
+                    <p>
+                        Verify the correct token pair,
+                        network, and 0.25% fee tier.
+                    </p>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <span>03</span>
+                <div>
+                    <h3>Choose Your Price Range</h3>
+                    <p>
+                        Review the available range options.
+                        Understand how concentrated liquidity
+                        works before choosing a position.
+                    </p>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <span>04</span>
+                <div>
+                    <h3>Review and Confirm</h3>
+                    <p>
+                        Check the assets, price range,
+                        fees, and risks before confirming
+                        your transaction.
+                    </p>
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- RISKS -->
+        <section class="section risk-section">
+
+            <span class="eyebrow">IMPORTANT INFORMATION</span>
+
+            <h2>Understand the Risks</h2>
+
+            <p>
+                Providing liquidity involves financial risks.
+                These may include impermanent loss, price
+                volatility, smart contract risks, and
+                concentrated liquidity range risks.
+            </p>
+
+            <p>
+                Trading fees are variable and not guaranteed.
+                A position outside its selected price range
+                may stop earning trading fees.
+            </p>
+
+            <p>
+                Always do your own research and only provide
+                assets you can afford to risk.
+            </p>
+
+        </section>
+
+    </main>
+
+
+    <footer class="footer">
+
+        <div class="footer-brand">
+            <img
+                src="../assets/images/josjis-logo.jpg"
+                alt="JosJis"
+            >
+
+            <strong>JosJis</strong>
+        </div>
+
+        <p>
+            One Token. One Community. Many Possibilities.
+        </p>
+
+        <div class="footer-links">
+            <a href="../">Website</a>
+            <a href="https://x.com/JosJisToken">X</a>
+            <a href="https://t.me/josjis_token">Telegram</a>
+        </div>
+
+        <p class="copyright">
+            © <span id="year"></span> JosJis. All rights reserved.
+        </p>
+
+    </footer>
+
+
+    <script src="liquidity.js" defer></script>
+
+</body>
+</html>
