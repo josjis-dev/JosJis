@@ -5,100 +5,251 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>404 - Page Not Found | JosJis</title>
+    <title>404 - Page Not Found | JosJis ($JJS)</title>
 
-    <meta name="description" content="The page you are looking for could not be found on the JosJis website.">
+    <meta name="description" content="The page you are looking for could not be found. Return to the official JosJis website.">
 
     <meta name="theme-color" content="#0c0914">
 
-    <link rel="icon" href="assets/images/josjis-logo.jpg">
+    <!-- Shared CSS -->
     <link rel="stylesheet" href="assets/css/style.css">
 
+    <!-- Shared Header, Footer & Components -->
+    <script src="assets/js/header.js" defer></script>
+    <script src="assets/js/footer.js" defer></script>
+    <script src="assets/js/components.js" defer></script>
+
     <style>
-        .error-page {
-            min-height: 80vh;
+
+        /* =====================================
+           404 HERO
+        ===================================== */
+
+        .error-hero {
+            min-height: 65vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 40px 20px;
             text-align: center;
+
+            padding: 80px 20px;
+
+            background: radial-gradient(
+                circle at top,
+                #352052 0%,
+                #0c0914 65%
+            );
         }
 
         .error-content {
-            max-width: 600px;
+            max-width: 700px;
+            margin: auto;
         }
 
-        .error-logo {
-            width: 110px;
-            height: 110px;
-            object-fit: contain;
-            margin-bottom: 25px;
+        .error-tag {
+            color: var(--purple-light);
+            letter-spacing: 4px;
+            font-size: 12px;
+            font-weight: bold;
         }
 
         .error-code {
-            font-size: clamp(90px, 20vw, 150px);
+            font-size: clamp(100px, 22vw, 190px);
             font-weight: 900;
             line-height: 1;
-            color: #a78bfa;
-            margin: 0;
+            margin: 20px 0;
+
+            color: var(--purple-light);
+
+            text-shadow:
+                0 0 25px rgba(167,139,250,0.25);
         }
 
         .error-title {
-            font-size: 28px;
-            margin: 20px 0 12px;
+            font-size: clamp(25px, 5vw, 38px);
+            margin-bottom: 18px;
         }
 
         .error-message {
-            color: #b9b2c9;
-            line-height: 1.7;
-            margin-bottom: 30px;
+            color: var(--muted);
+            max-width: 550px;
+            margin: 0 auto 30px;
+            line-height: 1.8;
         }
 
-        .home-button {
+
+        /* =====================================
+           BUTTONS
+        ===================================== */
+
+        .error-actions {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .error-button {
             display: inline-block;
-            padding: 13px 28px;
+            padding: 13px 26px;
+
             border-radius: 10px;
-            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-            color: white;
+
             text-decoration: none;
             font-weight: bold;
-            transition: 0.25s;
+            font-size: 14px;
+
+            transition: var(--transition);
         }
 
-        .home-button:hover {
+        .error-button-primary {
+            background: linear-gradient(
+                135deg,
+                #8b5cf6,
+                #6d28d9
+            );
+
+            color: #ffffff;
+            border: 1px solid #a78bfa;
+        }
+
+        .error-button-secondary {
+            background: transparent;
+            color: var(--purple-light);
+            border: 1px solid var(--purple);
+        }
+
+        .error-button:hover {
             transform: translateY(-3px);
         }
+
+
+        /* =====================================
+           EXTRA INFORMATION
+        ===================================== */
+
+        .error-info {
+            max-width: 650px;
+            margin: 0 auto 60px;
+            padding: 28px;
+
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+
+            text-align: center;
+        }
+
+        .error-info h2 {
+            color: var(--purple-light);
+            font-size: 22px;
+            margin-bottom: 12px;
+        }
+
+        .error-info p {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+
+        /* =====================================
+           MOBILE
+        ===================================== */
+
+        @media (max-width: 600px) {
+
+            .error-hero {
+                min-height: 60vh;
+                padding: 60px 20px;
+            }
+
+            .error-code {
+                margin: 25px 0;
+            }
+
+            .error-info {
+                margin-left: 20px;
+                margin-right: 20px;
+            }
+
+        }
+
     </style>
 </head>
 
 <body>
 
-    <main class="error-page">
-        <div class="error-content">
+<!-- SHARED HEADER LOADED FROM header.js -->
 
-            <img
-                src="assets/images/josjis-logo.jpg"
-                alt="JosJis Logo"
-                class="error-logo"
-            >
 
-            <h1 class="error-code">404</h1>
+<!-- =====================================
+     ERROR HERO
+===================================== -->
 
-            <h2 class="error-title">
-                Page Not Found
-            </h2>
+<section class="error-hero">
 
-            <p class="error-message">
-                Oops! The page you are looking for
-                doesn't exist or may have been moved.
-            </p>
+    <div class="error-content">
 
-            <a href="./" class="home-button">
+        <div class="error-tag">
+            JOSJIS WEBSITE
+        </div>
+
+        <h1 class="error-code">
+            404
+        </h1>
+
+        <h2 class="error-title">
+            Page Not Found
+        </h2>
+
+        <p class="error-message">
+            Oops! The page you are looking for doesn't exist,
+            may have been moved, or the link may be incorrect.
+            Don't worry, you can return to the JosJis homepage
+            and continue exploring our ecosystem.
+        </p>
+
+        <div class="error-actions">
+
+            <a href="./" class="error-button error-button-primary">
                 Back to Home
             </a>
 
+            <a href="contact.html" class="error-button error-button-secondary">
+                Contact Us
+            </a>
+
         </div>
-    </main>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================
+     EXTRA INFORMATION
+===================================== -->
+
+<main>
+
+    <section class="error-info">
+
+        <h2>Looking for something?</h2>
+
+        <p>
+            You can use the navigation menu above to explore
+            JosJis, learn about the JJS token, discover our
+            ecosystem, or find other useful information.
+        </p>
+
+    </section>
+
+</main>
+
+
+<!-- SHARED FOOTER LOADED FROM footer.js -->
 
 </body>
 </html>
