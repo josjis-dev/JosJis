@@ -244,6 +244,16 @@
     font-weight: 800;
 }
 
+/* ASSET LOGO IMAGES */
+
+.asset-icon img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+    border-radius: 50%;
+}
+
 .jjs-icon {
     background: #332044;
     color: #d5aaff;
