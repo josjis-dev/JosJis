@@ -1,3 +1,4 @@
+
 // JOSJIS SHARED FOOTER
 
 const footerHTML = `
@@ -15,10 +16,10 @@ const footerHTML = `
         <div class="footer-links">
             <h4>Quick Links</h4>
 
-            <a href="about.html">About</a>
-            <a href="tokenomics.html">Tokenomics</a>
-            <a href="dashboard.html">Dashboard</a>
-            <a href="crypto-donations.html">Donate</a>
+            <a href="/josjis/about.html">About</a>
+            <a href="/josjis/tokenomics.html">Tokenomics</a>
+            <a href="/josjis/dashboard.html">Dashboard</a>
+            <a href="/josjis/crypto-donations.html">Donate</a>
         </div>
 
         <div class="footer-social">
