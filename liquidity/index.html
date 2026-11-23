@@ -7,26 +7,49 @@
 
     <title>JosJis Liquidity Center</title>
 
-    <meta name="description" content="Support the JosJis ecosystem through liquidity provision on Uniswap V4 Polygon.">
+    <meta
+        name="description"
+        content="Support the JosJis ecosystem through liquidity provision on Uniswap V4 Polygon."
+    >
 
-    <meta name="theme-color" content="#100d1c">
+    <meta name="theme-color" content="#0c0914">
+
+    <!-- =================================
+         JOSJIS GLOBAL STYLESHEET
+    ================================== -->
+
+    <link rel="stylesheet" href="../assets/css/style.css">
+
+    <!-- =================================
+         LIQUIDITY CENTER STYLESHEET
+    ================================== -->
 
     <link rel="stylesheet" href="liquidity.css">
 
-    <!-- JosJis Shared Components -->
+    <!-- =================================
+         JOSJIS SHARED COMPONENTS
+    ================================== -->
+
     <script src="../assets/js/header.js" defer></script>
     <script src="../assets/js/footer.js" defer></script>
     <script src="../assets/js/components.js" defer></script>
 
-    <!-- Liquidity Center -->
+    <!-- =================================
+         LIQUIDITY CENTER JAVASCRIPT
+    ================================== -->
+
     <script src="liquidity.js" defer></script>
+
 </head>
 
 <body>
 
 <main>
 
-    <!-- HERO SECTION -->
+    <!-- =================================
+         HERO SECTION
+    ================================== -->
+
     <section class="hero">
 
         <span class="eyebrow">
@@ -51,20 +74,30 @@
     </section>
 
 
-    <!-- POOL INFORMATION -->
+    <!-- =================================
+         POOL INFORMATION
+    ================================== -->
+
     <section class="section" id="pool">
 
         <div class="section-heading">
-            <span class="eyebrow">UNISWAP V4</span>
+
+            <span class="eyebrow">
+                UNISWAP V4
+            </span>
 
             <h2>Featured Liquidity Pool</h2>
 
             <p>
                 Official JosJis trading pair on Polygon.
             </p>
+
         </div>
 
+
         <div class="pool-card">
+
+            <!-- TOKEN PAIR -->
 
             <div class="pool-title">
 
@@ -72,12 +105,12 @@
 
                     <img
                         src="../assets/images/josjis-logo-circle.png"
-                        alt="JJS"
+                        alt="JosJis JJS token"
                     >
 
                     <img
                         src="../assets/images/usdt0-logo.png"
-                        alt="USDT0"
+                        alt="USDT0 token"
                     >
 
                 </div>
@@ -89,6 +122,8 @@
 
             </div>
 
+
+            <!-- POOL DETAILS -->
 
             <div class="pool-details">
 
@@ -116,18 +151,24 @@
 
 
             <!-- POOL ID -->
+
             <div class="pool-id">
 
                 <span>Pool ID</span>
 
                 <code id="poolId">0x7bbe48850b54f72c3356f62ef1f2f9edde13d317649c46d6aa94a45c4b89a6aa</code>
 
-                <button id="copyPoolId" type="button">
+                <button
+                    id="copyPoolId"
+                    type="button"
+                >
                     Copy Pool ID
                 </button>
 
             </div>
 
+
+            <!-- UNISWAP LINK -->
 
             <a
                 href="https://app.uniswap.org/"
@@ -143,12 +184,17 @@
     </section>
 
 
-    <!-- LIVE STATISTICS -->
-    <section class="section">
+    <!-- =================================
+         LIVE POOL STATISTICS
+    ================================== -->
+
+    <section class="section" id="statistics">
 
         <div class="section-heading">
 
-            <span class="eyebrow">POOL OVERVIEW</span>
+            <span class="eyebrow">
+                POOL OVERVIEW
+            </span>
 
             <h2>Pool Statistics</h2>
 
@@ -163,26 +209,42 @@
         <div class="stats-grid">
 
             <div class="stat-card">
+
                 <span>Total Liquidity</span>
+
                 <strong id="totalLiquidity">—</strong>
+
             </div>
 
+
             <div class="stat-card">
+
                 <span>24H Volume</span>
+
                 <strong id="volume24h">—</strong>
+
             </div>
 
+
             <div class="stat-card">
+
                 <span>JJS Reserve</span>
+
                 <strong id="jjsReserve">—</strong>
+
             </div>
 
+
             <div class="stat-card">
+
                 <span>USDT0 Reserve</span>
+
                 <strong id="usdtReserve">—</strong>
+
             </div>
 
         </div>
+
 
         <p class="update-info" id="lastUpdated">
             Pool data integration is pending.
@@ -191,12 +253,20 @@
     </section>
 
 
-    <!-- WHY PROVIDE LIQUIDITY -->
-    <section class="section">
+    <!-- =================================
+         WHY PROVIDE LIQUIDITY
+    ================================== -->
+
+    <section class="section" id="benefits">
 
         <div class="section-heading">
-            <span class="eyebrow">COMMUNITY PARTICIPATION</span>
+
+            <span class="eyebrow">
+                COMMUNITY PARTICIPATION
+            </span>
+
             <h2>Why Provide Liquidity?</h2>
+
         </div>
 
 
@@ -240,12 +310,20 @@
     </section>
 
 
-    <!-- HOW TO PROVIDE LIQUIDITY -->
-    <section class="section">
+    <!-- =================================
+         HOW TO PROVIDE LIQUIDITY
+    ================================== -->
+
+    <section class="section" id="how-to">
 
         <div class="section-heading">
-            <span class="eyebrow">GET STARTED</span>
+
+            <span class="eyebrow">
+                GET STARTED
+            </span>
+
             <h2>How to Provide Liquidity</h2>
+
         </div>
 
 
@@ -254,12 +332,14 @@
             <span>01</span>
 
             <div>
+
                 <h3>Connect Your Wallet</h3>
 
                 <p>
                     Open Uniswap using a compatible wallet
                     on the Polygon network.
                 </p>
+
             </div>
 
         </div>
@@ -270,12 +350,14 @@
             <span>02</span>
 
             <div>
+
                 <h3>Select the JJS / USDT0 Pool</h3>
 
                 <p>
                     Verify the correct token pair,
                     network, and 0.25% fee tier.
                 </p>
+
             </div>
 
         </div>
@@ -286,6 +368,7 @@
             <span>03</span>
 
             <div>
+
                 <h3>Choose Your Price Range</h3>
 
                 <p>
@@ -293,6 +376,7 @@
                     Understand how concentrated liquidity
                     works before choosing a position.
                 </p>
+
             </div>
 
         </div>
@@ -303,6 +387,7 @@
             <span>04</span>
 
             <div>
+
                 <h3>Review and Confirm</h3>
 
                 <p>
@@ -310,6 +395,7 @@
                     fees, and risks before confirming
                     your transaction.
                 </p>
+
             </div>
 
         </div>
@@ -317,10 +403,15 @@
     </section>
 
 
-    <!-- RISKS -->
-    <section class="section risk-section">
+    <!-- =================================
+         RISKS
+    ================================== -->
 
-        <span class="eyebrow">IMPORTANT INFORMATION</span>
+    <section class="section risk-section" id="risks">
+
+        <span class="eyebrow">
+            IMPORTANT INFORMATION
+        </span>
 
         <h2>Understand the Risks</h2>
 
