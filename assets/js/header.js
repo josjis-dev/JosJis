@@ -35,6 +35,7 @@ const headerHTML = `
 
         <a href="about.html" data-page="about.html">About</a>
 
+        <!-- TOKEN DROPDOWN -->
         <div class="nav-dropdown">
 
             <button
@@ -71,6 +72,7 @@ const headerHTML = `
             Dashboard
         </a>
 
+        <!-- COMMUNITY DROPDOWN -->
         <div class="nav-dropdown">
 
             <button
@@ -104,6 +106,7 @@ const headerHTML = `
 
         </div>
 
+        <!-- CONNECT WALLET -->
         <button
             id="headerWalletBtn"
             class="wallet-connect-btn"
@@ -159,6 +162,11 @@ headerStyle.textContent = `
     .wallet-connect-btn:hover {
         background: #7c3aed;
     }
+
+    .wallet-connect-btn:disabled {
+        opacity: 0.6;
+        cursor: wait;
+    }
 `;
 
 document.head.appendChild(headerStyle);
@@ -175,70 +183,79 @@ function initializeWalletButton() {
 
     if (!walletBtn) return;
 
+
+    // UPDATE WALLET BUTTON
+
     function updateWalletButton() {
 
-        const connected = modal.getIsConnected();
-        const address = modal.getAddress();
-        const chainId = Number(modal.getChainId());
+        try {
 
-        if (!connected || !address) {
+            const connected = modal.getIsConnected();
+            const address = modal.getAddress();
+            const chainId = Number(modal.getChainId());
 
-            walletBtn.textContent = "Connect Wallet";
-            walletBtn.title = "Connect your wallet";
+            if (!connected || !address) {
 
-            return;
+                walletBtn.textContent = "Connect Wallet";
+                walletBtn.title = "Connect your wallet";
+
+                return;
+            }
+
+            if (chainId !== 137) {
+
+                walletBtn.textContent = "Wrong Network";
+                walletBtn.title = "Switch to Polygon";
+
+                return;
+            }
+
+            walletBtn.textContent =
+                address.slice(0, 6) +
+                "..." +
+                address.slice(-4);
+
+            walletBtn.title = "Connected to Polygon";
+
+        } catch (error) {
+
+            console.error("Wallet state error:", error);
+
         }
 
-        if (chainId !== 137) {
-
-            walletBtn.textContent = "Wrong Network";
-            walletBtn.title = "Switch to Polygon";
-
-            return;
-        }
-
-        walletBtn.textContent =
-            address.slice(0, 6) + "..." +
-            address.slice(-4);
-
-        walletBtn.title = "Connected to Polygon";
     }
 
+
+    // CONNECT WALLET BUTTON
 
     walletBtn.addEventListener("click", async () => {
 
         try {
 
-            if (!modal.getIsConnected()) {
+            walletBtn.disabled = true;
 
-                await modal.open({
-                    view: "Connect"
-                });
-
-            } else if (Number(modal.getChainId()) !== 137) {
-
-                await modal.open({
-                    view: "Networks"
-                });
-
-            } else {
-
-                await modal.open({
-                    view: "Account"
-                });
-
-            }
+            await modal.open({
+                view: "Connect"
+            });
 
         } catch (error) {
 
-            console.error("Wallet error:", error);
+            console.error("Header Wallet Error:", error);
+
+            alert("Unable to open wallet connection.");
+
+        } finally {
+
+            walletBtn.disabled = false;
+
+            updateWalletButton();
 
         }
 
     });
 
 
-    // Listen to AppKit changes
+    // APPKIT STATE LISTENERS
 
     modal.subscribeState(() => {
         updateWalletButton();
@@ -253,7 +270,7 @@ function initializeWalletButton() {
     });
 
 
-    // Restore existing wallet session
+    // RESTORE EXISTING SESSION
 
     updateWalletButton();
 
@@ -266,7 +283,9 @@ function initializeWalletButton() {
         attempts++;
 
         if (modal.getIsConnected() || attempts >= 40) {
+
             clearInterval(restoreSession);
+
         }
 
     }, 250);
@@ -311,7 +330,9 @@ function initializeHeader() {
             const dropdown = link.closest(".nav-dropdown");
 
             if (dropdown) {
+
                 dropdown.classList.add("has-active");
+
             }
 
         }
@@ -331,7 +352,9 @@ function initializeHeader() {
                 dropdown.querySelector(".dropdown-toggle");
 
             if (button) {
+
                 button.setAttribute("aria-expanded", "false");
+
             }
 
         });
@@ -353,7 +376,9 @@ function initializeHeader() {
         );
 
         if (!isOpen) {
+
             closeAllDropdowns();
+
         }
 
     });
