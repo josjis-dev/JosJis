@@ -1,4 +1,5 @@
 .
+├── 404.html
 ├── README.md
 ├── about.html
 ├── assets
@@ -30,4 +31,4 @@
     ├── README.md
     └── web3-config.js
 
-6 directories, 25 files
+6 directories, 26 files
