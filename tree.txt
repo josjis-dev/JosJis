@@ -22,6 +22,7 @@
 ├── ecosystem.html
 ├── googledf2d0e38f864d907.html
 ├── index.html
+├── member.html
 ├── roadmap.html
 ├── tokenomics.html
 ├── tree.txt
@@ -30,4 +31,4 @@
     ├── README.md
     └── web3-config.js
 
-6 directories, 25 files
+6 directories, 26 files
