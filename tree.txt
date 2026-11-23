@@ -15,7 +15,8 @@
 │       ├── README.md
 │       ├── components.js
 │       ├── footer.js
-│       └── header.js
+│       ├── header.js
+│       └── my-assets.js
 ├── buy-jjs.html
 ├── contact.html
 ├── crypto-donations.html
@@ -37,4 +38,4 @@
     ├── README.md
     └── web3-config.js
 
-8 directories, 30 files
+8 directories, 31 files
