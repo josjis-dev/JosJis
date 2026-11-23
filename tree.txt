@@ -12,7 +12,8 @@
 │   │   ├── README.md
 │   │   ├── josjis-logo-circle.png
 │   │   ├── josjis-logo.jpg
-│   │   └── pol-logo.png
+│   │   ├── pol-logo.png
+│   │   └── usdt0-logo.png
 │   └── js
 │       ├── README.md
 │       ├── components.js
@@ -40,4 +41,4 @@
     ├── README.md
     └── web3-config.js
 
-8 directories, 33 files
+8 directories, 34 files
