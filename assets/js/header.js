@@ -26,94 +26,49 @@ const headerHTML = `
 
     <nav id="mainNav" class="main-nav">
 
-        <a href="index.html" data-page="index.html">
-            Home
-        </a>
+        <a href="index.html" data-page="index.html">Home</a>
+        <a href="buy-jjs.html" data-page="buy-jjs.html">How to Buy</a>
+        <a href="about.html" data-page="about.html">About</a>
 
-        <a href="buy-jjs.html" data-page="buy-jjs.html">
-            How to Buy
-        </a>
-
-        <a href="about.html" data-page="about.html">
-            About
-        </a>
-
-        <!-- TOKEN DROPDOWN -->
         <div class="nav-dropdown">
-
             <button
                 class="dropdown-toggle"
                 type="button"
                 aria-expanded="false"
                 aria-controls="tokenSubmenu"
             >
-                Token
-                <span class="dropdown-arrow">▾</span>
+                Token <span class="dropdown-arrow">▾</span>
             </button>
 
             <div class="dropdown-menu" id="tokenSubmenu">
-
-                <a href="tokenomics.html"
-                   data-page="tokenomics.html">
-                    Tokenomics
-                </a>
-
-                <a href="utility.html"
-                   data-page="utility.html">
-                    Utility
-                </a>
-
+                <a href="tokenomics.html" data-page="tokenomics.html">Tokenomics</a>
+                <a href="utility.html" data-page="utility.html">Utility</a>
             </div>
-
         </div>
 
-        <a href="ecosystem.html" data-page="ecosystem.html">
-            Ecosystem
-        </a>
+        <a href="ecosystem.html" data-page="ecosystem.html">Ecosystem</a>
+        <a href="dashboard.html" data-page="dashboard.html">Dashboard</a>
 
-        <a href="dashboard.html" data-page="dashboard.html">
-            Dashboard
-        </a>
-
-        <!-- COMMUNITY DROPDOWN -->
         <div class="nav-dropdown">
-
             <button
                 class="dropdown-toggle"
                 type="button"
                 aria-expanded="false"
                 aria-controls="communitySubmenu"
             >
-                Community
-                <span class="dropdown-arrow">▾</span>
+                Community <span class="dropdown-arrow">▾</span>
             </button>
 
             <div class="dropdown-menu" id="communitySubmenu">
-
-                <a href="crypto-donations.html"
-                   data-page="crypto-donations.html">
-                    Donate
-                </a>
-
-                <a href="roadmap.html"
-                   data-page="roadmap.html">
-                    Roadmap
-                </a>
-
-                <a href="contact.html"
-                   data-page="contact.html">
-                    Contact
-                </a>
-
+                <a href="crypto-donations.html" data-page="crypto-donations.html">Donate</a>
+                <a href="roadmap.html" data-page="roadmap.html">Roadmap</a>
+                <a href="contact.html" data-page="contact.html">Contact</a>
             </div>
-
         </div>
 
     </nav>
 
-    <!-- GLOBAL WALLET -->
     <div class="global-wallet">
-
         <button
             id="globalWalletBtn"
             class="global-wallet-btn"
@@ -129,7 +84,6 @@ const headerHTML = `
         >
             Not connected
         </span>
-
     </div>
 
 </header>
@@ -144,91 +98,79 @@ const headerStyle = document.createElement("style");
 
 headerStyle.textContent = `
 
-    /* DROPDOWN */
+.nav-dropdown .dropdown-menu {
+    display: none;
+}
 
-    .nav-dropdown .dropdown-menu {
-        display: none;
-    }
+.nav-dropdown.open .dropdown-menu {
+    display: block;
+}
 
-    .nav-dropdown.open .dropdown-menu {
-        display: block;
-    }
+.dropdown-arrow {
+    display: inline-block;
+    font-size: 28px;
+    margin-left: 5px;
+    line-height: 1;
+    transition: transform 0.25s ease;
+}
 
-    .dropdown-arrow {
-        display: inline-block;
-        font-size: 28px;
-        margin-left: 5px;
-        line-height: 1;
-        transition: transform 0.25s ease;
-    }
+.nav-dropdown.open .dropdown-arrow {
+    transform: rotate(180deg);
+}
 
-    .nav-dropdown.open .dropdown-arrow {
-        transform: rotate(180deg);
-    }
+.global-wallet {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin-left: 18px;
+    flex-shrink: 0;
+}
 
+.global-wallet-btn {
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    color: #ffffff;
+    border: 1px solid #a78bfa;
+    border-radius: 9px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.25s ease;
+    white-space: nowrap;
+}
 
-    /* GLOBAL WALLET */
+.global-wallet-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(139,92,246,0.3);
+}
+
+.global-wallet-status {
+    color: #a78bfa;
+    font-size: 10px;
+    text-align: center;
+}
+
+.global-wallet-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
 
     .global-wallet {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-        margin-left: 18px;
-        flex-shrink: 0;
+        width: 100%;
+        margin: 15px 0 5px;
+        padding-top: 15px;
+        border-top: 1px solid rgba(255,255,255,0.1);
     }
 
     .global-wallet-btn {
-        background: linear-gradient(
-            135deg,
-            #8b5cf6,
-            #6d28d9
-        );
-        color: #ffffff;
-        border: 1px solid #a78bfa;
-        border-radius: 9px;
-        padding: 10px 16px;
-        font-size: 13px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: 0.25s ease;
-        white-space: nowrap;
+        width: 100%;
+        max-width: 260px;
     }
 
-    .global-wallet-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(139,92,246,0.3);
-    }
-
-    .global-wallet-status {
-        color: #a78bfa;
-        font-size: 10px;
-        text-align: center;
-    }
-
-    .global-wallet-btn:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-
-
-    /* MOBILE */
-
-    @media (max-width: 900px) {
-
-        .global-wallet {
-            width: 100%;
-            margin: 15px 0 5px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .global-wallet-btn {
-            width: 100%;
-            max-width: 260px;
-        }
-
-    }
+}
 
 `;
 
@@ -239,7 +181,12 @@ document.head.appendChild(headerStyle);
 // INITIALIZE HEADER
 // =====================================
 
-document.addEventListener("DOMContentLoaded", () => {
+function initializeHeader() {
+
+    // Prevent duplicate header
+    if (document.querySelector(".site-header")) {
+        return;
+    }
 
     document.body.insertAdjacentHTML(
         "afterbegin",
@@ -258,6 +205,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const mainNav =
         document.getElementById("mainNav");
 
+    const walletBtn =
+        document.getElementById("globalWalletBtn");
+
+    const walletStatus =
+        document.getElementById("globalWalletStatus");
+
 
     // =====================================
     // ACTIVE PAGE
@@ -268,7 +221,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (link.dataset.page === currentPage) {
 
             link.classList.add("active");
-
             link.setAttribute("aria-current", "page");
 
             const dropdown =
@@ -306,7 +258,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     // =====================================
-    // MOBILE MAIN MENU
+    // MOBILE MENU
     // =====================================
 
     menuToggle.addEventListener("click", () => {
@@ -347,7 +299,6 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!isCurrentlyOpen) {
 
                 currentDropdown.classList.add("open");
-
                 button.setAttribute("aria-expanded", "true");
 
             }
@@ -358,7 +309,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     // =====================================
-    // CLOSE MENUS AFTER NAVIGATION
+    // CLOSE MENU AFTER NAVIGATION
     // =====================================
 
     navLinks.forEach(link => {
@@ -366,7 +317,6 @@ document.addEventListener("DOMContentLoaded", () => {
         link.addEventListener("click", () => {
 
             mainNav.classList.remove("open");
-
             menuToggle.classList.remove("active");
 
             menuToggle.setAttribute(
@@ -382,24 +332,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     // =====================================
-    // GLOBAL WALLET CONNECTION
+    // WALLET UI
     // =====================================
-
-    const walletBtn =
-        document.getElementById("globalWalletBtn");
-
-    const walletStatus =
-        document.getElementById("globalWalletStatus");
-
-
-    // UPDATE WALLET DISPLAY
 
     function updateWalletUI(state) {
 
         if (!state || !state.isConnected) {
 
             walletBtn.textContent = "Connect Wallet";
-
             walletStatus.textContent = "Not connected";
 
             return;
@@ -412,14 +352,16 @@ document.addEventListener("DOMContentLoaded", () => {
             : "Connected";
 
         walletStatus.textContent =
-            state.chainId === 137
+            Number(state.chainId) === 137
                 ? "Connected · Polygon"
                 : "Connected · Wrong Network";
 
     }
 
 
+    // =====================================
     // INITIALIZE WALLET
+    // =====================================
 
     function initializeWallet() {
 
@@ -435,15 +377,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     // =====================================
-    // WALLET BUTTON CLICK
+    // WALLET BUTTON
     // =====================================
 
     walletBtn.addEventListener("click", async () => {
 
         if (!window.JosJisWallet) {
 
-            walletStatus.textContent =
-                "Wallet manager unavailable";
+            walletStatus.textContent = "Wallet manager unavailable";
 
             console.error(
                 "JosJisWallet is not available. Check wallet.js."
@@ -470,13 +411,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         } catch (error) {
 
-            console.error(
-                "Wallet connection error:",
-                error
-            );
+            console.error("Wallet connection error:", error);
 
-            walletStatus.textContent =
-                "Connection failed";
+            walletStatus.textContent = "Connection failed";
 
         } finally {
 
@@ -488,36 +425,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     // =====================================
-    // WALLET STATE EVENTS
+    // WALLET EVENTS
     // =====================================
 
-    window.addEventListener("josjis:wallet", (event) => {
-
+    window.addEventListener("josjis:wallet", event => {
         updateWalletUI(event.detail);
-
     });
-
-
-    // =====================================
-    // WALLET MANAGER READY EVENT
-    // =====================================
 
     window.addEventListener("josjis:wallet-ready", () => {
-
         initializeWallet();
-
     });
-
-
-    // =====================================
-    // INITIAL WALLET CHECK
-    // =====================================
 
     initializeWallet();
 
 
-    console.log(
-        "JosJis Header and Global Wallet initialized."
+    console.log("JosJis Header and Global Wallet initialized.");
+
+}
+
+
+// =====================================
+// RUN HEADER
+// =====================================
+
+if (document.readyState === "loading") {
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        initializeHeader
     );
 
-});
+} else {
+
+    initializeHeader();
+
+}
