@@ -1,4 +1,9 @@
+
+import { modal } from "../../web3/web3-config.js";
+
+// =====================================
 // JOSJIS SHARED HEADER
+// =====================================
 
 const headerHTML = `
 <header class="site-header">
@@ -30,7 +35,6 @@ const headerHTML = `
 
         <a href="about.html" data-page="about.html">About</a>
 
-        <!-- TOKEN DROPDOWN -->
         <div class="nav-dropdown">
 
             <button
@@ -67,7 +71,6 @@ const headerHTML = `
             Dashboard
         </a>
 
-        <!-- COMMUNITY DROPDOWN -->
         <div class="nav-dropdown">
 
             <button
@@ -101,6 +104,14 @@ const headerHTML = `
 
         </div>
 
+        <button
+            id="headerWalletBtn"
+            class="wallet-connect-btn"
+            type="button"
+        >
+            Connect Wallet
+        </button>
+
     </nav>
 
 </header>
@@ -108,12 +119,12 @@ const headerHTML = `
 
 
 // =====================================
-// DROPDOWN STYLE
+// HEADER STYLE
 // =====================================
 
-const arrowStyle = document.createElement("style");
+const headerStyle = document.createElement("style");
 
-arrowStyle.textContent = `
+headerStyle.textContent = `
     .nav-dropdown .dropdown-menu {
         display: none;
     }
@@ -133,31 +144,161 @@ arrowStyle.textContent = `
     .nav-dropdown.open .dropdown-arrow {
         transform: rotate(180deg);
     }
+
+    .wallet-connect-btn {
+        padding: 10px 16px;
+        border: 0;
+        border-radius: 8px;
+        background: #8b5cf6;
+        color: #ffffff;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .wallet-connect-btn:hover {
+        background: #7c3aed;
+    }
 `;
 
-document.head.appendChild(arrowStyle);
+document.head.appendChild(headerStyle);
+
+
+// =====================================
+// WALLET BUTTON
+// =====================================
+
+function initializeWalletButton() {
+
+    const walletBtn =
+        document.getElementById("headerWalletBtn");
+
+    if (!walletBtn) return;
+
+    function updateWalletButton() {
+
+        const connected = modal.getIsConnected();
+        const address = modal.getAddress();
+        const chainId = Number(modal.getChainId());
+
+        if (!connected || !address) {
+
+            walletBtn.textContent = "Connect Wallet";
+            walletBtn.title = "Connect your wallet";
+
+            return;
+        }
+
+        if (chainId !== 137) {
+
+            walletBtn.textContent = "Wrong Network";
+            walletBtn.title = "Switch to Polygon";
+
+            return;
+        }
+
+        walletBtn.textContent =
+            address.slice(0, 6) + "..." +
+            address.slice(-4);
+
+        walletBtn.title = "Connected to Polygon";
+    }
+
+
+    walletBtn.addEventListener("click", async () => {
+
+        try {
+
+            if (!modal.getIsConnected()) {
+
+                await modal.open({
+                    view: "Connect"
+                });
+
+            } else if (Number(modal.getChainId()) !== 137) {
+
+                await modal.open({
+                    view: "Networks"
+                });
+
+            } else {
+
+                await modal.open({
+                    view: "Account"
+                });
+
+            }
+
+        } catch (error) {
+
+            console.error("Wallet error:", error);
+
+        }
+
+    });
+
+
+    // Listen to AppKit changes
+
+    modal.subscribeState(() => {
+        updateWalletButton();
+    });
+
+    modal.subscribeAccount(() => {
+        updateWalletButton();
+    });
+
+    modal.subscribeNetwork(() => {
+        updateWalletButton();
+    });
+
+
+    // Restore existing wallet session
+
+    updateWalletButton();
+
+    let attempts = 0;
+
+    const restoreSession = setInterval(() => {
+
+        updateWalletButton();
+
+        attempts++;
+
+        if (modal.getIsConnected() || attempts >= 40) {
+            clearInterval(restoreSession);
+        }
+
+    }, 250);
+
+}
 
 
 // =====================================
 // INITIALIZE HEADER
 // =====================================
 
-document.addEventListener("DOMContentLoaded", () => {
+function initializeHeader() {
 
-    document.body.insertAdjacentHTML("afterbegin", headerHTML);
+    document.body.insertAdjacentHTML(
+        "afterbegin",
+        headerHTML
+    );
 
     const currentPage =
         window.location.pathname.split("/").pop() || "index.html";
 
-    const navLinks = document.querySelectorAll(".main-nav a");
+    const navLinks =
+        document.querySelectorAll(".main-nav a");
 
-    const menuToggle = document.getElementById("menuToggle");
-    const mainNav = document.getElementById("mainNav");
+    const menuToggle =
+        document.getElementById("menuToggle");
+
+    const mainNav =
+        document.getElementById("mainNav");
 
 
-    // =====================================
     // ACTIVE PAGE
-    // =====================================
 
     navLinks.forEach(link => {
 
@@ -178,9 +319,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
 
-    // =====================================
     // CLOSE ALL DROPDOWNS
-    // =====================================
 
     function closeAllDropdowns() {
 
@@ -200,9 +339,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    // =====================================
     // MOBILE MAIN MENU
-    // =====================================
 
     menuToggle.addEventListener("click", () => {
 
@@ -215,7 +352,6 @@ document.addEventListener("DOMContentLoaded", () => {
             String(isOpen)
         );
 
-        // Close dropdowns when main menu closes
         if (!isOpen) {
             closeAllDropdowns();
         }
@@ -223,9 +359,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
 
-    // =====================================
     // DROPDOWN MENUS
-    // =====================================
 
     document.querySelectorAll(".dropdown-toggle").forEach(button => {
 
@@ -237,10 +371,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const isCurrentlyOpen =
                 currentDropdown.classList.contains("open");
 
-            // Close all dropdowns first
             closeAllDropdowns();
 
-            // Open only if it was previously closed
             if (!isCurrentlyOpen) {
 
                 currentDropdown.classList.add("open");
@@ -254,9 +386,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
 
-    // =====================================
     // CLOSE MENUS AFTER NAVIGATION
-    // =====================================
 
     navLinks.forEach(link => {
 
@@ -277,4 +407,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
     });
 
-});
+
+    // INITIALIZE WALLET
+
+    initializeWalletButton();
+
+}
+
+
+// =====================================
+// DOM READY
+// =====================================
+
+if (document.readyState === "loading") {
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        initializeHeader
+    );
+
+} else {
+
+    initializeHeader();
+
+}
