@@ -25,7 +25,8 @@
 ├── member
 │   ├── README.md
 │   └── my-assets
-│       └── README.md
+│       ├── README.md
+│       └── index.html
 ├── member.html
 ├── roadmap.html
 ├── tokenomics.html
@@ -35,4 +36,4 @@
     ├── README.md
     └── web3-config.js
 
-8 directories, 28 files
+8 directories, 29 files
