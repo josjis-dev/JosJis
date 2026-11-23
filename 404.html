@@ -1,0 +1,104 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>404 - Page Not Found | JosJis</title>
+
+    <meta name="description" content="The page you are looking for could not be found on the JosJis website.">
+
+    <meta name="theme-color" content="#0c0914">
+
+    <link rel="icon" href="assets/images/josjis-logo.jpg">
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <style>
+        .error-page {
+            min-height: 80vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .error-content {
+            max-width: 600px;
+        }
+
+        .error-logo {
+            width: 110px;
+            height: 110px;
+            object-fit: contain;
+            margin-bottom: 25px;
+        }
+
+        .error-code {
+            font-size: clamp(90px, 20vw, 150px);
+            font-weight: 900;
+            line-height: 1;
+            color: #a78bfa;
+            margin: 0;
+        }
+
+        .error-title {
+            font-size: 28px;
+            margin: 20px 0 12px;
+        }
+
+        .error-message {
+            color: #b9b2c9;
+            line-height: 1.7;
+            margin-bottom: 30px;
+        }
+
+        .home-button {
+            display: inline-block;
+            padding: 13px 28px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            transition: 0.25s;
+        }
+
+        .home-button:hover {
+            transform: translateY(-3px);
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="error-page">
+        <div class="error-content">
+
+            <img
+                src="assets/images/josjis-logo.jpg"
+                alt="JosJis Logo"
+                class="error-logo"
+            >
+
+            <h1 class="error-code">404</h1>
+
+            <h2 class="error-title">
+                Page Not Found
+            </h2>
+
+            <p class="error-message">
+                Oops! The page you are looking for
+                doesn't exist or may have been moved.
+            </p>
+
+            <a href="./" class="home-button">
+                Back to Home
+            </a>
+
+        </div>
+    </main>
+
+</body>
+</html>
