@@ -21,6 +21,7 @@
 │       ├── header.js
 │       └── my-assets.js
 ├── buy-jjs.html
+├── community-lp.html
 ├── contact.html
 ├── crypto-donations.html
 ├── dashboard.html
@@ -46,4 +47,4 @@
     ├── README.md
     └── web3-config.js
 
-9 directories, 38 files
+9 directories, 39 files
