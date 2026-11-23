@@ -85,6 +85,11 @@ const headerHTML = `
                     Liquidity Center
                 </a>
 
+                <a href="/josjis/community-lp.html"
+                   data-page="community-lp.html">
+                    Community LP
+                </a>
+
             </div>
 
         </div>
