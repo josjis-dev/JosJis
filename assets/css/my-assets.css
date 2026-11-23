@@ -254,17 +254,31 @@
     border-radius: 50%;
 }
 
+/* JJS */
+
 .jjs-icon {
     background: #332044;
     color: #d5aaff;
     border: 1px solid #8150c9;
 }
 
+/* POL */
+
 .pol-icon {
     background: #252044;
     color: #b8a8ff;
     border: 1px solid #6552b5;
 }
+
+/* USDT0 */
+
+.usdt0-icon {
+    background: #173b35;
+    color: #50d8a0;
+    border: 1px solid #25866a;
+}
+
+/* ASSET INFORMATION */
 
 .asset-info {
     flex: 1 1 auto;
