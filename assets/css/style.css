@@ -1,3 +1,4 @@
+
 /* =====================================
    JOSJIS GLOBAL WEBSITE STYLESHEET
 ===================================== */
@@ -122,8 +123,6 @@ button {
   align-items: center;
 }
 
-/* DROPDOWN BUTTON */
-
 .dropdown-toggle {
   display: flex;
   align-items: center;
@@ -184,8 +183,6 @@ button {
   z-index: 1100;
 }
 
-/* SHOW ONLY WHEN CLICKED */
-
 .nav-dropdown.open > .dropdown-menu {
   display: block;
 }
@@ -208,8 +205,6 @@ button {
   color: var(--purple);
   background: var(--card-hover);
 }
-
-/* ACTIVE DROPDOWN */
 
 .nav-dropdown.has-active .dropdown-toggle {
   color: var(--purple);
@@ -586,7 +581,7 @@ textarea {
 }
 
 /* =====================================
-   SHARED FOOTER
+   SHARED FOOTER - 4 COLUMNS
 ===================================== */
 
 .site-footer {
@@ -600,12 +595,12 @@ textarea {
 }
 
 .footer-content {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: auto;
 
   display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr;
-  gap: 35px;
+  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  gap: 30px;
 }
 
 .footer-brand h3 {
@@ -618,6 +613,11 @@ textarea {
   color: var(--muted);
   max-width: 300px;
   font-size: 13px;
+  line-height: 1.7;
+}
+
+.footer-description {
+  margin-top: 14px;
 }
 
 .footer-links,
@@ -639,6 +639,7 @@ textarea {
 .footer-social a {
   color: var(--muted);
   font-size: 13px;
+  text-decoration: none;
 }
 
 .footer-links a:hover,
@@ -646,9 +647,50 @@ textarea {
   color: var(--purple-light);
 }
 
-.footer-bottom {
-  max-width: 1100px;
+/* OFFICIAL CONTRACT */
+
+.footer-contract {
+  max-width: 1200px;
   margin: 35px auto 0;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.footer-contract h4 {
+  color: var(--text);
+  font-size: 15px;
+  margin: 0 0 10px;
+}
+
+.footer-contract p {
+  font-size: 13px;
+  margin: 8px 0;
+  line-height: 1.6;
+}
+
+.contract-address {
+  overflow-wrap: anywhere;
+}
+
+.contract-address a {
+  color: var(--purple);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.contract-address a:hover {
+  color: var(--purple-light);
+}
+
+.footer-contract-note {
+  color: var(--muted);
+}
+
+/* FOOTER BOTTOM */
+
+.footer-bottom {
+  max-width: 1200px;
+  margin: 25px auto 0;
   padding-top: 20px;
 
   border-top: 1px solid var(--border);
@@ -660,10 +702,6 @@ textarea {
 .footer-bottom p {
   margin: 8px 0;
   overflow-wrap: anywhere;
-}
-
-.footer-bottom a {
-  color: var(--purple);
 }
 
 /* =====================================
@@ -740,8 +778,6 @@ textarea {
 
     box-shadow: none;
   }
-
-  /* MOBILE: SHOW ONLY WHEN CLICKED */
 
   .nav-dropdown.open > .dropdown-menu {
     display: block;
