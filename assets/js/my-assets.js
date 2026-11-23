@@ -80,7 +80,7 @@ function showWallet(address) {
 
 
 // =====================================
-// SHOW DISCONNECTED
+// DISCONNECTED
 // =====================================
 
 function showDisconnected() {
@@ -135,6 +135,11 @@ function showWrongNetwork(address) {
     assetsMessage.textContent =
         "Please switch to Polygon Mainnet.";
 
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+        refreshInterval = null;
+    }
+
 }
 
 
@@ -169,8 +174,6 @@ async function refreshAssets() {
                 token.decimals()
 
             ]);
-
-        // Ignore outdated results
 
         if (
             currentAddress !== address ||
@@ -226,18 +229,23 @@ async function refreshAssets() {
 
 
 // =====================================
-// CHECK WALLET AND NETWORK
+// SYNC WALLET
+// Dashboard-style address detection
 // =====================================
 
-function syncWallet() {
+function syncWallet(accountAddress = null) {
 
-    const connected = modal.getIsConnected();
-    const address = modal.getAddress();
-    const chainId = modal.getChainId();
+    // Use the AppKit address directly,
+    // just like the working Dashboard.
 
-    if (!connected || !address) {
+    const address =
+        modal.getAddress() || accountAddress;
+
+    if (!address) {
         return;
     }
+
+    const chainId = modal.getChainId();
 
     if (Number(chainId) !== 137) {
 
@@ -291,7 +299,7 @@ connectBtn.addEventListener("click", async () => {
 
     } catch (error) {
 
-        console.error("Wallet Connection Error:", error);
+        console.error("Connect Error:", error);
 
         assetsMessage.textContent =
             "Unable to open wallet connection.";
@@ -360,8 +368,8 @@ modal.subscribeState((state) => {
 
 modal.subscribeAccount((account) => {
 
-    if (account.isConnected && account.address) {
-        syncWallet();
+    if (account.address) {
+        syncWallet(account.address);
     }
 
 });
@@ -373,15 +381,13 @@ modal.subscribeAccount((account) => {
 
 modal.subscribeNetwork(() => {
 
-    if (modal.getIsConnected()) {
-        syncWallet();
-    }
+    syncWallet();
 
 });
 
 
 // =====================================
-// RESTORE PREVIOUS WALLET SESSION
+// RESTORE WALLET SESSION
 // =====================================
 
 async function restoreWalletSession() {
@@ -391,26 +397,22 @@ async function restoreWalletSession() {
     assetsMessage.textContent =
         "Restoring wallet session...";
 
-    connectBtn.disabled = false;
-    connectBtn.textContent = "Connect Wallet";
-
     for (let attempt = 0; attempt < 40; attempt++) {
 
         try {
 
-            if (
-                modal.getIsConnected() &&
-                modal.getAddress()
-            ) {
+            const address = modal.getAddress();
 
-                syncWallet();
+            if (address) {
+
+                syncWallet(address);
                 return;
 
             }
 
         } catch (error) {
 
-            console.error("Restore check:", error);
+            console.error("Restore Error:", error);
 
         }
 
@@ -419,9 +421,6 @@ async function restoreWalletSession() {
         );
 
     }
-
-    // Do not clear the saved AppKit session.
-    // AppKit may restore it after this check.
 
     if (!currentAddress) {
 
