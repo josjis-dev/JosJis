@@ -64,7 +64,6 @@ function showWallet(address) {
     currentAddress = address;
 
     walletAddress.textContent = address;
-
     walletStatus.textContent = "Connected";
 
     connectBtn.hidden = true;
@@ -77,16 +76,19 @@ function showWallet(address) {
     refreshBtn.disabled = false;
 
     assetsMessage.textContent =
-        "Wallet connected successfully.";
+        "Wallet connected. Loading assets...";
 }
 
+
+// =====================================
+// DISCONNECTED
+// =====================================
 
 function showDisconnected() {
 
     currentAddress = null;
 
     walletAddress.textContent = "Not connected";
-
     walletStatus.textContent = "Disconnected";
 
     connectBtn.hidden = false;
@@ -105,6 +107,38 @@ function showDisconnected() {
         clearInterval(refreshInterval);
         refreshInterval = null;
     }
+
+}
+
+
+// =====================================
+// WRONG NETWORK
+// =====================================
+
+function showWrongNetwork(address) {
+
+    currentAddress = null;
+
+    walletAddress.textContent = address;
+    walletStatus.textContent = "Wrong Network";
+
+    connectBtn.hidden = true;
+    copyBtn.hidden = true;
+    explorerLink.hidden = true;
+
+    refreshBtn.disabled = true;
+
+    jjsBalance.textContent = "--";
+    polBalance.textContent = "--";
+
+    assetsMessage.textContent =
+        "Please switch to Polygon Mainnet.";
+
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+        refreshInterval = null;
+    }
+
 }
 
 
@@ -118,16 +152,15 @@ async function refreshAssets() {
         return;
     }
 
-    isRefreshing = true;
+    const address = currentAddress;
 
+    isRefreshing = true;
     refreshBtn.disabled = true;
 
     assetsMessage.textContent =
         "Updating asset balances...";
 
     try {
-
-        const address = currentAddress;
 
         const [jjsResult, polResult, decimals] =
             await Promise.all([
@@ -140,7 +173,7 @@ async function refreshAssets() {
 
             ]);
 
-        // Ignore results if wallet changed
+        // Ignore outdated results
         if (currentAddress !== address) {
             return;
         }
@@ -168,8 +201,12 @@ async function refreshAssets() {
 
         console.error("My Assets Error:", error);
 
-        assetsMessage.textContent =
-            "Unable to load balances. Please try again.";
+        if (currentAddress === address) {
+
+            assetsMessage.textContent =
+                "Unable to load balances. Check Polygon RPC connection.";
+
+        }
 
     } finally {
 
@@ -180,6 +217,7 @@ async function refreshAssets() {
         }
 
     }
+
 }
 
 
@@ -258,41 +296,21 @@ function checkWallet() {
     if (!connected || !address) {
 
         showDisconnected();
-
         return;
 
     }
 
     if (Number(chainId) !== 137) {
 
-        currentAddress = null;
-
-        walletAddress.textContent = address;
-
-        walletStatus.textContent = "Wrong Network";
-
-        connectBtn.hidden = true;
-        copyBtn.hidden = true;
-        explorerLink.hidden = true;
-
-        refreshBtn.disabled = true;
-
-        jjsBalance.textContent = "--";
-        polBalance.textContent = "--";
-
-        assetsMessage.textContent =
-            "Please switch to Polygon Mainnet.";
-
-        if (refreshInterval) {
-            clearInterval(refreshInterval);
-            refreshInterval = null;
-        }
-
+        showWrongNetwork(address);
         return;
 
     }
 
-    if (currentAddress !== address) {
+    const addressChanged =
+        currentAddress?.toLowerCase() !== address.toLowerCase();
+
+    if (addressChanged) {
 
         showWallet(address);
 
@@ -304,6 +322,7 @@ function checkWallet() {
 
         refreshInterval = setInterval(() => {
 
+            checkWallet();
             refreshAssets();
 
         }, 15000);
@@ -351,8 +370,15 @@ async function restoreWalletSession() {
 
         checkWallet();
 
-        if (modal.getIsConnected()) {
+        if (
+            modal.getIsConnected() &&
+            Number(modal.getChainId()) === 137 &&
+            modal.getAddress()
+        ) {
+
+            refreshAssets();
             return;
+
         }
 
         await new Promise(resolve =>
