@@ -23,7 +23,9 @@
 ├── googledf2d0e38f864d907.html
 ├── index.html
 ├── member
-│   └── README.md
+│   ├── README.md
+│   └── my-assets
+│       └── README.md
 ├── member.html
 ├── roadmap.html
 ├── tokenomics.html
@@ -33,4 +35,4 @@
     ├── README.md
     └── web3-config.js
 
-7 directories, 27 files
+8 directories, 28 files
