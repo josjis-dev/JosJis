@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>JosJis Community LP Program | JJS</title>
-    <meta name="description" content="Learn about providing liquidity to the JosJis community on Polygon. Explore the JJS liquidity pool, understand LP risks, and access the Liquidity Center.">
+    <meta name="description" content="Learn how to provide liquidity to the JosJis community on Polygon. Explore the JJS liquidity pool, follow the Android LP guide, and understand liquidity risks.">
     <meta name="theme-color" content="#0c0914">
 
     <link rel="stylesheet" href="assets/css/style.css">
@@ -194,6 +194,35 @@
             font-size: 14px;
         }
 
+        .lp-step ul {
+            color: var(--muted);
+            font-size: 14px;
+            padding-left: 20px;
+            margin-top: 8px;
+        }
+
+        .lp-step li {
+            margin-bottom: 5px;
+        }
+
+        .lp-note {
+            background: rgba(155, 92, 255, .08);
+            border: 1px solid rgba(155, 92, 255, .3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .lp-note h3 {
+            color: var(--purple-light);
+            margin-bottom: 8px;
+        }
+
+        .lp-note p {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
         .lp-risk {
             background: rgba(255, 177, 74, .07);
             border: 1px solid rgba(255, 177, 74, .28);
@@ -218,6 +247,10 @@
             margin-top: 10px;
         }
 
+        .lp-risk li {
+            margin-bottom: 8px;
+        }
+
         .lp-final {
             text-align: center;
             padding: 38px 24px;
@@ -237,6 +270,12 @@
             margin: 0 auto;
         }
 
+        .lp-small {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 12px;
+        }
+
         @media (max-width: 600px) {
             .lp-hero {
                 padding: 75px 18px 60px;
@@ -253,6 +292,10 @@
             .lp-actions .lp-button {
                 width: 100%;
                 text-align: center;
+            }
+
+            .lp-step {
+                padding: 18px 16px 18px 58px;
             }
         }
     </style>
@@ -278,18 +321,25 @@
     </p>
 
     <div class="lp-actions">
-        <a class="lp-button" href="liquidity/#pool">Open Liquidity Center</a>
+        <a class="lp-button" href="liquidity/#pool">
+            Open Liquidity Center
+        </a>
+
         <a class="lp-button lp-button-secondary"
            href="https://polygonscan.com/token/0x52C8Ff13ada1431376b3E77E8219b644805122dF"
-           target="_blank" rel="noopener noreferrer">Verify JJS Contract</a>
+           target="_blank" rel="noopener noreferrer">
+            Verify JJS Contract
+        </a>
     </div>
 </section>
 
 <main class="lp-content">
 
+    <!-- ABOUT THE PROGRAM -->
     <section class="lp-section">
         <div class="lp-section-tag">ABOUT THE PROGRAM</div>
         <h2>What Is Community Liquidity?</h2>
+
         <p class="lp-intro">
             Liquidity providers (LPs) deposit supported token pairs into
             a decentralized exchange pool. These assets help other users
@@ -300,6 +350,7 @@
         </p>
 
         <div class="lp-grid">
+
             <article class="lp-card">
                 <div class="lp-card-icon">🌊</div>
                 <h3>Support Swaps</h3>
@@ -327,15 +378,19 @@
                     a decision.
                 </p>
             </article>
+
         </div>
     </section>
 
+
+    <!-- POOL INFORMATION -->
     <section class="lp-section">
         <div class="lp-section-tag">OFFICIAL JJS INFORMATION</div>
         <h2>Explore the JJS Liquidity Pool</h2>
 
         <div class="lp-pool-box">
             <h3>JosJis ($JJS) — Polygon</h3>
+
             <p>
                 Visit the JosJis Liquidity Center to view the pool
                 information currently monitored by the website.
@@ -350,105 +405,275 @@
             </div>
 
             <div class="lp-actions" style="justify-content:flex-start;">
-                <a class="lp-button" href="liquidity/#pool">View Pool Information</a>
+                <a class="lp-button" href="liquidity/#pool">
+                    View Pool Information
+                </a>
             </div>
         </div>
     </section>
 
-    <section class="lp-section">
-        <div class="lp-section-tag">HOW TO PARTICIPATE</div>
-        <h2>Before You Become an LP</h2>
+
+    <!-- ANDROID LP GUIDE -->
+    <section class="lp-section" id="lp-guide">
+        <div class="lp-section-tag">ANDROID PARTICIPATION GUIDE</div>
+        <h2>How to Provide Liquidity Using MetaMask</h2>
+
         <p class="lp-intro">
-            Take time to understand the pool and the risks. The steps
-            below are an overview, not a guarantee that a particular
-            pool or position is suitable for you.
+            This guide explains the general process of adding liquidity
+            to a Uniswap V4 pool using MetaMask on Android. The exact
+            interface and available options may change depending on
+            the exchange and wallet version.
         </p>
 
         <div class="lp-steps">
+
             <article class="lp-step">
-                <h3>Review the Liquidity Center</h3>
+                <h3>Prepare Your MetaMask Wallet</h3>
                 <p>
-                    Check the current pool details, token pair, network,
-                    fee tier, and available on-chain information.
+                    Open MetaMask on your Android phone and make sure
+                    you are using the Polygon network.
+                </p>
+                <ul>
+                    <li>Keep enough POL for network transaction fees.</li>
+                    <li>Prepare the two assets required by the selected pool.</li>
+                    <li>Never share your recovery phrase or private key.</li>
+                </ul>
+            </article>
+
+            <article class="lp-step">
+                <h3>Open the JosJis Liquidity Center</h3>
+                <p>
+                    Visit the Liquidity Center and review the monitored
+                    JJS pool information before proceeding.
+                </p>
+                <ul>
+                    <li>Check that the network is Polygon.</li>
+                    <li>Verify the JJS contract address.</li>
+                    <li>Confirm the paired token and fee tier.</li>
+                    <li>Open the corresponding pool through the provided exchange link.</li>
+                </ul>
+            </article>
+
+            <article class="lp-step">
+                <h3>Connect MetaMask to Uniswap</h3>
+                <p>
+                    Open the official Uniswap interface and connect
+                    your wallet using the supported MetaMask connection
+                    method. Check the website address before connecting.
+                </p>
+                <p>
+                    Confirm that your wallet is connected to Polygon.
+                    Connecting a wallet does not automatically deposit
+                    or transfer your assets.
                 </p>
             </article>
 
             <article class="lp-step">
-                <h3>Open the Correct Uniswap Pool</h3>
+                <h3>Open the Pool and Select Add Liquidity</h3>
                 <p>
-                    Use the official link provided through the Liquidity
-                    Center. Confirm that you are on Polygon and that the
-                    token addresses match the intended pair.
+                    Navigate to the correct JJS pool and choose the
+                    option to add liquidity. Carefully verify the
+                    token pair and pool fee tier.
+                </p>
+                <p>
+                    Do not select a similarly named token or an
+                    unrelated pool. Always compare token addresses
+                    with the official information.
                 </p>
             </article>
 
             <article class="lp-step">
-                <h3>Connect Your Wallet</h3>
+                <h3>Choose Your Deposit Amount</h3>
                 <p>
-                    Connect a compatible wallet, such as MetaMask.
-                    Keep enough POL for Polygon network transaction fees.
+                    Enter the amount of each asset you want to provide.
+                    The interface may calculate the required amount
+                    of the other asset based on the selected price range
+                    and pool price.
+                </p>
+                <p>
+                    Review the estimated deposit amounts and keep
+                    additional POL available for transaction fees.
                 </p>
             </article>
 
             <article class="lp-step">
-                <h3>Understand the Position Settings</h3>
+                <h3>Understand Your Price Range</h3>
                 <p>
-                    Review the amount of each asset, price range,
-                    fee tier, and any transaction costs before confirming.
-                    Concentrated liquidity may require active monitoring.
+                    Uniswap V4 concentrated liquidity positions use
+                    a selected price range. Your liquidity may only
+                    be active while the pool price remains within
+                    that range.
+                </p>
+                <ul>
+                    <li>A narrower range concentrates liquidity but may require more monitoring.</li>
+                    <li>A wider range can cover more price movement but distributes liquidity differently.</li>
+                    <li>If the price moves outside your range, your position may become one-sided and stop earning swap fees until it becomes active again.</li>
+                </ul>
+                <p>
+                    Choose a range only after understanding how it
+                    affects your position. Do not assume that a
+                    particular range guarantees fees or protects
+                    your deposit value.
                 </p>
             </article>
 
             <article class="lp-step">
-                <h3>Monitor Your Position</h3>
+                <h3>Review and Confirm the Transaction</h3>
                 <p>
-                    Check whether your position remains in range,
-                    review earned fees if available, and understand
-                    the conditions for withdrawing liquidity.
+                    If token approval is required, review the approval
+                    request first. Then review the liquidity transaction
+                    in MetaMask.
                 </p>
+                <ul>
+                    <li>Check the token amounts.</li>
+                    <li>Check the network and estimated gas fee.</li>
+                    <li>Read the transaction details before signing.</li>
+                    <li>Never approve a transaction you do not understand.</li>
+                </ul>
             </article>
+
+            <article class="lp-step">
+                <h3>Monitor Your LP Position</h3>
+                <p>
+                    After the transaction is confirmed, check your
+                    Uniswap position details.
+                </p>
+                <ul>
+                    <li>Monitor the current pool price and your selected range.</li>
+                    <li>Review the token composition of your position.</li>
+                    <li>Check eligible fees when the interface provides them.</li>
+                    <li>Understand the withdrawal process before you need it.</li>
+                </ul>
+            </article>
+
+        </div>
+
+        <div class="lp-note">
+            <h3>Important: Every LP Position Is Different</h3>
+            <p>
+                The amount of each token, price range, fee tier,
+                and position status can affect how a liquidity
+                position behaves. Always review the current
+                transaction details in your wallet and exchange
+                interface. This guide is educational and does not
+                execute transactions for you.
+            </p>
+        </div>
+
+        <div class="lp-actions">
+            <a class="lp-button" href="liquidity/#pool">
+                Review JJS Pool
+            </a>
         </div>
     </section>
 
+
+    <!-- GENERAL PARTICIPATION -->
+    <section class="lp-section">
+        <div class="lp-section-tag">BEFORE YOU PARTICIPATE</div>
+        <h2>LP Participation Checklist</h2>
+
+        <p class="lp-intro">
+            Before depositing assets, make sure you understand
+            the pool and the position you are creating.
+        </p>
+
+        <div class="lp-grid">
+
+            <article class="lp-card">
+                <div class="lp-card-icon">🔍</div>
+                <h3>Verify the Pool</h3>
+                <p>
+                    Confirm the network, token addresses, pool identity,
+                    and fee tier.
+                </p>
+            </article>
+
+            <article class="lp-card">
+                <div class="lp-card-icon">💰</div>
+                <h3>Check Your Budget</h3>
+                <p>
+                    Only use assets you can afford to risk and keep
+                    enough POL for transaction fees.
+                </p>
+            </article>
+
+            <article class="lp-card">
+                <div class="lp-card-icon">📊</div>
+                <h3>Understand Price Range</h3>
+                <p>
+                    Learn how concentrated liquidity works and
+                    how price movement affects your position.
+                </p>
+            </article>
+
+            <article class="lp-card">
+                <div class="lp-card-icon">📱</div>
+                <h3>Monitor Regularly</h3>
+                <p>
+                    Check your position and understand when it
+                    becomes inactive or one-sided.
+                </p>
+            </article>
+
+        </div>
+    </section>
+
+
+    <!-- RISKS -->
     <section class="lp-section">
         <div class="lp-section-tag">IMPORTANT INFORMATION</div>
         <h2>Understand the Risks</h2>
 
         <div class="lp-risk">
             <h3>Liquidity provision involves risk</h3>
+
             <p>
                 Providing liquidity is not the same as holding tokens
                 in a wallet. The value and composition of your position
                 can change as market prices move.
             </p>
+
             <ul>
                 <li>
-                    <strong>Impermanent loss:</strong> changes in the
-                    relative prices of the deposited tokens can leave
-                    an LP with a different value than simply holding them.
+                    <strong>Impermanent loss:</strong>
+                    changes in the relative prices of the deposited
+                    tokens can leave an LP with a different value
+                    than simply holding them.
                 </li>
+
                 <li>
-                    <strong>Price-range risk:</strong> in concentrated
-                    liquidity pools, a position can move out of its
-                    selected range and become one-sided, depending on
-                    the pool design.
+                    <strong>Price-range risk:</strong>
+                    in concentrated liquidity pools, a position can
+                    move out of its selected range and become one-sided.
+                    It may stop earning swap fees while out of range.
                 </li>
+
                 <li>
-                    <strong>Market risk:</strong> JJS and paired-token
-                    prices can fluctuate. You may lose some or all of
-                    the value you deposit.
+                    <strong>Market risk:</strong>
+                    JJS and paired-token prices can fluctuate.
+                    You may lose some or all of the value you deposit.
                 </li>
+
                 <li>
                     <strong>Smart contract and network risk:</strong>
-                    decentralized exchange contracts, wallets, and
-                    blockchain networks may involve technical risks.
+                    decentralized exchange contracts, wallets,
+                    and blockchain networks may involve technical risks.
                 </li>
+
                 <li>
-                    <strong>Fees are not guaranteed:</strong> trading
-                    fees depend on pool activity, position status,
-                    and the exchange's fee rules.
+                    <strong>Fees are not guaranteed:</strong>
+                    trading fees depend on pool activity, position
+                    status, and the exchange's fee rules.
+                </li>
+
+                <li>
+                    <strong>Transaction costs:</strong>
+                    approvals, deposits, withdrawals, and other
+                    blockchain transactions may require network fees.
                 </li>
             </ul>
+
             <p style="margin-top:12px;">
                 Only consider providing assets you can afford to risk.
                 Do your own research and verify all transaction details
@@ -457,9 +682,12 @@
         </div>
     </section>
 
+
+    <!-- FINAL CTA -->
     <section class="lp-section">
         <div class="lp-final">
             <h2>One Token. One Community. Many Possibilities.</h2>
+
             <p>
                 Community liquidity is one possible way to participate
                 in the development of the JosJis ecosystem. Learn first,
@@ -467,8 +695,14 @@
             </p>
 
             <div class="lp-actions">
-                <a class="lp-button" href="liquidity/#pool">Visit Liquidity Center</a>
-                <a class="lp-button lp-button-secondary" href="ecosystem.html">Explore Ecosystem</a>
+                <a class="lp-button" href="liquidity/#pool">
+                    Visit Liquidity Center
+                </a>
+
+                <a class="lp-button lp-button-secondary"
+                   href="ecosystem.html">
+                    Explore Ecosystem
+                </a>
             </div>
         </div>
     </section>
