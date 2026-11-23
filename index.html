@@ -1,166 +1,277 @@
-<!DOCTYPE html><html lang="en">
+
+<!DOCTYPE html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0c0914"><title>JosJis ($JJS) | Official Website</title>
-<meta name="description" content="Welcome to JosJis ($JJS), a community-driven Polygon token project. Explore its tokenomics, utilities, ecosystem and development roadmap."><link rel="stylesheet" href="assets/css/style.css"><script src="assets/js/header.js" defer></script><script src="assets/js/footer.js" defer></script><script src="assets/js/components.js" defer></script><style>
-/* HOME PAGE SPECIFIC STYLES */
+<meta name="theme-color" content="#0c0914">
+
+<title>JosJis ($JJS) | Official Website</title>
+
+<meta name="description" content="Welcome to JosJis ($JJS), a community-driven Polygon token project. Explore its tokenomics, utilities, ecosystem, liquidity and development roadmap.">
+
+<link rel="stylesheet" href="assets/css/style.css">
+
+<script src="assets/js/header.js" defer></script>
+<script src="assets/js/footer.js" defer></script>
+<script src="assets/js/components.js" defer></script>
+
+<style>
+/* =====================================
+   JOSJIS PREMIUM HOMEPAGE
+===================================== */
+
+:root {
+    --home-glow: rgba(155, 92, 255, 0.22);
+    --home-glass: rgba(23, 18, 34, 0.82);
+    --home-border: rgba(189, 145, 255, 0.18);
+}
+
+/* GLOBAL HOME LAYOUT */
+
+.home-hero,
+.home-hero *,
+.home-section,
+.home-section * {
+    box-sizing: border-box;
+}
 
 .home-hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     text-align: center;
-    padding: 90px 20px 70px;
-    background: radial-gradient(circle at top, #352052 0%, #0c0914 65%);
+    padding: 105px 20px 90px;
+    background:
+        radial-gradient(ellipse at 50% 0%, #47276b 0%, transparent 55%),
+        radial-gradient(ellipse at 10% 80%, rgba(92, 42, 145, 0.18), transparent 45%),
+        linear-gradient(180deg, #120b1d 0%, #0c0914 100%);
+}
+
+.home-hero::before,
+.home-hero::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    filter: blur(85px);
+    pointer-events: none;
+}
+
+.home-hero::before {
+    background: rgba(155, 92, 255, 0.18);
+    top: 10%;
+    left: -130px;
+}
+
+.home-hero::after {
+    background: rgba(110, 53, 197, 0.18);
+    right: -130px;
+    bottom: 0;
+}
+
+.home-hero-content {
+    position: relative;
+    max-width: 850px;
+    margin: 0 auto;
+}
+
+.home-logo-wrap {
+    width: 142px;
+    height: 142px;
+    margin: 0 auto 25px;
+    padding: 6px;
+    border-radius: 50%;
+    border: 1px solid rgba(189, 145, 255, 0.55);
+    background: linear-gradient(145deg, #bd91ff, #44216c);
+    box-shadow:
+        0 0 25px rgba(155, 92, 255, 0.3),
+        0 0 70px rgba(155, 92, 255, 0.12);
 }
 
 .home-hero img {
-    width: 125px;
-    height: 125px;
+    display: block;
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
     object-fit: cover;
-    border: 3px solid var(--purple);
-    box-shadow: 0 0 35px #9b5cff55;
+    border: 3px solid #0c0914;
 }
 
 .home-tag {
-    color: var(--purple);
+    display: inline-block;
+    color: #d4b5ff;
     letter-spacing: 3px;
-    font-size: 12px;
-    font-weight: bold;
-    margin-top: 20px;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 9px 16px;
+    border: 1px solid rgba(189, 145, 255, 0.25);
+    border-radius: 30px;
+    background: rgba(155, 92, 255, 0.09);
 }
 
 .home-hero h1 {
-    font-size: clamp(36px, 7vw, 60px);
-    margin: 15px 0;
-    line-height: 1.2;
+    font-size: clamp(38px, 7vw, 68px);
+    margin: 22px 0 8px;
+    line-height: 1.12;
+    letter-spacing: -1.5px;
 }
 
 .home-hero h1 span {
     color: var(--purple);
+    text-shadow: 0 0 28px rgba(155, 92, 255, 0.35);
 }
 
 .home-token-value {
-    font-size: 24px;
-    color: var(--purple);
-    font-weight: bold;
-    margin-top: 8px;
+    font-size: clamp(19px, 4vw, 25px);
+    color: #c69aff;
+    font-weight: 800;
+    letter-spacing: 5px;
+    margin-top: 15px;
 }
 
 .home-hero p {
-    color: var(--muted);
-    max-width: 700px;
-    margin: 12px auto 25px;
+    color: #c3b9d0;
+    max-width: 650px;
+    line-height: 1.8;
+    font-size: 15px;
+    margin: 18px auto 28px;
+}
+
+.home-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
 }
 
 .home-btn {
-    display: inline-block;
-    padding: 11px 20px;
-    margin: 5px;
-    border-radius: 8px;
-    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 44px;
+    padding: 12px 21px;
+    border-radius: 9px;
+    font-weight: 800;
     font-size: 13px;
-    background: var(--purple);
+    text-decoration: none;
+    background: linear-gradient(135deg, #a66aff, #7138c7);
     color: white;
-    transition: 0.2s;
     border: 1px solid transparent;
+    box-shadow: 0 5px 22px rgba(155, 92, 255, 0.18);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .home-btn:hover {
-    opacity: 0.85;
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 28px rgba(155, 92, 255, 0.3);
 }
 
 .home-btn-outline {
-    background: transparent;
-    border-color: var(--purple);
-    color: white;
+    background: rgba(255, 255, 255, 0.025);
+    border-color: rgba(189, 145, 255, 0.45);
+    color: #e6d5ff;
+    box-shadow: none;
+}
+
+.home-btn-outline:hover {
+    background: rgba(155, 92, 255, 0.12);
+}
+
+.home-hero-note {
+    margin-top: 24px;
+    color: #9689a7;
+    font-size: 11px;
+    letter-spacing: 1px;
+}
+
+/* SECTIONS */
+
+.home-section {
+    margin: 0 auto;
+    padding: 48px 0;
+    scroll-margin-top: 90px;
 }
 
 .home-heading {
     text-align: center;
-    margin-bottom: 28px;
+    margin-bottom: 27px;
 }
 
 .home-heading h2 {
-    font-size: 27px;
+    font-size: clamp(23px, 4vw, 30px);
     margin: 0;
-    color: var(--purple);
+    color: #d4b5ff;
+    letter-spacing: -0.4px;
 }
 
 .home-heading p {
     color: var(--muted);
-    margin-top: 5px;
+    margin: 8px 0 0;
+    font-size: 13px;
 }
+
+.home-heading-line {
+    width: 48px;
+    height: 3px;
+    border-radius: 5px;
+    margin: 13px auto 0;
+    background: linear-gradient(90deg, #7138c7, #bd91ff);
+}
+
+/* CARDS */
 
 .home-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 18px;
+    gap: 17px;
 }
 
 .home-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    padding: 25px;
-    border-radius: var(--radius);
+    position: relative;
+    min-width: 0;
+    background:
+        linear-gradient(145deg, rgba(37, 27, 52, 0.88), rgba(18, 13, 29, 0.96));
+    border: 1px solid var(--home-border);
+    padding: 24px;
+    border-radius: 15px;
     overflow-wrap: anywhere;
-    transition: 0.2s;
+    transition: transform 0.22s ease, border-color 0.22s ease,
+                box-shadow 0.22s ease;
 }
 
 .home-card:hover {
-    border-color: var(--purple);
-    transform: translateY(-3px);
+    border-color: rgba(189, 145, 255, 0.65);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.22);
 }
 
 .home-card h3 {
-    color: #c69aff;
+    color: #d2b1ff;
     margin-top: 0;
     margin-bottom: 10px;
+    font-size: 17px;
 }
 
 .home-card p {
     color: var(--muted);
-    font-size: 14px;
+    font-size: 13px;
+    line-height: 1.75;
 }
 
 .home-card-icon {
     font-size: 30px;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
 }
 
 .home-value {
-    font-size: 24px;
-    font-weight: bold;
-    color: var(--purple);
-}
-
-.home-address {
-    background: var(--bg);
-    padding: 13px;
-    border-radius: 8px;
+    font-size: clamp(21px, 4vw, 25px);
+    font-weight: 800;
+    color: #c69aff;
     overflow-wrap: anywhere;
-    font-size: 13px;
-    color: #ddd;
-    border: 1px solid var(--border);
-}
-
-.home-notice {
-    border-left: 4px solid var(--purple);
-}
-
-.home-status {
-    display: inline-block;
-    font-size: 11px;
-    padding: 4px 10px;
-    border-radius: 20px;
-    background: #30243f;
-    color: #d9bdff;
-    margin-top: 8px;
-}
-
-.home-status-live {
-    background: #173d2c;
-    color: #83e3ad;
 }
 
 .home-center {
@@ -168,318 +279,670 @@
 }
 
 .home-section-action {
-    margin-top: 22px;
+    margin-top: 24px;
+}
+
+.home-status {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    padding: 6px 11px;
+    border-radius: 20px;
+    background: rgba(155, 92, 255, 0.13);
+    color: #d9bdff;
+    border: 1px solid rgba(189, 145, 255, 0.16);
+    margin-top: 8px;
+}
+
+.home-status-live {
+    background: rgba(35, 145, 91, 0.13);
+    color: #83e3ad;
+    border-color: rgba(91, 210, 145, 0.2);
+}
+
+/* ABOUT */
+
+.home-about-card {
+    max-width: 850px;
+    margin: 0 auto;
+    padding: 32px;
+}
+
+.home-about-card p {
+    max-width: 690px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* CONTRACT */
+
+.home-address {
+    background: #0b0811;
+    padding: 15px;
+    border-radius: 9px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #e4d9f1;
+    border: 1px solid var(--home-border);
+    margin: 14px 0;
+    user-select: text;
+}
+
+.home-contract-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 9px;
+    margin-top: 15px;
 }
 
 .home-copy-message {
-    color: var(--purple);
+    color: #b993ff;
     font-size: 12px;
+    min-height: 18px;
+    margin-top: 12px;
+}
+
+/* NOTICE */
+
+.home-notice {
+    border-left: 4px solid var(--purple);
+    background:
+        linear-gradient(120deg, rgba(72, 43, 105, 0.27), rgba(23, 18, 34, 0.95));
+}
+
+.home-notice h3 {
+    color: #d7baff;
 }
 
 .home-disclaimer {
     display: block;
     text-align: center;
     color: var(--muted);
-    font-size: 12px;
-    padding: 0 15px 25px;
+    font-size: 11px;
+    line-height: 1.7;
+    padding: 15px 20px 30px;
 }
+
+/* MOBILE */
 
 @media (max-width: 600px) {
     .home-hero {
-        padding-top: 65px;
+        padding: 75px 17px 65px;
     }
 
-    .home-heading h2 {
-        font-size: 25px;
+    .home-logo-wrap {
+        width: 118px;
+        height: 118px;
+    }
+
+    .home-hero h1 {
+        letter-spacing: -0.8px;
+    }
+
+    .home-hero p {
+        font-size: 13px;
+    }
+
+    .home-hero-actions {
+        flex-direction: column;
+        align-items: stretch;
+        max-width: 310px;
+        margin: 0 auto;
+    }
+
+    .home-btn {
+        width: 100%;
+    }
+
+    .home-section {
+        padding: 34px 0;
+    }
+
+    .home-grid {
+        grid-template-columns: 1fr;
+        gap: 13px;
+    }
+
+    .home-card {
+        padding: 21px;
+    }
+
+    .home-about-card {
+        padding: 23px 19px;
+    }
+
+    .home-contract-actions {
+        flex-direction: column;
     }
 }
-</style></head><body><!-- SHARED HEADER LOADED FROM header.js --><!-- HERO --><div class="home-hero"><img src="assets/images/josjis-logo.jpg" alt="Official JosJis Logo">
 
-<div class="home-tag">WELCOME TO THE JOSJIS PROJECT</div>
+@media (prefers-reduced-motion: reduce) {
+    .home-card,
+    .home-btn {
+        transition: none;
+    }
+}
+</style>
+</head>
 
-<h1>Welcome to <span>JosJis</span></h1>
+<body>
 
-<div class="home-token-value">$JJS TOKEN</div>
+<!-- SHARED HEADER LOADED FROM header.js -->
 
-<p>
-    A community-driven token project built on Polygon.
-    One token. One community. Many possibilities.
-</p>
+<!-- =====================================
+     HERO
+===================================== -->
 
-<a class="home-btn"
-href="https://link.metamask.io/asset?assetId=eip155%3A137%2Ferc20%3A0x52C8Ff13ada1431376b3E77E8219b644805122dF"
-target="_blank" rel="noopener noreferrer">
-    🦊 Buy JJS on MetaMask
-</a>
+<div class="home-hero">
+    <div class="home-hero-content">
 
-<a class="home-btn home-btn-outline"
-href="https://polygonscan.com/token/0x52C8Ff13ada1431376b3E77E8219b644805122dF"
-target="_blank" rel="noopener noreferrer">
-    View Contract
-</a>
+        <div class="home-logo-wrap">
+            <img
+                src="assets/images/josjis-logo.jpg"
+                alt="Official JosJis Logo"
+            >
+        </div>
 
-</div><main class="container"><section>
-    <div class="home-heading">
-        <h2>About JosJis</h2>
-        <p>Community · Transparency · Innovation</p>
-    </div><div class="home-card home-center">
-    <p>
-        JosJis is a Polygon-based token project focused
-        on community participation, transparency and
-        exploring practical utilities within its ecosystem.
-    </p>
+        <div class="home-tag">
+            WELCOME TO THE JOSJIS PROJECT
+        </div>
 
-    <p>
-        Our vision is to gradually build and develop
-        useful blockchain services around the JosJis community.
-    </p>
+        <h1>
+            Welcome to <span>JosJis</span>
+        </h1>
 
-    <a href="about.html" class="home-btn">
-        Discover JosJis →
-    </a>
-</div>
+        <div class="home-token-value">
+            $JJS TOKEN
+        </div>
 
-</section><section>
-    <div class="home-heading">
-        <h2>JJS Token Overview</h2>
-        <p>Official token information</p>
-    </div><div class="home-grid">
-    <div class="home-card">
-        <h3>Token Name</h3>
-        <div class="home-value">JosJis</div>
-    </div>
-
-    <div class="home-card">
-        <h3>Symbol</h3>
-        <div class="home-value">$JJS</div>
-    </div>
-
-    <div class="home-card">
-        <h3>Network</h3>
-        <div class="home-value">Polygon</div>
-    </div>
-
-    <div class="home-card">
-        <h3>Standard</h3>
-        <div class="home-value">ERC-20</div>
-    </div>
-
-    <div class="home-card">
-        <h3>Decimals</h3>
-        <div class="home-value">18</div>
-    </div>
-
-    <div class="home-card">
-        <h3>Fixed Supply</h3>
-        <div class="home-value">10²⁵ JJS</div>
-        <p>No additional mint function.</p>
-    </div>
-</div>
-
-<div class="home-center home-section-action">
-    <a href="tokenomics.html" class="home-btn">
-        Explore Tokenomics →
-    </a>
-</div>
-
-</section><section>
-    <div class="home-heading">
-        <h2>Official Contract</h2>
-        <p>Always verify the JJS contract before interacting</p>
-    </div><div class="home-card">
-    <h3>JosJis ($JJS) · Polygon</h3>
-
-    <div class="home-address" id="contract">
-        0x52C8Ff13ada1431376b3E77E8219b644805122dF
-    </div>
-
-    <button
-        type="button"
-        class="primary-btn"
-        onclick="copyContract()">
-        Copy Address
-    </button>
-
-    <a class="home-btn home-btn-outline"
-    href="https://polygonscan.com/token/0x52C8Ff13ada1431376b3E77E8219b644805122dF"
-    target="_blank" rel="noopener noreferrer">
-        Verify on PolygonScan
-    </a>
-
-    <p id="copied" class="home-copy-message" aria-live="polite"></p>
-</div>
-
-</section><section>
-    <div class="home-heading">
-        <h2>JosJis Utility</h2>
-        <p>Exploring practical uses for JJS</p>
-    </div><div class="home-grid">
-    <div class="home-card">
-        <div class="home-card-icon">🔒</div>
-        <h3>Flexible Utility Staking</h3>
         <p>
-            A planned flexible staking system designed
-            to connect JJS participation with ecosystem
-            membership and utility benefits.
+            A community-driven token project built on Polygon.
+            One token. One community. Many possibilities.
         </p>
-        <span class="home-status">Planned</span>
-    </div>
 
-    <div class="home-card">
-        <div class="home-card-icon">🏆</div>
-        <h3>Membership NFTs</h3>
-        <p>
-            Seven planned membership levels represented
-            by digital NFT badges and staking tiers.
-        </p>
-        <span class="home-status">Planned</span>
-    </div>
-</div>
+        <div class="home-hero-actions">
 
-<div class="home-center home-section-action">
-    <a href="utility.html" class="home-btn">
-        Explore Utilities →
-    </a>
-</div>
+            <a
+                class="home-btn"
+                href="https://link.metamask.io/asset?assetId=eip155%3A137%2Ferc20%3A0x52C8Ff13ada1431376b3E77E8219b644805122dF"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                🦊 Buy JJS on MetaMask
+            </a>
 
-</section><section>
-    <div class="home-heading">
-        <h2>JosJis Ecosystem</h2>
-        <p>One token. One connected vision.</p>
-    </div><div class="home-grid">
-    <div class="home-card">
-        <div class="home-card-icon">🪙</div>
-        <h3>Token Foundation</h3>
-        <p>JJS as the core digital token on Polygon.</p>
-        <span class="home-status home-status-live">Deployed</span>
-    </div>
+            <a
+                class="home-btn home-btn-outline"
+                href="https://polygonscan.com/token/0x52C8Ff13ada1431376b3E77E8219b644805122dF"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                View Contract ↗
+            </a>
 
-    <div class="home-card">
-        <div class="home-card-icon">🌐</div>
-        <h3>Multi-Chain Expansion</h3>
-        <p>Exploring cross-chain connectivity for JJS.</p>
-        <span class="home-status">Planned</span>
-    </div>
+        </div>
 
-    <div class="home-card">
-        <div class="home-card-icon">📊</div>
-        <h3>JGPS</h3>
-        <p>A planned global reference system for JJS market data.</p>
-        <span class="home-status">Research</span>
-    </div>
+        <div class="home-hero-note">
+            BUILT ON POLYGON · COMMUNITY DRIVEN
+        </div>
 
-    <div class="home-card">
-        <div class="home-card-icon">⚙️</div>
-        <h3>Future Infrastructure</h3>
-        <p>
-            Exploring additional decentralized services
-            and future blockchain infrastructure.
-        </p>
-        <span class="home-status">Long-Term Vision</span>
     </div>
 </div>
 
-<div class="home-center home-section-action">
-    <a href="ecosystem.html" class="home-btn">
-        Explore Ecosystem →
-    </a>
-</div>
+<main class="container">
 
-</section><section>
-    <div class="home-heading">
-        <h2>Development Roadmap</h2>
-        <p>Building JosJis step by step</p>
-    </div><div class="home-card home-center">
-    <p>
-        JosJis is being developed gradually, starting
-        from its token foundation and expanding toward
-        utilities, cross-chain connectivity and
-        future infrastructure.
-    </p>
+    <!-- =====================================
+         ABOUT JOSJIS
+    ====================================== -->
 
-    <a href="roadmap.html" class="home-btn">
-        View Full Roadmap →
-    </a>
-</div>
+    <section class="home-section">
 
-</section><section>
-    <div class="home-card home-notice">
-        <h3>Important: Contract Migration</h3>    <p>
-        JosJis has a new official token contract.
-        Always verify the contract address before buying
-        or transferring tokens.
-    </p>
+        <div class="home-heading">
+            <h2>About JosJis</h2>
+            <p>Community · Transparency · Innovation</p>
+            <div class="home-heading-line"></div>
+        </div>
 
-    <p>
-        <b>New Official Contract:</b><br>
-        0x52C8Ff13ada1431376b3E77E8219b644805122dF
-    </p>
+        <div class="home-card home-center home-about-card">
 
-    <p>
-        <b>Previous Contract:</b><br>
-        0x300FB296AF304496bdf36b053595896d9eCB2453
-    </p>
+            <p>
+                JosJis is a Polygon-based token project focused
+                on community participation, transparency and
+                exploring practical utilities within its ecosystem.
+            </p>
 
-    <p>
-        The previous token does not automatically convert
-        into the new token. They are separate contracts.
-    </p>
-</div>
+            <p>
+                Our vision is to gradually build and develop
+                useful blockchain services around the JosJis community.
+            </p>
 
-</section><section>
-    <div class="home-heading">
-        <h2>Join the Community</h2>
-        <p>Follow official JosJis channels</p>
-    </div><div class="home-grid">
-    <div class="home-card home-center">
-        <h3>𝕏 Official X</h3>
-        <p>Announcements and project updates.</p>
-        <a class="home-btn" href="https://x.com/JosJisToken" target="_blank" rel="noopener noreferrer">
-            Follow on X
-        </a>
-    </div>
+            <a href="about.html" class="home-btn">
+                Discover JosJis →
+            </a>
 
-    <div class="home-card home-center">
-        <h3>✈️ Telegram</h3>
-        <p>Join the JosJis community.</p>
-        <a class="home-btn" href="https://t.me/josjis_token" target="_blank" rel="noopener noreferrer">
-            Join Telegram
-        </a>
-    </div>
+        </div>
 
-    <div class="home-card home-center">
-        <h3>🎵 TikTok</h3>
-        <p>Watch tutorials and project videos.</p>
-        <a class="home-btn" href="https://www.tiktok.com/@josjistoken" target="_blank" rel="noopener noreferrer">
-            Follow on TikTok
-        </a>
-    </div>
+    </section>
 
-    <div class="home-card home-center">
-        <h3>💻 GitHub</h3>
-        <p>Explore website development.</p>
-        <a class="home-btn" href="https://github.com/josjis-dev/JosJis" target="_blank" rel="noopener noreferrer">
-            Visit GitHub
-        </a>
-    </div>
-</div>
+    <!-- =====================================
+         TOKEN OVERVIEW
+    ====================================== -->
 
-<div class="home-center home-section-action">
-    <a href="contact.html" class="home-btn home-btn-outline">
-        All Official Links →
-    </a>
-</div>
+    <section class="home-section">
 
-</section></main><!-- PROJECT DISCLAIMER --><div class="home-disclaimer">
+        <div class="home-heading">
+            <h2>JJS Token Overview</h2>
+            <p>Official token information</p>
+            <div class="home-heading-line"></div>
+        </div>
+
+        <div class="home-grid">
+
+            <div class="home-card">
+                <h3>Token Name</h3>
+                <div class="home-value">JosJis</div>
+            </div>
+
+            <div class="home-card">
+                <h3>Symbol</h3>
+                <div class="home-value">$JJS</div>
+            </div>
+
+            <div class="home-card">
+                <h3>Network</h3>
+                <div class="home-value">Polygon</div>
+            </div>
+
+            <div class="home-card">
+                <h3>Standard</h3>
+                <div class="home-value">ERC-20</div>
+            </div>
+
+            <div class="home-card">
+                <h3>Decimals</h3>
+                <div class="home-value">18</div>
+            </div>
+
+            <div class="home-card">
+                <h3>Fixed Supply</h3>
+                <div class="home-value">10²⁵ JJS</div>
+                <p>No additional mint function.</p>
+            </div>
+
+        </div>
+
+        <div class="home-center home-section-action">
+            <a href="tokenomics.html" class="home-btn">
+                Explore Tokenomics →
+            </a>
+        </div>
+
+    </section>
+
+    <!-- =====================================
+         OFFICIAL CONTRACT
+    ====================================== -->
+
+    <section class="home-section">
+
+        <div class="home-heading">
+            <h2>Official Contract</h2>
+            <p>Always verify the JJS contract before interacting</p>
+            <div class="home-heading-line"></div>
+        </div>
+
+        <div class="home-card home-center">
+
+            <h3>JosJis ($JJS) · Polygon</h3>
+
+            <div class="home-address" id="contract">
+                0x52C8Ff13ada1431376b3E77E8219b644805122dF
+            </div>
+
+            <div class="home-contract-actions">
+
+                <button
+                    type="button"
+                    class="primary-btn"
+                    onclick="copyContract()"
+                >
+                    Copy Address
+                </button>
+
+                <a
+                    class="home-btn home-btn-outline"
+                    href="https://polygonscan.com/token/0x52C8Ff13ada1431376b3E77E8219b644805122dF"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Verify on PolygonScan ↗
+                </a>
+
+            </div>
+
+            <p id="copied" class="home-copy-message" aria-live="polite"></p>
+
+        </div>
+
+    </section>
+
+    <!-- =====================================
+         JOSJIS UTILITY
+    ====================================== -->
+
+    <section class="home-section">
+
+        <div class="home-heading">
+            <h2>JosJis Utility</h2>
+            <p>Exploring practical uses for JJS</p>
+            <div class="home-heading-line"></div>
+        </div>
+
+        <div class="home-grid">
+
+            <div class="home-card">
+                <div class="home-card-icon">🔒</div>
+                <h3>Flexible Utility Staking</h3>
+                <p>
+                    A planned flexible staking system designed
+                    to connect JJS participation with ecosystem
+                    membership and utility benefits.
+                </p>
+                <span class="home-status">Planned</span>
+            </div>
+
+            <div class="home-card">
+                <div class="home-card-icon">🏆</div>
+                <h3>Membership NFTs</h3>
+                <p>
+                    Seven planned membership levels represented
+                    by digital NFT badges and staking tiers.
+                </p>
+                <span class="home-status">Planned</span>
+            </div>
+
+        </div>
+
+        <div class="home-center home-section-action">
+            <a href="utility.html" class="home-btn">
+                Explore Utilities →
+            </a>
+        </div>
+
+    </section>
+
+    <!-- =====================================
+         JOSJIS ECOSYSTEM
+    ====================================== -->
+
+    <section class="home-section">
+
+        <div class="home-heading">
+            <h2>JosJis Ecosystem</h2>
+            <p>One token. One connected vision.</p>
+            <div class="home-heading-line"></div>
+        </div>
+
+        <div class="home-grid">
+
+            <div class="home-card">
+                <div class="home-card-icon">🪙</div>
+                <h3>Token Foundation</h3>
+                <p>
+                    JJS as the core digital token on Polygon.
+                </p>
+                <span class="home-status home-status-live">Deployed</span>
+            </div>
+
+            <div class="home-card">
+                <div class="home-card-icon">💧</div>
+                <h3>Liquidity Center</h3>
+                <p>
+                    Explore JJS liquidity pool information
+                    and on-chain pool data.
+                </p>
+                <span class="home-status home-status-live">Available</span>
+                <p>
+                    <a href="liquidity/" class="home-btn home-btn-outline">
+                        Open Liquidity Center →
+                    </a>
+                </p>
+            </div>
+
+            <div class="home-card">
+                <div class="home-card-icon">🤝</div>
+                <h3>Community LP</h3>
+                <p>
+                    Learn how community members can participate
+                    in providing liquidity for JJS.
+                </p>
+                <span class="home-status home-status-live">Available</span>
+                <p>
+                    <a href="community-lp.html" class="home-btn home-btn-outline">
+                        Explore Community LP →
+                    </a>
+                </p>
+            </div>
+
+            <div class="home-card">
+                <div class="home-card-icon">🌐</div>
+                <h3>Multi-Chain Expansion</h3>
+                <p>
+                    Exploring cross-chain connectivity for JJS.
+                </p>
+                <span class="home-status">Planned</span>
+            </div>
+
+            <div class="home-card">
+                <div class="home-card-icon">📊</div>
+                <h3>JGPS</h3>
+                <p>
+                    A planned global reference system
+                    for JJS market data.
+                </p>
+                <span class="home-status">Research</span>
+            </div>
+
+            <div class="home-card">
+                <div class="home-card-icon">⚙️</div>
+                <h3>Future Infrastructure</h3>
+                <p>
+                    Exploring additional decentralized services
+                    and future blockchain infrastructure.
+                </p>
+                <span class="home-status">Long-Term Vision</span>
+            </div>
+
+        </div>
+
+        <div class="home-center home-section-action">
+            <a href="ecosystem.html" class="home-btn">
+                Explore Ecosystem →
+            </a>
+        </div>
+
+    </section>
+
+    <!-- =====================================
+         ROADMAP
+    ====================================== -->
+
+    <section class="home-section">
+
+        <div class="home-heading">
+            <h2>Development Roadmap</h2>
+            <p>Building JosJis step by step</p>
+            <div class="home-heading-line"></div>
+        </div>
+
+        <div class="home-card home-center">
+
+            <div class="home-card-icon">🚀</div>
+
+            <p>
+                JosJis is being developed gradually, starting
+                from its token foundation and expanding toward
+                utilities, cross-chain connectivity and
+                future infrastructure.
+            </p>
+
+            <a href="roadmap.html" class="home-btn">
+                View Full Roadmap →
+            </a>
+
+        </div>
+
+    </section>
+
+    <!-- =====================================
+         CONTRACT MIGRATION NOTICE
+    ====================================== -->
+
+    <section class="home-section">
+
+        <div class="home-card home-notice">
+
+            <h3>⚠️ Important: Contract Migration</h3>
+
+            <p>
+                JosJis has a new official token contract.
+                Always verify the contract address before buying
+                or transferring tokens.
+            </p>
+
+            <p>
+                <b>New Official Contract:</b><br>
+                0x52C8Ff13ada1431376b3E77E8219b644805122dF
+            </p>
+
+            <p>
+                <b>Previous Contract:</b><br>
+                0x300FB296AF304496bdf36b053595896d9eCB2453
+            </p>
+
+            <p>
+                The previous token does not automatically convert
+                into the new token. They are separate contracts.
+            </p>
+
+        </div>
+
+    </section>
+
+    <!-- =====================================
+         COMMUNITY
+    ====================================== -->
+
+    <section class="home-section">
+
+        <div class="home-heading">
+            <h2>Join the Community</h2>
+            <p>Follow official JosJis channels</p>
+            <div class="home-heading-line"></div>
+        </div>
+
+        <div class="home-grid">
+
+            <div class="home-card home-center">
+                <div class="home-card-icon">𝕏</div>
+                <h3>Official X</h3>
+                <p>Announcements and project updates.</p>
+                <a
+                    class="home-btn"
+                    href="https://x.com/JosJisToken"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Follow on X
+                </a>
+            </div>
+
+            <div class="home-card home-center">
+                <div class="home-card-icon">✈️</div>
+                <h3>Telegram</h3>
+                <p>Join the JosJis community.</p>
+                <a
+                    class="home-btn"
+                    href="https://t.me/josjis_token"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Join Telegram
+                </a>
+            </div>
+
+            <div class="home-card home-center">
+                <div class="home-card-icon">🎵</div>
+                <h3>TikTok</h3>
+                <p>Watch tutorials and project videos.</p>
+                <a
+                    class="home-btn"
+                    href="https://www.tiktok.com/@josjistoken"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Follow on TikTok
+                </a>
+            </div>
+
+            <div class="home-card home-center">
+                <div class="home-card-icon">💻</div>
+                <h3>GitHub</h3>
+                <p>Explore website development.</p>
+                <a
+                    class="home-btn"
+                    href="https://github.com/josjis-dev/JosJis"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Visit GitHub
+                </a>
+            </div>
+
+        </div>
+
+        <div class="home-center home-section-action">
+            <a href="contact.html" class="home-btn home-btn-outline">
+                All Official Links →
+            </a>
+        </div>
+
+    </section>
+
+</main>
+
+<!-- PROJECT DISCLAIMER -->
+
+<div class="home-disclaimer">
     This website does not promise profits or investment returns.
-</div><!-- SHARED FOOTER LOADED FROM footer.js --><!-- COPY CONTRACT SCRIPT --><script>
+    Cryptocurrency participation involves risks.
+</div>
+
+<!-- SHARED FOOTER LOADED FROM footer.js -->
+
+<!-- =====================================
+     COPY CONTRACT SCRIPT
+===================================== -->
+
+<script>
 async function copyContract() {
-    const address = document
-        .getElementById("contract")
-        .innerText.trim();
+    const contractElement = document.getElementById("contract");
+    const messageElement = document.getElementById("copied");
+
+    if (!contractElement) return;
+
+    const address = contractElement.innerText.trim();
 
     try {
         await navigator.clipboard.writeText(address);
+
+        if (messageElement) {
+            messageElement.textContent = "Contract address copied successfully!";
+        }
 
         if (typeof showJJSAlert === "function") {
             showJJSAlert(
@@ -491,6 +954,11 @@ async function copyContract() {
     } catch (error) {
         console.error("Copy contract error:", error);
 
+        if (messageElement) {
+            messageElement.textContent =
+                "Copy failed. Please copy the address manually.";
+        }
+
         if (typeof showJJSAlert === "function") {
             showJJSAlert(
                 "Copy failed. Please copy the contract address manually.",
@@ -499,5 +967,7 @@ async function copyContract() {
         }
     }
 }
-</script></body>
+</script>
+
+</body>
 </html>
