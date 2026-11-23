@@ -6,6 +6,9 @@ import {
     rpcProvider
 } from "../../web3/web3-config.js";
 
+import { Contract } from
+    "https://esm.sh/ethers@6.15.0";
+
 
 // =====================================
 // JOSJIS MY ASSETS
@@ -21,6 +24,7 @@ const assetsMessage = document.getElementById("assetsMessage");
 
 const jjsBalance = document.getElementById("jjsBalance");
 const polBalance = document.getElementById("polBalance");
+const usdt0Balance = document.getElementById("usdt0Balance");
 
 const explorerLink = document.getElementById("explorerLink");
 
@@ -28,6 +32,25 @@ let currentAddress = null;
 let refreshInterval = null;
 let isRefreshing = false;
 let refreshNumber = 0;
+
+
+// =====================================
+// USDT0 POLYGON CONFIGURATION
+// =====================================
+
+const USDT0_CONTRACT =
+    "0xc2132D05D31c914a87C6611C10748AEb04B58e8F";
+
+const USDT0_ABI = [
+    "function balanceOf(address account) view returns (uint256)",
+    "function decimals() view returns (uint8)"
+];
+
+const usdt0Token = new Contract(
+    USDT0_CONTRACT,
+    USDT0_ABI,
+    rpcProvider
+);
 
 
 // =====================================
@@ -100,6 +123,10 @@ function showDisconnected() {
     jjsBalance.textContent = "--";
     polBalance.textContent = "--";
 
+    if (usdt0Balance) {
+        usdt0Balance.textContent = "--";
+    }
+
     assetsMessage.textContent =
         "Connect your wallet to view your assets.";
 
@@ -131,6 +158,10 @@ function showWrongNetwork(address) {
 
     jjsBalance.textContent = "--";
     polBalance.textContent = "--";
+
+    if (usdt0Balance) {
+        usdt0Balance.textContent = "--";
+    }
 
     assetsMessage.textContent =
         "Please switch to Polygon Mainnet.";
@@ -164,16 +195,25 @@ async function refreshAssets() {
 
     try {
 
-        const [jjsResult, polResult, decimals] =
-            await Promise.all([
+        const [
+            jjsResult,
+            polResult,
+            usdt0Result,
+            jjsDecimals,
+            usdt0Decimals
+        ] = await Promise.all([
 
-                token.balanceOf(address),
+            token.balanceOf(address),
 
-                rpcProvider.getBalance(address),
+            rpcProvider.getBalance(address),
 
-                token.decimals()
+            usdt0Token.balanceOf(address),
 
-            ]);
+            token.decimals(),
+
+            usdt0Token.decimals()
+
+        ]);
 
         if (
             currentAddress !== address ||
@@ -184,7 +224,7 @@ async function refreshAssets() {
 
         const jjsFormatted = formatUnits(
             jjsResult,
-            decimals
+            jjsDecimals
         );
 
         const polFormatted = formatUnits(
@@ -192,11 +232,21 @@ async function refreshAssets() {
             18
         );
 
+        const usdt0Formatted = formatUnits(
+            usdt0Result,
+            usdt0Decimals
+        );
+
         jjsBalance.textContent =
             formatBalance(jjsFormatted);
 
         polBalance.textContent =
             formatBalance(polFormatted);
+
+        if (usdt0Balance) {
+            usdt0Balance.textContent =
+                formatBalance(usdt0Formatted);
+        }
 
         assetsMessage.textContent =
             "Balances successfully updated.";
@@ -234,9 +284,6 @@ async function refreshAssets() {
 // =====================================
 
 function syncWallet(accountAddress = null) {
-
-    // Use the AppKit address directly,
-    // just like the working Dashboard.
 
     const address =
         modal.getAddress() || accountAddress;
@@ -439,4 +486,3 @@ async function restoreWalletSession() {
 // =====================================
 
 restoreWalletSession();
-
