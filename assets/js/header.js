@@ -60,9 +60,34 @@ const headerHTML = `
 
         </div>
 
-        <a href="/josjis/ecosystem.html" data-page="ecosystem.html">
-            Ecosystem
-        </a>
+        <!-- ECOSYSTEM DROPDOWN -->
+        <div class="nav-dropdown">
+
+            <button
+                class="dropdown-toggle"
+                type="button"
+                aria-expanded="false"
+                aria-controls="ecosystemSubmenu"
+            >
+                Ecosystem
+                <span class="dropdown-arrow">▾</span>
+            </button>
+
+            <div class="dropdown-menu" id="ecosystemSubmenu">
+
+                <a href="/josjis/ecosystem.html"
+                   data-page="ecosystem.html">
+                    Ecosystem Overview
+                </a>
+
+                <a href="/josjis/liquidity/"
+                   data-page="index.html">
+                    Liquidity Center
+                </a>
+
+            </div>
+
+        </div>
 
         <a href="/josjis/dashboard.html" data-page="dashboard.html">
             Dashboard
