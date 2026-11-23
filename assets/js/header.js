@@ -1,5 +1,8 @@
 
+// =====================================
 // JOSJIS SHARED HEADER
+// WITH GLOBAL WALLET CONNECTION
+// =====================================
 
 const headerHTML = `
 <header class="site-header">
@@ -23,13 +26,17 @@ const headerHTML = `
 
     <nav id="mainNav" class="main-nav">
 
-        <a href="index.html" data-page="index.html">Home</a>
+        <a href="index.html" data-page="index.html">
+            Home
+        </a>
 
         <a href="buy-jjs.html" data-page="buy-jjs.html">
             How to Buy
         </a>
 
-        <a href="about.html" data-page="about.html">About</a>
+        <a href="about.html" data-page="about.html">
+            About
+        </a>
 
         <!-- TOKEN DROPDOWN -->
         <div class="nav-dropdown">
@@ -104,7 +111,7 @@ const headerHTML = `
 
     </nav>
 
-    <!-- GLOBAL WALLET BUTTON -->
+    <!-- GLOBAL WALLET -->
     <div class="global-wallet">
 
         <button
@@ -242,10 +249,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const currentPage =
         window.location.pathname.split("/").pop() || "index.html";
 
-    const navLinks = document.querySelectorAll(".main-nav a");
+    const navLinks =
+        document.querySelectorAll(".main-nav a");
 
-    const menuToggle = document.getElementById("menuToggle");
-    const mainNav = document.getElementById("mainNav");
+    const menuToggle =
+        document.getElementById("menuToggle");
+
+    const mainNav =
+        document.getElementById("mainNav");
 
 
     // =====================================
@@ -260,7 +271,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             link.setAttribute("aria-current", "page");
 
-            const dropdown = link.closest(".nav-dropdown");
+            const dropdown =
+                link.closest(".nav-dropdown");
 
             if (dropdown) {
                 dropdown.classList.add("has-active");
@@ -299,7 +311,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     menuToggle.addEventListener("click", () => {
 
-        const isOpen = mainNav.classList.toggle("open");
+        const isOpen =
+            mainNav.classList.toggle("open");
 
         menuToggle.classList.toggle("active", isOpen);
 
@@ -366,5 +379,145 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
     });
+
+
+    // =====================================
+    // GLOBAL WALLET CONNECTION
+    // =====================================
+
+    const walletBtn =
+        document.getElementById("globalWalletBtn");
+
+    const walletStatus =
+        document.getElementById("globalWalletStatus");
+
+
+    // UPDATE WALLET DISPLAY
+
+    function updateWalletUI(state) {
+
+        if (!state || !state.isConnected) {
+
+            walletBtn.textContent = "Connect Wallet";
+
+            walletStatus.textContent = "Not connected";
+
+            return;
+        }
+
+        const address = state.address;
+
+        walletBtn.textContent = address
+            ? address.slice(0, 6) + "..." + address.slice(-4)
+            : "Connected";
+
+        walletStatus.textContent =
+            state.chainId === 137
+                ? "Connected · Polygon"
+                : "Connected · Wrong Network";
+
+    }
+
+
+    // INITIALIZE WALLET
+
+    function initializeWallet() {
+
+        if (!window.JosJisWallet) {
+            return;
+        }
+
+        updateWalletUI(
+            window.JosJisWallet.getState()
+        );
+
+    }
+
+
+    // =====================================
+    // WALLET BUTTON CLICK
+    // =====================================
+
+    walletBtn.addEventListener("click", async () => {
+
+        if (!window.JosJisWallet) {
+
+            walletStatus.textContent =
+                "Wallet manager unavailable";
+
+            console.error(
+                "JosJisWallet is not available. Check wallet.js."
+            );
+
+            return;
+        }
+
+        try {
+
+            walletBtn.disabled = true;
+
+            if (window.JosJisWallet.isConnected()) {
+
+                await window.JosJisWallet.modal.open({
+                    view: "Account"
+                });
+
+            } else {
+
+                await window.JosJisWallet.connect();
+
+            }
+
+        } catch (error) {
+
+            console.error(
+                "Wallet connection error:",
+                error
+            );
+
+            walletStatus.textContent =
+                "Connection failed";
+
+        } finally {
+
+            walletBtn.disabled = false;
+
+        }
+
+    });
+
+
+    // =====================================
+    // WALLET STATE EVENTS
+    // =====================================
+
+    window.addEventListener("josjis:wallet", (event) => {
+
+        updateWalletUI(event.detail);
+
+    });
+
+
+    // =====================================
+    // WALLET MANAGER READY EVENT
+    // =====================================
+
+    window.addEventListener("josjis:wallet-ready", () => {
+
+        initializeWallet();
+
+    });
+
+
+    // =====================================
+    // INITIAL WALLET CHECK
+    // =====================================
+
+    initializeWallet();
+
+
+    console.log(
+        "JosJis Header and Global Wallet initialized."
+    );
 
 });
