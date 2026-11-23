@@ -1,0 +1,378 @@
+
+/* =====================================
+   JOSJIS - MY ASSETS
+   ===================================== */
+
+.assets-page {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 20px 60px;
+    color: #f5f3fa;
+    box-sizing: border-box;
+}
+
+.assets-page * {
+    box-sizing: border-box;
+}
+
+
+/* PAGE HEADER */
+
+.assets-hero {
+    margin-bottom: 32px;
+}
+
+.assets-label {
+    color: #b58aff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+
+.assets-hero h1 {
+    font-size: clamp(32px, 6vw, 46px);
+    margin: 0 0 12px;
+    color: #ffffff;
+}
+
+.assets-hero p {
+    max-width: 600px;
+    color: #aaa3b8;
+    line-height: 1.7;
+    font-size: 15px;
+}
+
+.assets-back-link {
+    display: inline-block;
+    margin-top: 12px;
+    color: #c29aff;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.assets-back-link:hover {
+    color: #ffffff;
+}
+
+
+/* GENERAL CARD */
+
+.assets-card,
+.asset-card,
+.assets-note {
+    background: #171321;
+    border: 1px solid #30263f;
+    border-radius: 16px;
+}
+
+.assets-card {
+    padding: 24px;
+    margin-bottom: 20px;
+}
+
+.assets-card-heading,
+.assets-section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.assets-card-heading h2,
+.assets-section-heading h2 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 21px;
+}
+
+
+/* WALLET STATUS */
+
+.assets-status {
+    background: #29213a;
+    color: #c8a6ff;
+    border-radius: 20px;
+    padding: 7px 12px;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.assets-address {
+    margin-top: 22px;
+    padding: 15px;
+    background: #0e0b15;
+    border: 1px solid #30263f;
+    border-radius: 10px;
+    color: #c9c1d5;
+    font-size: 14px;
+    word-break: break-all;
+}
+
+
+/* BUTTONS */
+
+.assets-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.assets-button,
+.refresh-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 10px 17px;
+    border: 1px solid #8150c9;
+    border-radius: 9px;
+    background: #8150c9;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.assets-button:hover,
+.refresh-button:hover:not(:disabled) {
+    background: #9b69e8;
+    border-color: #9b69e8;
+}
+
+.assets-button.secondary {
+    background: transparent;
+    border-color: #514264;
+    color: #d8c7f5;
+}
+
+.assets-button.secondary:hover {
+    background: #29213a;
+}
+
+.assets-button[hidden],
+.assets-actions [hidden] {
+    display: none;
+}
+
+.assets-message {
+    color: #92899f;
+    font-size: 12px;
+    margin: 16px 0 0;
+}
+
+
+/* NETWORK INFORMATION */
+
+.assets-network {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 15px 18px;
+    margin-bottom: 35px;
+    background: #171321;
+    border: 1px solid #30263f;
+    border-radius: 12px;
+    color: #bdb4ca;
+    font-size: 13px;
+}
+
+.assets-network > div {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.assets-network strong {
+    color: #ffffff;
+}
+
+.network-dot {
+    width: 9px;
+    height: 9px;
+    display: inline-block;
+    background: #8c5de5;
+    border-radius: 50%;
+}
+
+
+/* ASSET SECTION */
+
+.assets-section {
+    margin-bottom: 35px;
+}
+
+.assets-section-heading {
+    margin-bottom: 18px;
+}
+
+.refresh-button {
+    background: transparent;
+    border-color: #514264;
+    color: #d8c7f5;
+}
+
+.refresh-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+
+/* ASSET CARDS */
+
+.asset-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    margin-bottom: 12px;
+    transition: border-color 0.2s ease;
+}
+
+.asset-card:hover {
+    border-color: #8150c9;
+}
+
+.asset-icon {
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 21px;
+    font-weight: 800;
+}
+
+.jjs-icon {
+    background: #332044;
+    color: #d5aaff;
+    border: 1px solid #8150c9;
+}
+
+.pol-icon {
+    background: #252044;
+    color: #b8a8ff;
+    border: 1px solid #6552b5;
+}
+
+.asset-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.asset-info h3 {
+    margin: 0 0 6px;
+    color: #ffffff;
+    font-size: 16px;
+}
+
+.asset-info p {
+    margin: 0;
+    color: #92899f;
+    font-size: 12px;
+}
+
+.asset-balance {
+    text-align: right;
+    min-width: 0;
+}
+
+.asset-balance strong {
+    display: block;
+    color: #ffffff;
+    font-size: 17px;
+    overflow-wrap: anywhere;
+}
+
+.asset-balance small {
+    display: block;
+    margin-top: 5px;
+    color: #a99bbd;
+    font-size: 12px;
+}
+
+
+/* INFORMATION */
+
+.assets-note {
+    padding: 22px;
+    margin-bottom: 35px;
+}
+
+.assets-note h3 {
+    margin: 0 0 12px;
+    color: #ffffff;
+    font-size: 16px;
+}
+
+.assets-note p {
+    color: #aaa3b8;
+    font-size: 13px;
+    line-height: 1.7;
+    margin: 8px 0;
+}
+
+
+/* FOOTER */
+
+.assets-footer {
+    text-align: center;
+    color: #716981;
+    font-size: 12px;
+    padding-top: 10px;
+}
+
+
+/* MOBILE RESPONSIVE */
+
+@media (max-width: 600px) {
+
+    .assets-page {
+        padding: 28px 15px 45px;
+    }
+
+    .assets-card {
+        padding: 18px;
+    }
+
+    .assets-card-heading h2,
+    .assets-section-heading h2 {
+        font-size: 18px;
+    }
+
+    .assets-network {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .asset-card {
+        padding: 16px 13px;
+        gap: 12px;
+    }
+
+    .asset-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+
+    .asset-balance strong {
+        font-size: 14px;
+    }
+
+    .assets-section-heading {
+        align-items: flex-start;
+    }
+
+    .refresh-button {
+        padding: 9px 12px;
+    }
+
+}
