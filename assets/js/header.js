@@ -1,3 +1,4 @@
+
 // JOSJIS SHARED HEADER
 
 const headerHTML = `
@@ -65,6 +66,11 @@ const headerHTML = `
 
         <a href="dashboard.html" data-page="dashboard.html">
             Dashboard
+        </a>
+
+        <!-- MEMBER AREA -->
+        <a href="member.html" data-page="member.html">
+            Member Area
         </a>
 
         <!-- COMMUNITY DROPDOWN -->
@@ -215,7 +221,6 @@ document.addEventListener("DOMContentLoaded", () => {
             String(isOpen)
         );
 
-        // Close dropdowns when main menu closes
         if (!isOpen) {
             closeAllDropdowns();
         }
@@ -237,10 +242,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const isCurrentlyOpen =
                 currentDropdown.classList.contains("open");
 
-            // Close all dropdowns first
             closeAllDropdowns();
 
-            // Open only if it was previously closed
             if (!isCurrentlyOpen) {
 
                 currentDropdown.classList.add("open");
