@@ -19,6 +19,7 @@ const footerHTML = `
             <a href="/josjis/about.html">About</a>
             <a href="/josjis/tokenomics.html">Tokenomics</a>
             <a href="/josjis/dashboard.html">Dashboard</a>
+            <a href="/josjis/member.html">Member Area</a>
             <a href="/josjis/crypto-donations.html">Donate</a>
         </div>
 
