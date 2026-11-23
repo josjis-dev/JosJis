@@ -10,6 +10,7 @@
 │   │   └── style.css
 │   ├── images
 │   │   ├── README.md
+│   │   ├── josjis-logo-circle.png
 │   │   ├── josjis-logo.jpg
 │   │   └── pol-logo.png
 │   └── js
@@ -39,4 +40,4 @@
     ├── README.md
     └── web3-config.js
 
-8 directories, 32 files
+8 directories, 33 files
