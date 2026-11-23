@@ -1,0 +1,481 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>JosJis Community LP Program | JJS</title>
+    <meta name="description" content="Learn about providing liquidity to the JosJis community on Polygon. Explore the JJS liquidity pool, understand LP risks, and access the Liquidity Center.">
+    <meta name="theme-color" content="#0c0914">
+
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <!-- Shared Header, Footer & Components -->
+    <script src="assets/js/header.js" defer></script>
+    <script src="assets/js/footer.js" defer></script>
+    <script src="assets/js/components.js" defer></script>
+
+    <style>
+        .lp-hero {
+            text-align: center;
+            padding: 100px 20px 80px;
+            background:
+                radial-gradient(ellipse at top, #422365 0%, #1b102b 38%, #0c0914 78%);
+        }
+
+        .lp-hero-tag,
+        .lp-section-tag {
+            color: var(--purple-light);
+            letter-spacing: 3px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .lp-hero h1 {
+            font-size: clamp(36px, 7vw, 62px);
+            line-height: 1.15;
+            margin: 18px 0;
+        }
+
+        .lp-hero h1 span {
+            color: var(--purple-light);
+        }
+
+        .lp-hero p {
+            color: var(--muted);
+            max-width: 740px;
+            margin: 0 auto;
+            font-size: 16px;
+        }
+
+        .lp-actions {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 28px;
+        }
+
+        .lp-button {
+            display: inline-block;
+            padding: 13px 22px;
+            border-radius: 9px;
+            background: var(--purple-dark);
+            color: #fff;
+            font-weight: bold;
+            transition: var(--transition);
+        }
+
+        .lp-button:hover {
+            background: var(--purple);
+            transform: translateY(-2px);
+        }
+
+        .lp-button-secondary {
+            background: rgba(255,255,255,.07);
+            border: 1px solid var(--border);
+        }
+
+        .lp-content {
+            max-width: 1100px;
+            margin: auto;
+            padding: 65px 20px;
+        }
+
+        .lp-section {
+            margin-bottom: 65px;
+        }
+
+        .lp-section h2 {
+            color: var(--purple-light);
+            font-size: clamp(24px, 4vw, 32px);
+            margin: 10px 0 14px;
+        }
+
+        .lp-intro {
+            color: var(--muted);
+            max-width: 780px;
+            margin-bottom: 25px;
+        }
+
+        .lp-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+        }
+
+        .lp-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .lp-card-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .lp-card h3 {
+            color: var(--purple-light);
+            font-size: 18px;
+            margin-bottom: 9px;
+        }
+
+        .lp-card p {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .lp-pool-box {
+            background: linear-gradient(135deg, #39205a, #1b1229, #171222);
+            border: 1px solid var(--purple-dark);
+            border-radius: 18px;
+            padding: 28px;
+        }
+
+        .lp-pool-box h3 {
+            color: #fff;
+            font-size: 23px;
+        }
+
+        .lp-pool-box p {
+            color: var(--muted);
+            margin-top: 8px;
+        }
+
+        .lp-token-address {
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            color: var(--purple-light);
+            font-size: 13px;
+            margin-top: 12px;
+        }
+
+        .lp-steps {
+            counter-reset: lp-step;
+            display: grid;
+            gap: 14px;
+        }
+
+        .lp-step {
+            counter-increment: lp-step;
+            position: relative;
+            padding: 20px 20px 20px 64px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            border-radius: 14px;
+        }
+
+        .lp-step::before {
+            content: counter(lp-step);
+            position: absolute;
+            left: 19px;
+            top: 19px;
+            width: 30px;
+            height: 30px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            background: var(--purple-dark);
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .lp-step h3 {
+            color: var(--purple-light);
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .lp-step p {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .lp-risk {
+            background: rgba(255, 177, 74, .07);
+            border: 1px solid rgba(255, 177, 74, .28);
+            border-left: 4px solid #e7a64c;
+            border-radius: 10px;
+            padding: 22px;
+        }
+
+        .lp-risk h3 {
+            color: #f2c27d;
+            margin-bottom: 10px;
+        }
+
+        .lp-risk p,
+        .lp-risk li {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .lp-risk ul {
+            padding-left: 20px;
+            margin-top: 10px;
+        }
+
+        .lp-final {
+            text-align: center;
+            padding: 38px 24px;
+            border: 1px solid var(--purple-dark);
+            border-radius: 18px;
+            background: radial-gradient(circle at center, #39205a, #171222 75%);
+        }
+
+        .lp-final h2 {
+            color: var(--purple-light);
+            margin-bottom: 12px;
+        }
+
+        .lp-final p {
+            color: var(--muted);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 600px) {
+            .lp-hero {
+                padding: 75px 18px 60px;
+            }
+
+            .lp-content {
+                padding: 45px 16px;
+            }
+
+            .lp-pool-box {
+                padding: 22px 18px;
+            }
+
+            .lp-actions .lp-button {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- SHARED HEADER LOADED FROM header.js -->
+
+<section class="lp-hero">
+    <div class="lp-hero-tag">JOSJIS COMMUNITY PARTICIPATION</div>
+
+    <h1>
+        Support the Pool.<br>
+        <span>Strengthen the Community.</span>
+    </h1>
+
+    <p>
+        The JosJis Community LP Program introduces liquidity provision
+        as one way for the community to support the JJS trading market
+        on Polygon. Learn how liquidity works, review the risks, and
+        explore the available pool information before participating.
+    </p>
+
+    <div class="lp-actions">
+        <a class="lp-button" href="liquidity/#pool">Open Liquidity Center</a>
+        <a class="lp-button lp-button-secondary"
+           href="https://polygonscan.com/token/0x52C8Ff13ada1431376b3E77E8219b644805122dF"
+           target="_blank" rel="noopener noreferrer">Verify JJS Contract</a>
+    </div>
+</section>
+
+<main class="lp-content">
+
+    <section class="lp-section">
+        <div class="lp-section-tag">ABOUT THE PROGRAM</div>
+        <h2>What Is Community Liquidity?</h2>
+        <p class="lp-intro">
+            Liquidity providers (LPs) deposit supported token pairs into
+            a decentralized exchange pool. These assets help other users
+            swap between tokens. In return, LPs may receive a share of
+            eligible trading fees according to the pool rules and their
+            position. Fees are not guaranteed and depend on actual trading
+            activity and pool conditions.
+        </p>
+
+        <div class="lp-grid">
+            <article class="lp-card">
+                <div class="lp-card-icon">🌊</div>
+                <h3>Support Swaps</h3>
+                <p>
+                    Liquidity can help make JJS swaps possible and improve
+                    the trading experience for community members.
+                </p>
+            </article>
+
+            <article class="lp-card">
+                <div class="lp-card-icon">🤝</div>
+                <h3>Community Participation</h3>
+                <p>
+                    Members can take part in supporting the market
+                    infrastructure around the JosJis ecosystem.
+                </p>
+            </article>
+
+            <article class="lp-card">
+                <div class="lp-card-icon">⚙️</div>
+                <h3>Understand the Pool</h3>
+                <p>
+                    The Liquidity Center provides a place to review
+                    available on-chain pool information before making
+                    a decision.
+                </p>
+            </article>
+        </div>
+    </section>
+
+    <section class="lp-section">
+        <div class="lp-section-tag">OFFICIAL JJS INFORMATION</div>
+        <h2>Explore the JJS Liquidity Pool</h2>
+
+        <div class="lp-pool-box">
+            <h3>JosJis ($JJS) — Polygon</h3>
+            <p>
+                Visit the JosJis Liquidity Center to view the pool
+                information currently monitored by the website.
+                Always verify the token pair, network, pool address,
+                fee tier, and position details on the exchange before
+                depositing assets.
+            </p>
+
+            <div class="lp-token-address">
+                <strong>JJS Contract:</strong><br>
+                0x52C8Ff13ada1431376b3E77E8219b644805122dF
+            </div>
+
+            <div class="lp-actions" style="justify-content:flex-start;">
+                <a class="lp-button" href="liquidity/#pool">View Pool Information</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="lp-section">
+        <div class="lp-section-tag">HOW TO PARTICIPATE</div>
+        <h2>Before You Become an LP</h2>
+        <p class="lp-intro">
+            Take time to understand the pool and the risks. The steps
+            below are an overview, not a guarantee that a particular
+            pool or position is suitable for you.
+        </p>
+
+        <div class="lp-steps">
+            <article class="lp-step">
+                <h3>Review the Liquidity Center</h3>
+                <p>
+                    Check the current pool details, token pair, network,
+                    fee tier, and available on-chain information.
+                </p>
+            </article>
+
+            <article class="lp-step">
+                <h3>Open the Correct Uniswap Pool</h3>
+                <p>
+                    Use the official link provided through the Liquidity
+                    Center. Confirm that you are on Polygon and that the
+                    token addresses match the intended pair.
+                </p>
+            </article>
+
+            <article class="lp-step">
+                <h3>Connect Your Wallet</h3>
+                <p>
+                    Connect a compatible wallet, such as MetaMask.
+                    Keep enough POL for Polygon network transaction fees.
+                </p>
+            </article>
+
+            <article class="lp-step">
+                <h3>Understand the Position Settings</h3>
+                <p>
+                    Review the amount of each asset, price range,
+                    fee tier, and any transaction costs before confirming.
+                    Concentrated liquidity may require active monitoring.
+                </p>
+            </article>
+
+            <article class="lp-step">
+                <h3>Monitor Your Position</h3>
+                <p>
+                    Check whether your position remains in range,
+                    review earned fees if available, and understand
+                    the conditions for withdrawing liquidity.
+                </p>
+            </article>
+        </div>
+    </section>
+
+    <section class="lp-section">
+        <div class="lp-section-tag">IMPORTANT INFORMATION</div>
+        <h2>Understand the Risks</h2>
+
+        <div class="lp-risk">
+            <h3>Liquidity provision involves risk</h3>
+            <p>
+                Providing liquidity is not the same as holding tokens
+                in a wallet. The value and composition of your position
+                can change as market prices move.
+            </p>
+            <ul>
+                <li>
+                    <strong>Impermanent loss:</strong> changes in the
+                    relative prices of the deposited tokens can leave
+                    an LP with a different value than simply holding them.
+                </li>
+                <li>
+                    <strong>Price-range risk:</strong> in concentrated
+                    liquidity pools, a position can move out of its
+                    selected range and become one-sided, depending on
+                    the pool design.
+                </li>
+                <li>
+                    <strong>Market risk:</strong> JJS and paired-token
+                    prices can fluctuate. You may lose some or all of
+                    the value you deposit.
+                </li>
+                <li>
+                    <strong>Smart contract and network risk:</strong>
+                    decentralized exchange contracts, wallets, and
+                    blockchain networks may involve technical risks.
+                </li>
+                <li>
+                    <strong>Fees are not guaranteed:</strong> trading
+                    fees depend on pool activity, position status,
+                    and the exchange's fee rules.
+                </li>
+            </ul>
+            <p style="margin-top:12px;">
+                Only consider providing assets you can afford to risk.
+                Do your own research and verify all transaction details
+                before signing.
+            </p>
+        </div>
+    </section>
+
+    <section class="lp-section">
+        <div class="lp-final">
+            <h2>One Token. One Community. Many Possibilities.</h2>
+            <p>
+                Community liquidity is one possible way to participate
+                in the development of the JosJis ecosystem. Learn first,
+                verify the details, and make independent decisions.
+            </p>
+
+            <div class="lp-actions">
+                <a class="lp-button" href="liquidity/#pool">Visit Liquidity Center</a>
+                <a class="lp-button lp-button-secondary" href="ecosystem.html">Explore Ecosystem</a>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- SHARED FOOTER LOADED FROM footer.js -->
+
+</body>
+</html>
