@@ -125,14 +125,6 @@ const footerHTML = `
 
             </a>
 
-            <button
-                type="button"
-                id="copy-footer-contract">
-
-                Copy
-
-            </button>
-
         </div>
 
         <p class="footer-contract-note">
@@ -171,48 +163,5 @@ document.addEventListener("DOMContentLoaded", () => {
         "beforeend",
         footerHTML
     );
-
-
-    /* ====================================
-       COPY CONTRACT ADDRESS
-    ==================================== */
-
-    const copyButton = document.getElementById(
-        "copy-footer-contract"
-    );
-
-    const contractAddress =
-        "0x52C8Ff13ada1431376b3E77E8219b644805122dF";
-
-    if (copyButton) {
-
-        copyButton.addEventListener("click", async () => {
-
-            try {
-
-                await navigator.clipboard.writeText(
-                    contractAddress
-                );
-
-                copyButton.textContent = "Copied!";
-
-                setTimeout(() => {
-                    copyButton.textContent = "Copy";
-                }, 2000);
-
-            } catch (error) {
-
-                copyButton.textContent = "Copy failed";
-
-                console.error(
-                    "Failed to copy contract address:",
-                    error
-                );
-
-            }
-
-        });
-
-    }
 
 });
