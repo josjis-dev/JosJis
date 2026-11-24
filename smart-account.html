@@ -2,529 +2,796 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#090812">
-  <title>JosJis Smart Account</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Existing project stylesheet -->
-  <link rel="stylesheet" href="style.css">
+    <title>JosJis Smart Account</title>
 
-  <style>
-    :root {
-      --bg: #090812;
-      --panel: #141222;
-      --panel2: #1b172d;
-      --purple: #9870ff;
-      --gold: #e8bd62;
-      --text: #f5f1ff;
-      --muted: #9992ad;
-      --border: rgba(255,255,255,.09);
-      --green: #4ed6a0;
-    }
+    <meta name="description" content="Explore JosJis Smart Account, a planned Polygon-based smart account with single controller permissions and read-only access.">
 
-    * {
-      box-sizing: border-box;
-    }
+    <meta name="theme-color" content="#0c0914">
 
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: Arial, sans-serif;
-    }
+    <!-- Shared CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
 
-    .container {
-      max-width: 1100px;
-      margin: auto;
-      padding: 28px 18px 45px;
-    }
+    <!-- Shared Header, Footer & Components -->
+    <script src="assets/js/header.js" defer></script>
+    <script src="assets/js/footer.js" defer></script>
+    <script src="assets/js/components.js" defer></script>
 
-    .page-heading {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 15px;
-      margin-bottom: 22px;
-    }
+    <style>
+        .smart-hero {
+            text-align: center;
+            padding: 90px 20px 70px;
+            background: radial-gradient(
+                circle at top,
+                #352052 0%,
+                #0c0914 65%
+            );
+        }
 
-    h1 {
-      font-size: 29px;
-      margin: 0 0 7px;
-    }
+        .smart-hero-tag {
+            color: var(--purple-light);
+            letter-spacing: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
 
-    h2 {
-      font-size: 17px;
-      margin: 0;
-    }
+        .smart-hero h1 {
+            font-size: clamp(36px, 7vw, 60px);
+            margin: 15px 0;
+        }
 
-    p {
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.6;
-    }
+        .smart-hero h1 span {
+            color: var(--purple-light);
+        }
 
-    .subtitle {
-      margin: 0;
-    }
+        .smart-hero p {
+            color: var(--muted);
+            max-width: 700px;
+            margin: auto;
+        }
 
-    .badge {
-      display: inline-block;
-      padding: 7px 11px;
-      border-radius: 20px;
-      background: #9870ff20;
-      color: #c4aaff;
-      font-size: 11px;
-      font-weight: bold;
-    }
+        .smart-status {
+            display: inline-block;
+            margin-top: 22px;
+            padding: 8px 15px;
+            border: 1px solid var(--purple-dark);
+            border-radius: 30px;
+            color: var(--purple-light);
+            font-size: 11px;
+            letter-spacing: 1px;
+        }
 
-    .notice {
-      padding: 14px;
-      background: #9870ff12;
-      border: 1px solid #9870ff35;
-      border-radius: 12px;
-      margin-bottom: 20px;
-    }
+        .smart-section {
+            margin-bottom: 55px;
+        }
 
-    .notice strong {
-      font-size: 13px;
-    }
+        .smart-section h2 {
+            color: var(--purple-light);
+            font-size: 27px;
+            margin-bottom: 15px;
+        }
 
-    .notice p {
-      margin: 5px 0 0;
-    }
+        .smart-section p {
+            color: var(--muted);
+            margin-bottom: 14px;
+        }
 
-    .card {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 16px;
-    }
+        .smart-grid {
+            display: grid;
+            grid-template-columns: repeat(
+                auto-fit,
+                minmax(220px, 1fr)
+            );
+            gap: 18px;
+            margin-top: 25px;
+        }
 
-    .account-card {
-      background: linear-gradient(130deg,#251a42,#151122);
-      border: 1px solid #9870ff45;
-    }
+        .smart-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            padding: 25px;
+            transition: var(--transition);
+        }
 
-    .label {
-      color: var(--muted);
-      font-size: 10px;
-      letter-spacing: 1.2px;
-      margin-bottom: 8px;
-    }
+        .smart-card:hover {
+            border-color: var(--purple);
+            transform: translateY(-3px);
+        }
 
-    .account-address {
-      font-size: 13px;
-      overflow-wrap: anywhere;
-    }
+        .smart-card h3 {
+            color: var(--purple-light);
+            margin-bottom: 10px;
+        }
 
-    .account-balance {
-      font-size: 30px;
-      font-weight: bold;
-      margin-top: 25px;
-    }
+        .smart-card p {
+            font-size: 14px;
+            margin: 0;
+        }
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(3,1fr);
-      gap: 14px;
-    }
+        .smart-icon {
+            font-size: 27px;
+            margin-bottom: 15px;
+        }
 
-    .stat-value {
-      font-size: 21px;
-      font-weight: bold;
-      margin-top: 10px;
-    }
+        .smart-info-box {
+            background: linear-gradient(
+                135deg,
+                #241637,
+                #171222
+            );
+            border: 1px solid var(--purple-dark);
+            padding: 28px;
+            border-radius: 16px;
+            overflow-wrap: anywhere;
+        }
 
-    .green {
-      color: var(--green);
-    }
+        .smart-info-box strong {
+            color: var(--purple-light);
+        }
 
-    .gold {
-      color: var(--gold);
-    }
+        .smart-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+        }
 
-    .purple {
-      color: var(--purple);
-    }
+        .smart-info-row:last-child {
+            border-bottom: none;
+        }
 
-    .section-heading {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 17px;
-    }
+        .smart-info-label {
+            color: var(--muted);
+            font-size: 13px;
+        }
 
-    .asset-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 0;
-      border-bottom: 1px solid var(--border);
-      gap: 10px;
-    }
+        .smart-info-value {
+            font-size: 13px;
+            font-weight: bold;
+            text-align: right;
+        }
 
-    .asset-row:last-child {
-      border-bottom: 0;
-    }
+        .smart-tag {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: .5px;
+            background: #9870ff20;
+            color: var(--purple-light);
+            white-space: nowrap;
+        }
 
-    .asset-name {
-      font-weight: bold;
-      font-size: 13px;
-    }
+        .smart-tag-green {
+            background: #35c98b20;
+            color: #55dba4;
+        }
 
-    .asset-symbol {
-      display: block;
-      color: var(--muted);
-      font-size: 11px;
-      margin-top: 4px;
-    }
+        .smart-tag-gold {
+            background: #e8bd6220;
+            color: #e8bd62;
+        }
 
-    .asset-value {
-      text-align: right;
-      font-size: 13px;
-      font-weight: bold;
-    }
+        .smart-address {
+            background: #0c0914;
+            border: 1px solid var(--border);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            overflow-wrap: anywhere;
+            font-size: 13px;
+            color: var(--muted);
+        }
 
-    .controller-box {
-      background: var(--panel2);
-      border: 1px solid var(--border);
-      padding: 15px;
-      border-radius: 12px;
-      margin-top: 12px;
-    }
+        .smart-asset {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border);
+        }
 
-    .controller-address {
-      overflow-wrap: anywhere;
-      font-size: 12px;
-      margin-top: 8px;
-    }
+        .smart-asset:last-child {
+            border-bottom: none;
+        }
 
-    .permission {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 15px 0;
-      border-bottom: 1px solid var(--border);
-    }
+        .smart-asset-name {
+            color: var(--text);
+            font-weight: bold;
+        }
 
-    .permission:last-child {
-      border-bottom: 0;
-    }
+        .smart-asset-symbol {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 4px;
+        }
 
-    .permission-name {
-      font-size: 13px;
-      font-weight: bold;
-    }
+        .smart-asset-balance {
+            text-align: right;
+            font-size: 13px;
+            font-weight: bold;
+        }
 
-    .permission-description {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 5px;
-    }
+        .smart-empty {
+            text-align: center;
+            padding: 30px 15px;
+            background: var(--card);
+            border: 1px dashed var(--border);
+            border-radius: 12px;
+        }
 
-    .status {
-      font-size: 10px;
-      padding: 6px 9px;
-      border-radius: 20px;
-      background: #9870ff20;
-      color: #c4aaff;
-      white-space: nowrap;
-    }
+        .smart-empty h3 {
+            color: var(--purple-light);
+            margin-bottom: 8px;
+        }
 
-    .status-green {
-      background: #4ed6a018;
-      color: var(--green);
-    }
+        .smart-empty p {
+            font-size: 13px;
+            margin: 0;
+        }
 
-    .status-gold {
-      background: #e8bd6218;
-      color: var(--gold);
-    }
+        .smart-warning {
+            background: #e8bd6210;
+            border: 1px solid #e8bd6240;
+            border-radius: 12px;
+            padding: 18px;
+        }
 
-    .empty {
-      text-align: center;
-      padding: 25px 10px;
-      color: var(--muted);
-      font-size: 12px;
-    }
+        .smart-warning strong {
+            color: #e8bd62;
+        }
 
-    .security-list {
-      padding-left: 18px;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 2;
-    }
+        .smart-warning p {
+            font-size: 13px;
+            margin: 7px 0 0;
+        }
 
-    .two-column {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
+        .smart-disclaimer {
+            font-size: 13px;
+            color: var(--muted);
+        }
 
-    .coming-soon {
-      text-align: center;
-      padding: 15px;
-      border: 1px dashed #9870ff55;
-      border-radius: 12px;
-      background: #9870ff09;
-    }
+        @media (max-width: 600px) {
+            .smart-hero {
+                padding-top: 65px;
+            }
 
-    @media(max-width:650px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-
-      .two-column {
-        grid-template-columns: 1fr;
-      }
-
-      .page-heading {
-        align-items: flex-start;
-        flex-direction: column;
-      }
-
-      h1 {
-        font-size: 25px;
-      }
-    }
-  </style>
+            .smart-info-row {
+                align-items: flex-start;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-  <!-- Existing header component -->
-  <div id="header"></div>
+<!-- SHARED HEADER LOADED FROM header.js -->
 
-  <main class="container">
+<div class="smart-hero">
 
-    <div class="page-heading">
-      <div>
-        <h1>Smart Account</h1>
-        <p class="subtitle">
-          Manage your JosJis Smart Account.
+    <div class="smart-hero-tag">
+        JOSJIS ECOSYSTEM
+    </div>
+
+    <h1>
+        Smart <span>Account</span>
+    </h1>
+
+    <p>
+        A planned smart account solution designed to provide
+        flexible asset management, controller permissions,
+        and read-only access on the Polygon network.
+    </p>
+
+    <div class="smart-status">
+        PLANNING PHASE · NOT DEPLOYED
+    </div>
+
+</div>
+
+<main>
+
+    <!-- INTRODUCTION -->
+    <section class="smart-section">
+
+        <h2>What Is JosJis Smart Account?</h2>
+
+        <p>
+            JosJis Smart Account is a planned blockchain account
+            based on smart contract technology. Unlike a regular
+            wallet, its permissions can be managed through
+            programmable rules.
         </p>
-      </div>
 
-      <span class="badge">PLANNING PREVIEW</span>
-    </div>
-
-    <div class="notice">
-      <strong>ⓘ Prototype Mode</strong>
-      <p>
-        This is a planning interface. It is not connected
-        to Polygon or any smart contract yet.
-      </p>
-    </div>
-
-    <!-- ACCOUNT OVERVIEW -->
-    <section class="card account-card">
-
-      <div class="label">SMART ACCOUNT ADDRESS</div>
-
-      <div class="account-address">
-        Not deployed yet
-      </div>
-
-      <div class="account-balance">
-        $0.00
-      </div>
-
-      <p>Estimated total asset value · Demo only</p>
-
-      <span class="badge">Polygon Network</span>
+        <p>
+            The goal is to allow users to manage assets through
+            an authorized Controller while keeping the Smart
+            Account address and its assets unchanged when the
+            Controller is replaced.
+        </p>
 
     </section>
 
-    <!-- ACCOUNT STATUS -->
-    <section class="grid">
+    <!-- NETWORK AND CONFIGURATION -->
+    <section class="smart-section">
 
-      <div class="card">
-        <div class="label">CONTROLLER</div>
-        <div class="stat-value purple">Single</div>
-        <p>One active Controller</p>
-      </div>
+        <h2>Account Configuration</h2>
 
-      <div class="card">
-        <div class="label">READ-ONLY</div>
-        <div class="stat-value green">Enabled</div>
-        <p>View account information</p>
-      </div>
+        <div class="smart-info-box">
 
-      <div class="card">
-        <div class="label">RECOVERY</div>
-        <div class="stat-value gold">Later</div>
-        <p>Reserved for future development</p>
-      </div>
+            <div class="smart-info-row">
+                <span class="smart-info-label">
+                    Network
+                </span>
+
+                <span class="smart-info-value">
+                    Polygon
+                </span>
+            </div>
+
+            <div class="smart-info-row">
+                <span class="smart-info-label">
+                    Controller Model
+                </span>
+
+                <span class="smart-info-value">
+                    Single Controller
+                </span>
+            </div>
+
+            <div class="smart-info-row">
+                <span class="smart-info-label">
+                    Read-Only Access
+                </span>
+
+                <span class="smart-info-value smart-tag smart-tag-green">
+                    Planned
+                </span>
+            </div>
+
+            <div class="smart-info-row">
+                <span class="smart-info-label">
+                    Recovery
+                </span>
+
+                <span class="smart-info-value smart-tag smart-tag-gold">
+                    Later
+                </span>
+            </div>
+
+            <div class="smart-info-row">
+                <span class="smart-info-label">
+                    Smart Contract
+                </span>
+
+                <span class="smart-info-value">
+                    Not Deployed
+                </span>
+            </div>
+
+            <div class="smart-address">
+                <strong>Smart Account Address</strong><br><br>
+                Not available yet. The address will be generated
+                after smart contract deployment.
+            </div>
+
+        </div>
 
     </section>
 
-    <!-- ASSETS -->
-    <section class="card">
+    <!-- PERMISSION MODES -->
+    <section class="smart-section">
 
-      <div class="section-heading">
-        <h2>Account Assets</h2>
-        <span class="badge">DEMO DATA</span>
-      </div>
+        <h2>Permission Modes</h2>
 
-      <div class="asset-row">
-        <div>
-          <div class="asset-name">JosJis</div>
-          <span class="asset-symbol">JJS · Polygon</span>
+        <p>
+            The Smart Account is planned with two active access
+            levels and a possible future recovery feature.
+        </p>
+
+        <div class="smart-grid">
+
+            <div class="smart-card">
+
+                <div class="smart-icon">🔐</div>
+
+                <h3>Owner / Controller</h3>
+
+                <p>
+                    The authorized wallet can send assets,
+                    manage account operations, and authorize
+                    a replacement Controller.
+                </p>
+
+                <br>
+
+                <span class="smart-tag smart-tag-green">
+                    PRIMARY ACCESS
+                </span>
+
+            </div>
+
+            <div class="smart-card">
+
+                <div class="smart-icon">👁️</div>
+
+                <h3>Read-Only</h3>
+
+                <p>
+                    Allows users to view the Smart Account
+                    address, token balances, and transaction
+                    history without permission to execute
+                    transactions or change account settings.
+                </p>
+
+                <br>
+
+                <span class="smart-tag">
+                    VIEW ACCESS
+                </span>
+
+            </div>
+
+            <div class="smart-card">
+
+                <div class="smart-icon">🛡️</div>
+
+                <h3>Recovery</h3>
+
+                <p>
+                    A possible future feature for restoring
+                    account control through a separately
+                    designed recovery mechanism.
+                </p>
+
+                <br>
+
+                <span class="smart-tag smart-tag-gold">
+                    COMING LATER
+                </span>
+
+            </div>
+
         </div>
-        <div class="asset-value">0.00 JJS</div>
-      </div>
-
-      <div class="asset-row">
-        <div>
-          <div class="asset-name">POL</div>
-          <span class="asset-symbol">Polygon Gas Token</span>
-        </div>
-        <div class="asset-value">0.00 POL</div>
-      </div>
-
-      <div class="asset-row">
-        <div>
-          <div class="asset-name">USDT</div>
-          <span class="asset-symbol">Tether USD · Polygon</span>
-        </div>
-        <div class="asset-value">0.00 USDT</div>
-      </div>
-
-      <p>
-        Live balances will be displayed after blockchain integration.
-      </p>
 
     </section>
 
     <!-- CONTROLLER MANAGEMENT -->
-    <section class="card">
+    <section class="smart-section">
 
-      <div class="section-heading">
         <h2>Controller Management</h2>
-        <span class="status status-green">Single Controller</span>
-      </div>
 
-      <div class="controller-box">
-        <div class="label">ACTIVE CONTROLLER</div>
+        <p>
+            The Smart Account is designed to use one active
+            Controller at a time.
+        </p>
 
-        <strong>Not assigned</strong>
+        <div class="smart-info-box">
 
-        <div class="controller-address">
-          Controller wallet will appear here after account creation.
+            <div class="smart-info-row">
+                <span class="smart-info-label">
+                    Controller Slots
+                </span>
+
+                <span class="smart-info-value">
+                    1
+                </span>
+            </div>
+
+            <div class="smart-info-row">
+                <span class="smart-info-label">
+                    Active Controller
+                </span>
+
+                <span class="smart-info-value">
+                    Not Assigned
+                </span>
+            </div>
+
+            <div class="smart-info-row">
+                <span class="smart-info-label">
+                    Controller Replacement
+                </span>
+
+                <span class="smart-info-value smart-tag">
+                    Planned
+                </span>
+            </div>
+
+            <div class="smart-address">
+                The Controller wallet address will appear here
+                after the Smart Account has been created and
+                configured.
+            </div>
+
         </div>
-      </div>
 
-      <p>
-        The Controller has permission to manage the Smart Account,
-        send assets, and authorize a Controller replacement.
-      </p>
+        <p>
+            When a Controller replacement is successfully
+            confirmed on-chain, the previous Controller will
+            lose its management permissions. The Smart Account
+            address and assets will remain unchanged.
+        </p>
 
     </section>
 
-    <!-- PERMISSIONS -->
-    <section class="card">
+    <!-- ASSET OVERVIEW -->
+    <section class="smart-section">
 
-      <div class="section-heading">
-        <h2>Permission Management</h2>
-        <span class="badge">PLANNED</span>
-      </div>
+        <h2>Asset Management</h2>
 
-      <div class="permission">
-        <div>
-          <div class="permission-name">Owner / Controller</div>
-          <div class="permission-description">
-            Send assets and manage account permissions.
-          </div>
+        <p>
+            The Smart Account is planned to support assets
+            available on the Polygon network.
+        </p>
+
+        <div class="smart-info-box">
+
+            <div class="smart-asset">
+                <div>
+                    <div class="smart-asset-name">
+                        JosJis
+                    </div>
+
+                    <div class="smart-asset-symbol">
+                        JJS · Polygon
+                    </div>
+                </div>
+
+                <div class="smart-asset-balance">
+                    0.00 JJS
+                </div>
+            </div>
+
+            <div class="smart-asset">
+                <div>
+                    <div class="smart-asset-name">
+                        POL
+                    </div>
+
+                    <div class="smart-asset-symbol">
+                        Polygon Gas Token
+                    </div>
+                </div>
+
+                <div class="smart-asset-balance">
+                    0.00 POL
+                </div>
+            </div>
+
+            <div class="smart-asset">
+                <div>
+                    <div class="smart-asset-name">
+                        USDT
+                    </div>
+
+                    <div class="smart-asset-symbol">
+                        Tether USD · Polygon
+                    </div>
+                </div>
+
+                <div class="smart-asset-balance">
+                    0.00 USDT
+                </div>
+            </div>
+
         </div>
-        <span class="status status-green">Planned</span>
-      </div>
 
-      <div class="permission">
-        <div>
-          <div class="permission-name">Read-Only</div>
-          <div class="permission-description">
-            View balances, account address, and activity.
-          </div>
-        </div>
-        <span class="status">Planned</span>
-      </div>
-
-      <div class="permission">
-        <div>
-          <div class="permission-name">Recovery</div>
-          <div class="permission-description">
-            Future recovery mechanism.
-          </div>
-        </div>
-        <span class="status status-gold">Later</span>
-      </div>
+        <p class="smart-disclaimer">
+            These are placeholder balances for the planning
+            interface. No live blockchain data is displayed.
+        </p>
 
     </section>
 
-    <!-- ACTIVITY AND SECURITY -->
-    <div class="two-column">
+    <!-- HOW IT WORKS -->
+    <section class="smart-section">
 
-      <section class="card">
-        <div class="section-heading">
-          <h2>Recent Activity</h2>
+        <h2>How It Works</h2>
+
+        <div class="smart-grid">
+
+            <div class="smart-card">
+                <h3>01. Connect Wallet</h3>
+
+                <p>
+                    Connect a compatible wallet such as MetaMask.
+                    The wallet signs requests without sharing
+                    its seed phrase with the website.
+                </p>
+            </div>
+
+            <div class="smart-card">
+                <h3>02. Verify Permissions</h3>
+
+                <p>
+                    The Smart Account checks whether the
+                    connected wallet is authorized as its
+                    active Controller.
+                </p>
+            </div>
+
+            <div class="smart-card">
+                <h3>03. Manage Account</h3>
+
+                <p>
+                    An authorized Controller can perform
+                    permitted operations according to the
+                    Smart Account rules.
+                </p>
+            </div>
+
+            <div class="smart-card">
+                <h3>04. Replace Controller</h3>
+
+                <p>
+                    The current Controller can authorize
+                    a new wallet to take over account
+                    management, subject to contract rules.
+                </p>
+            </div>
+
         </div>
 
-        <div class="empty">
-          No activity yet.<br>
-          Activity will appear after deployment.
-        </div>
-      </section>
-
-      <section class="card">
-        <div class="section-heading">
-          <h2>Security</h2>
-        </div>
-
-        <ul class="security-list">
-          <li>Never enter a seed phrase on this website.</li>
-          <li>Wallet signatures authorize transactions.</li>
-          <li>Controller changes require blockchain confirmation.</li>
-          <li>Without Recovery, losing the Controller key may permanently lock the account.</li>
-        </ul>
-      </section>
-
-    </div>
+    </section>
 
     <!-- RECOVERY -->
-    <section class="card">
-      <div class="section-heading">
-        <h2>Recovery System</h2>
-        <span class="status status-gold">Coming Later</span>
-      </div>
+    <section class="smart-section">
 
-      <div class="coming-soon">
-        <h2 class="gold">Recovery Not Implemented</h2>
-        <p>
-          Recovery is intentionally excluded from the first version.
-          Its rules will be designed separately in a future update.
-        </p>
-      </div>
+        <h2>Future Recovery System</h2>
+
+        <div class="smart-empty">
+
+            <h3>Recovery Is Not Available Yet</h3>
+
+            <p>
+                Recovery is intentionally postponed for the
+                initial version. Its permissions and security
+                rules will be designed separately before
+                implementation.
+            </p>
+
+        </div>
+
     </section>
 
-  </main>
+    <!-- SECURITY -->
+    <section class="smart-section">
 
-  <!-- Existing footer component -->
-  <div id="footer"></div>
+        <h2>Security Considerations</h2>
 
-  <!-- Existing project scripts -->
-  <script src="component.js"></script>
-  <script src="header.js"></script>
-  <script src="footer.js"></script>
+        <div class="smart-warning">
 
-  <!--
-    Header and footer mounting:
-    Connect these placeholders to the actual function names
-    provided by your existing JavaScript components.
-  -->
+            <strong>Important Security Notice</strong>
+
+            <p>
+                The Smart Account will depend on its Controller
+                permissions. If the Controller loses access to
+                its private key and no recovery mechanism exists,
+                the account may become permanently inaccessible.
+            </p>
+
+        </div>
+
+        <div class="smart-grid">
+
+            <div class="smart-card">
+                <h3>Seed Phrase Protection</h3>
+
+                <p>
+                    JosJis will never ask users to enter their
+                    wallet seed phrase into the website.
+                </p>
+            </div>
+
+            <div class="smart-card">
+                <h3>Wallet Authorization</h3>
+
+                <p>
+                    Account operations will require valid
+                    authorization from the connected wallet.
+                </p>
+            </div>
+
+            <div class="smart-card">
+                <h3>Permission Verification</h3>
+
+                <p>
+                    Controller permissions must be verified
+                    before any protected operation is executed.
+                </p>
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- DEVELOPMENT -->
+    <section class="smart-section">
+
+        <h2>Development Roadmap</h2>
+
+        <div class="smart-info-box">
+
+            <div class="smart-info-row">
+                <span class="smart-info-label">
+                    HTML Interface
+                </span>
+
+                <span class="smart-tag smart-tag-green">
+                    Planning
+                </span>
+            </div>
+
+            <div class="smart-info-row">
+                <span class="smart-info-label">
+                    Wallet Integration
+                </span>
+
+                <span class="smart-tag">
+                    Upcoming
+                </span>
+            </div>
+
+            <div class="smart-info-row">
+                <span class="smart-info-label">
+                    Smart Contract
+                </span>
+
+                <span class="smart-tag">
+                    Upcoming
+                </span>
+            </div>
+
+            <div class="smart-info-row">
+                <span class="smart-info-label">
+                    Polygon Testing
+                </span>
+
+                <span class="smart-tag">
+                    Upcoming
+                </span>
+            </div>
+
+            <div class="smart-info-row">
+                <span class="smart-info-label">
+                    Mainnet Deployment
+                </span>
+
+                <span class="smart-tag smart-tag-gold">
+                    Future
+                </span>
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- DISCLAIMER -->
+    <section class="smart-section">
+
+        <h2>Disclaimer</h2>
+
+        <p class="smart-disclaimer">
+            JosJis Smart Account is currently a development
+            concept. The interface does not currently provide
+            wallet connectivity, asset custody, transactions,
+            or account recovery. Features and implementation
+            details may change during development.
+        </p>
+
+    </section>
+
+</main>
+
+<!-- SHARED FOOTER LOADED FROM footer.js -->
 
 </body>
 </html>
