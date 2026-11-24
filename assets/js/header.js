@@ -103,6 +103,11 @@ const headerHTML = `
             Dashboard
         </a>
 
+        <!-- JOSJIS TXCARD -->
+        <a href="/josjis/txcard.html" data-page="txcard.html">
+            TxCard
+        </a>
+
         <!-- MEMBER AREA -->
         <a href="/josjis/member.html" data-page="member.html">
             Member Area
