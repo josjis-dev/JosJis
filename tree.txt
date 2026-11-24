@@ -17,6 +17,8 @@
 │   └── js
 │       ├── README.md
 │       ├── components.js
+│       ├── core
+│       │   └── rpc-manager.js
 │       ├── footer.js
 │       ├── header.js
 │       └── my-assets.js
@@ -50,4 +52,4 @@
     ├── README.md
     └── web3-config.js
 
-9 directories, 42 files
+10 directories, 43 files
