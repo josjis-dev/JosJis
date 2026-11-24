@@ -1,0 +1,239 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JosJis Clicker Game</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #171717, #302000);
+    color: white;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.game {
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    background: #222;
+    padding: 25px 20px;
+    border: 2px solid #d99b00;
+    border-radius: 20px;
+    box-shadow: 0 0 25px #d99b0040;
+}
+
+.logo {
+    font-size: 34px;
+    font-weight: bold;
+    color: #ffbd22;
+    margin-bottom: 5px;
+}
+
+.subtitle {
+    color: #aaa;
+    font-size: 13px;
+    margin-bottom: 25px;
+}
+
+.score-box {
+    background: #151515;
+    border-radius: 15px;
+    padding: 18px;
+    margin-bottom: 25px;
+}
+
+.score-label {
+    color: #aaa;
+    font-size: 14px;
+}
+
+.score {
+    color: #ffbd22;
+    font-size: 42px;
+    font-weight: bold;
+    margin-top: 8px;
+}
+
+.character {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    margin: 10px auto 20px;
+    background: radial-gradient(circle, #554000, #211800);
+    border: 3px solid #ffbd22;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 105px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.1s;
+}
+
+.character:active {
+    transform: scale(0.90);
+}
+
+.instruction {
+    color: #ddd;
+    font-size: 15px;
+    margin-bottom: 22px;
+}
+
+.stats {
+    display: flex;
+    justify-content: space-around;
+    background: #151515;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.stat-number {
+    color: #ffbd22;
+    font-weight: bold;
+    font-size: 20px;
+    margin-top: 5px;
+}
+
+.stat-label {
+    color: #999;
+    font-size: 12px;
+}
+
+button {
+    width: 100%;
+    border: none;
+    padding: 14px;
+    border-radius: 10px;
+    background: #d99b00;
+    color: #171717;
+    font-weight: bold;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+button:active {
+    opacity: 0.8;
+}
+
+.footer {
+    color: #777;
+    font-size: 11px;
+    margin-top: 20px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="game">
+
+    <div class="logo">JosJis</div>
+    <div class="subtitle">CLICKER GAME</div>
+
+    <div class="score-box">
+        <div class="score-label">YOUR SCORE</div>
+        <div class="score" id="score">0</div>
+    </div>
+
+    <div class="character" id="character">
+        🐶
+    </div>
+
+    <div class="instruction">
+        Tap JosJis to earn points!
+    </div>
+
+    <div class="stats">
+
+        <div>
+            <div class="stat-label">TOTAL CLICKS</div>
+            <div class="stat-number" id="clicks">0</div>
+        </div>
+
+        <div>
+            <div class="stat-label">BEST SCORE</div>
+            <div class="stat-number" id="best">0</div>
+        </div>
+
+    </div>
+
+    <button onclick="resetGame()">
+        RESET GAME
+    </button>
+
+    <div class="footer">
+        © 2026 JosJis | Have Fun!
+    </div>
+
+</div>
+
+<script>
+
+let score = Number(localStorage.getItem("jjs_score")) || 0;
+let clicks = Number(localStorage.getItem("jjs_clicks")) || 0;
+let best = Number(localStorage.getItem("jjs_best")) || 0;
+
+const scoreDisplay = document.getElementById("score");
+const clicksDisplay = document.getElementById("clicks");
+const bestDisplay = document.getElementById("best");
+
+function updateDisplay() {
+    scoreDisplay.textContent = score;
+    clicksDisplay.textContent = clicks;
+    bestDisplay.textContent = best;
+}
+
+document.getElementById("character").addEventListener("click", function() {
+
+    score++;
+    clicks++;
+
+    if (score > best) {
+        best = score;
+    }
+
+    localStorage.setItem("jjs_score", score);
+    localStorage.setItem("jjs_clicks", clicks);
+    localStorage.setItem("jjs_best", best);
+
+    updateDisplay();
+
+});
+
+function resetGame() {
+
+    if (confirm("Are you sure you want to reset your game?")) {
+
+        score = 0;
+        clicks = 0;
+
+        localStorage.setItem("jjs_score", score);
+        localStorage.setItem("jjs_clicks", clicks);
+
+        updateDisplay();
+    }
+
+}
+
+updateDisplay();
+
+</script>
+
+</body>
+</html>
