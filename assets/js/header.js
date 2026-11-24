@@ -90,6 +90,11 @@ const headerHTML = `
                     Community LP
                 </a>
 
+                <a href="/josjis/community-builders.html"
+                   data-page="community-builders.html">
+                    Community Builders
+                </a>
+
             </div>
 
         </div>
