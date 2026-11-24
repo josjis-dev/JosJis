@@ -19,9 +19,7 @@
 }
 *{box-sizing:border-box}
 body{
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
+  margin:0;background:var(--bg);color:var(--text);
   font:15px/1.55 system-ui,sans-serif;
 }
 .wrap{max-width:720px;margin:auto;padding:24px 16px 45px}
@@ -71,6 +69,7 @@ button:disabled{opacity:.5}
 .result{
   display:none;padding:13px;border-radius:10px;
   margin-top:13px;overflow-wrap:anywhere;font-size:13px;
+  white-space:pre-wrap;
 }
 .result.show{display:block}
 .good{background:#123321;color:#bbf7d0}
@@ -92,8 +91,8 @@ button:disabled{opacity:.5}
   border-radius:20px;overflow:hidden;margin-top:12px;
 }
 .progress div{
-  height:100%;width:0%;
-  background:var(--purple);transition:width .2s;
+  height:100%;width:0%;background:var(--purple);
+  transition:width .2s;
 }
 footer{text-align:center;color:var(--muted);font-size:12px;margin-top:25px}
 </style>
@@ -110,140 +109,136 @@ footer{text-align:center;color:var(--muted);font-size:12px;margin-top:25px}
   </div>
 </header>
 
-<h1>Message Verification</h1>
-<p>Create an authentic message or verify a message signed by a Safe wallet.</p>
+<h1>Safe Message Verification</h1>
+<p>Create an authentic message or verify a message signed by the JosJis Safe.</p>
 
 <div class="tabs">
   <button class="tab active" id="createTab">Create Message</button>
   <button class="tab" id="verifyTab">Verify Message</button>
 </div>
 
-<!-- CREATE MESSAGE -->
-
 <section id="createSection">
 
-<div class="card">
-  <h2>Safe Wallet</h2>
+  <div class="card">
+    <h2>Official JosJis Safe</h2>
 
-  <div class="small">Official JosJis Safe address</div>
-  <div class="address" id="safeAddressDisplay"></div>
+    <div class="small">Safe address · Polygon</div>
+    <div class="address" id="safeAddressDisplay"></div>
 
-  <div class="small" style="margin-top:12px">
-    Required confirmations: 3 of 5 owners
+    <div class="small" style="margin-top:12px">
+      Required confirmations: 3 of 5 owners
+    </div>
+
+    <button class="action" id="connectBtn">
+      Connect Owner Wallet
+    </button>
+
+    <div id="walletInfo" class="result"></div>
   </div>
 
-  <button class="action" id="connectBtn">
-    Connect Owner Wallet
-  </button>
+  <div class="card">
+    <h2>Create a Safe message</h2>
 
-  <div id="walletInfo" class="result"></div>
-</div>
+    <label for="createMessage">Your announcement or message</label>
+    <textarea id="createMessage"
+      placeholder="Write your official JosJis announcement here..."></textarea>
 
-<div class="card">
-  <h2>Create a Safe message</h2>
+    <button class="action" id="createMessageBtn" disabled>
+      Create Safe Message
+    </button>
 
-  <label for="createMessage">Your message</label>
-  <textarea id="createMessage"
-    placeholder="Write your announcement or message here..."></textarea>
+    <div id="createResult" class="result"></div>
+  </div>
 
-  <button class="action" id="createMessageBtn" disabled>
-    Create Safe Message
-  </button>
+  <div class="card">
+    <h2>Confirm an existing message</h2>
 
-  <div id="createResult" class="result"></div>
-</div>
+    <p class="small">
+      Other Safe owners can connect their own owner wallet,
+      load the same message, and sign it.
+    </p>
 
-<div class="card">
-  <h2>Confirm an existing message</h2>
+    <label for="messageHashInput">Message Hash</label>
+    <input id="messageHashInput" placeholder="0x...">
 
-  <p class="small">
-    Other Safe owners can connect their own wallet and confirm the same message.
-  </p>
+    <button class="secondary" id="loadMessageBtn">
+      Load Message
+    </button>
 
-  <label for="messageHashInput">Message Hash</label>
-  <input id="messageHashInput"
-    placeholder="0x...">
+    <div id="pendingMessageInfo" class="result"></div>
 
-  <button class="secondary" id="loadMessageBtn">
-    Load Message
-  </button>
+    <button class="action" id="confirmMessageBtn" disabled>
+      Sign & Confirm Message
+    </button>
 
-  <div id="pendingMessageInfo" class="result"></div>
+    <button class="secondary" id="refreshMessageBtn" disabled>
+      Refresh Confirmations
+    </button>
 
-  <button class="action" id="confirmMessageBtn" disabled>
-    Sign & Confirm Message
-  </button>
+    <div id="confirmResult" class="result"></div>
+  </div>
 
-  <button class="secondary" id="refreshMessageBtn" disabled>
-    Refresh Confirmations
-  </button>
+  <div class="card hidden" id="proofCard">
+    <h2>Message Proof</h2>
 
-  <div id="confirmResult" class="result"></div>
-</div>
+    <label for="proofOutput">Safe message proof</label>
+    <textarea id="proofOutput" readonly
+      style="min-height:220px"></textarea>
 
-<div class="card hidden" id="proofCard">
-  <h2>Message Proof</h2>
+    <button class="action" id="copyProofBtn">
+      Copy Message Proof
+    </button>
+  </div>
 
-  <label for="proofOutput">Safe message proof</label>
-  <textarea id="proofOutput" readonly
-    style="min-height:220px"></textarea>
-
-  <button class="action" id="copyProofBtn">
-    Copy Message Proof
-  </button>
-</div>
-
-<div class="note">
-  Each confirmation must come from a different owner of the Safe.
-  Three valid owner signatures are required. No JJS tokens or gas fees
-  are required for this off-chain message process.
-</div>
+  <div class="note">
+    Each confirmation must come from a different owner of the Safe.
+    Three valid owner signatures are required. This is an off-chain
+    message process and does not transfer JJS or require a blockchain
+    transaction. Wallet signing itself is still required.
+  </div>
 
 </section>
-
-<!-- VERIFY MESSAGE -->
 
 <section id="verifySection" class="hidden">
 
-<div class="card">
-  <h2>Verify a Safe message</h2>
+  <div class="card">
+    <h2>Verify a Safe message</h2>
 
-  <div class="small">Safe address</div>
-  <div class="address" id="verifySafeDisplay"></div>
+    <div class="small">Official Safe address</div>
+    <div class="address" id="verifySafeDisplay"></div>
 
-  <label for="verifyHash">Message Hash</label>
-  <input id="verifyHash" placeholder="0x...">
+    <label for="verifyHash">Message Hash</label>
+    <input id="verifyHash" placeholder="0x...">
 
-  <label for="expectedMessage">Expected original message (optional)</label>
-  <textarea id="expectedMessage"
-    placeholder="Paste the original message to compare..."></textarea>
+    <label for="expectedMessage">
+      Expected original message (optional)
+    </label>
+    <textarea id="expectedMessage"
+      placeholder="Paste the original message to compare..."></textarea>
 
-  <button class="action" id="verifyBtn">
-    Verify Safe Message
-  </button>
+    <button class="action" id="verifyBtn">
+      Verify Safe Message
+    </button>
 
-  <div id="verifyResult" class="result"></div>
+    <div id="verifyResult" class="result"></div>
 
-  <div id="verifyProgress" class="hidden">
-    <div class="small" id="verifyProgressText"></div>
-    <div class="progress">
-      <div id="verifyProgressBar"></div>
+    <div id="verifyProgress" class="hidden">
+      <div class="small" id="verifyProgressText"></div>
+      <div class="progress">
+        <div id="verifyProgressBar"></div>
+      </div>
     </div>
   </div>
-</div>
 
-<div class="note">
-  A valid result means the Safe contract accepted the signature
-  and the required owner threshold was reached. It does not prove
-  that the message's claims are true.
-</div>
+  <div class="note">
+    A valid result means the Safe contract accepted the combined
+    owner signature and the required threshold was reached.
+    It does not prove that the message's claims are true.
+  </div>
 
 </section>
 
-<footer>
-  JosJis Verify · Non-custodial
-</footer>
-
+<footer>JosJis Verify · Non-custodial</footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.15.0/dist/ethers.umd.min.js"></script>
@@ -267,6 +262,7 @@ const SAFE_ADDRESS =
 
 const CHAIN_ID = 137;
 const REQUIRED_THRESHOLD = 3;
+const REQUIRED_OWNERS = 5;
 
 const RPC =
 "https://polygon-bor-rpc.publicnode.com";
@@ -279,7 +275,7 @@ const PROJECT_ID =
 
 const metadata = {
   name:"JosJis Verify",
-  description:"Verify authentic digital messages",
+  description:"Verify authentic JosJis Safe messages",
   url:window.location.origin,
   icons:[
     "https://josjis-dev.github.io/josjis/assets/images/josjis-logo-circle.png"
@@ -298,26 +294,25 @@ const modal = createAppKit({
 
 const $ = id => document.getElementById(id);
 
-let connectedAddress=null;
-let connectedChain=null;
-let currentMessage=null;
-let currentProtocolKit=null;
+let connectedAddress = null;
+let connectedChain = null;
+let currentMessage = null;
 
-$("safeAddressDisplay").textContent=SAFE_ADDRESS;
-$("verifySafeDisplay").textContent=SAFE_ADDRESS;
+$("safeAddressDisplay").textContent = SAFE_ADDRESS;
+$("verifySafeDisplay").textContent = SAFE_ADDRESS;
 
 function show(id,type,message){
-  const el=$(id);
-  el.className="result show "+type;
-  el.textContent=message;
+  const el = $(id);
+  el.className = "result show " + type;
+  el.textContent = message;
 }
 
 function hide(id){
-  $(id).className="result";
+  $(id).className = "result";
 }
 
 function switchTab(tab){
-  const create=tab==="create";
+  const create = tab === "create";
 
   $("createSection").classList.toggle("hidden",!create);
   $("verifySection").classList.toggle("hidden",create);
@@ -326,31 +321,33 @@ function switchTab(tab){
   $("verifyTab").classList.toggle("active",!create);
 }
 
-$("createTab").onclick=()=>switchTab("create");
-$("verifyTab").onclick=()=>switchTab("verify");
+$("createTab").onclick = () => switchTab("create");
+$("verifyTab").onclick = () => switchTab("verify");
 
 function updateConnectedUI(address,chainId){
 
-  connectedAddress=address||null;
-  connectedChain=chainId||null;
+  connectedAddress = address || null;
+  connectedChain = chainId || null;
 
-  $("createMessageBtn").disabled=!address;
-  $("confirmMessageBtn").disabled=!address||!currentMessage;
+  $("createMessageBtn").disabled = !address;
+
+  $("confirmMessageBtn").disabled =
+    !address || !currentMessage;
 
   if(!address){
-    $("connectBtn").textContent="Connect Owner Wallet";
+    $("connectBtn").textContent = "Connect Owner Wallet";
     hide("walletInfo");
-    currentProtocolKit=null;
     return;
   }
 
-  $("connectBtn").textContent="Wallet Connected";
+  $("connectBtn").textContent = "Wallet Connected";
 
   show(
     "walletInfo",
     "good",
-    "Connected owner: "+address+
-    " | Chain ID: "+chainId
+    "Connected wallet: " + address +
+    "\nChain ID: " + chainId +
+    "\nThis wallet must be one of the Safe owners."
   );
 }
 
@@ -363,8 +360,8 @@ async function refreshWallet(){
       return;
     }
 
-    const address=modal.getAddress();
-    const chainId=modal.getChainId();
+    const address = modal.getAddress();
+    const chainId = modal.getChainId();
 
     if(!address){
       updateConnectedUI(null,null);
@@ -374,13 +371,13 @@ async function refreshWallet(){
     updateConnectedUI(address,chainId);
 
   }catch(error){
-    console.error(error);
+    console.error("Wallet refresh:",error);
   }
 }
 
 // REOWN SUBSCRIPTIONS
 
-modal.subscribeState(state=>{
+modal.subscribeState(state => {
   if(state.isConnected){
     refreshWallet();
   }else{
@@ -388,7 +385,7 @@ modal.subscribeState(state=>{
   }
 });
 
-modal.subscribeAccount(account=>{
+modal.subscribeAccount(account => {
 
   if(account.isConnected && account.address){
 
@@ -405,13 +402,13 @@ modal.subscribeAccount(account=>{
 
 });
 
-modal.subscribeNetwork(()=>{
+modal.subscribeNetwork(() => {
   if(modal.getIsConnected()) refreshWallet();
 });
 
 // CONNECT WALLET
 
-$("connectBtn").onclick=async()=>{
+$("connectBtn").onclick = async() => {
 
   try{
 
@@ -443,7 +440,7 @@ $("connectBtn").onclick=async()=>{
     show(
       "walletInfo",
       "bad",
-      error.shortMessage||error.message||"Connection failed."
+      error.shortMessage || error.message || "Connection failed."
     );
 
   }
@@ -470,112 +467,109 @@ async function restoreSession(){
 
 await restoreSession();
 
-// SAFE API
+// SAFE QUEUE SERVICE
 
 async function safeFetch(path,options={}){
 
-  const headers={
+  const headers = {
     "Accept":"application/json",
     "Content-Type":"application/json",
-    ...(options.headers||{})
+    ...(options.headers || {})
   };
 
-  const response=await fetch(QUEUE+path,{
+  const response = await fetch(QUEUE + path,{
     ...options,
     headers
   });
 
-  const text=await response.text();
+  const text = await response.text();
 
-  let data={};
+  let data = {};
 
   try{
-    data=text?JSON.parse(text):{};
+    data = text ? JSON.parse(text) : {};
   }catch{
-    data={detail:text};
+    data = {detail:text};
   }
 
   if(!response.ok){
 
-    let message=
-      data.detail||
-      data.message||
-      "Safe Queue Service error: "+response.status;
+    let message =
+      data.detail ||
+      data.message ||
+      "Safe Queue Service error: " + response.status;
+
+    if(Array.isArray(message)){
+      message = message.map(x=>x.msg || JSON.stringify(x)).join("; ");
+    }
 
     if(response.status===401){
-      message="Safe API authentication failed. Check the API key or service access.";
+      message = "Safe API authentication failed.";
+    }
+
+    if(response.status===409){
+      message = "This message or owner confirmation already exists.";
+    }
+
+    if(response.status===422){
+      message = "Safe rejected the message or signature: " +
+        (typeof message==="string"?message:JSON.stringify(message));
     }
 
     if(response.status===429){
-      message="Safe API rate limit reached. Please try again later.";
+      message = "Safe API rate limit reached. Try again later.";
     }
 
     throw new Error(
-      typeof message==="string"?
-      message:
-      JSON.stringify(message)
+      typeof message==="string" ? message : JSON.stringify(message)
     );
-
   }
 
   return data;
 }
 
-function safeApiHeaders(){
-
-  const key=$("safeApiKey")?.value.trim();
-
-  if(key){
-    return {
-      "Authorization":"Bearer "+key
-    };
-  }
-
-  return {};
-}
-
-// CREATE SAFE PROTOCOL KIT
+// GET SAFE PROTOCOL KIT FOR CONNECTED OWNER
 
 async function getProtocolKit(){
 
   if(!modal.getIsConnected()){
-    throw new Error("Please connect an owner wallet first.");
+    throw new Error("Connect a Safe owner wallet first.");
   }
 
-  const provider=modal.getWalletProvider();
+  const provider = modal.getWalletProvider();
 
   if(!provider){
     throw new Error("Wallet provider unavailable.");
   }
 
-  const chain=await provider.request({
+  const chain = await provider.request({
     method:"eth_chainId"
   });
 
   if(Number(chain)!==CHAIN_ID){
-    throw new Error("Please switch your wallet to Polygon Mainnet.");
+    throw new Error("Switch your connected wallet to Polygon Mainnet.");
   }
 
-  const accounts=await provider.request({
+  const accounts = await provider.request({
     method:"eth_accounts"
   });
 
-  if(!accounts||!accounts.length){
+  if(!accounts || !accounts.length){
     throw new Error("No connected wallet account.");
   }
 
-  const signer=accounts[0];
+  const signer = accounts[0];
 
-  const protocolKit=await Safe.init({
+  const protocolKit = await Safe.init({
     provider:provider,
     signer:signer,
     safeAddress:SAFE_ADDRESS
   });
 
-  const info=await protocolKit.getSafeInfo();
+  const info = await protocolKit.getSafeInfo();
 
-  const owners=info.owners.map(x=>x.toLowerCase());
-  const threshold=Number(info.threshold);
+  const owners = info.owners.map(x=>x.toLowerCase());
+  const threshold = Number(info.threshold);
 
   if(!owners.includes(signer.toLowerCase())){
     throw new Error(
@@ -585,17 +579,15 @@ async function getProtocolKit(){
 
   if(threshold!==REQUIRED_THRESHOLD){
     throw new Error(
-      "Safe threshold mismatch. Expected 3, detected "+threshold+"."
+      "Safe threshold mismatch. Expected 3, detected " + threshold + "."
     );
   }
 
-  if(owners.length!==5){
+  if(owners.length!==REQUIRED_OWNERS){
     throw new Error(
-      "Safe owner count mismatch. Expected 5, detected "+owners.length+"."
+      "Safe owner count mismatch. Expected 5, detected " + owners.length + "."
     );
   }
-
-  currentProtocolKit=protocolKit;
 
   return {
     protocolKit,
@@ -604,65 +596,119 @@ async function getProtocolKit(){
   };
 }
 
+// VALIDATE MESSAGE RESPONSE
+
+function validateMessageResponse(result){
+
+  if(!result || !result.messageHash){
+    throw new Error("Safe service did not return a message hash.");
+  }
+
+  if(!result.safe ||
+     result.safe.toLowerCase()!==SAFE_ADDRESS.toLowerCase()){
+    throw new Error("This message belongs to a different Safe.");
+  }
+
+  if(Number(result.chainId)!==CHAIN_ID){
+    throw new Error("Message is not on Polygon Mainnet.");
+  }
+
+  if(typeof result.message!=="string"){
+    throw new Error("Message content is missing or invalid.");
+  }
+
+  if(!/^0x[0-9a-fA-F]{64}$/.test(result.messageHash)){
+    throw new Error("Safe returned an invalid message hash.");
+  }
+
+  return result;
+}
+
+// DISPLAY MESSAGE PROOF
+
+function updateProof(result){
+
+  const confirmations = result.confirmations || [];
+
+  const proof = {
+    type:"JosJis Safe Message Proof",
+    version:1,
+    network:"Polygon",
+    chainId:CHAIN_ID,
+    safeAddress:SAFE_ADDRESS,
+    threshold:REQUIRED_THRESHOLD,
+    ownerCount:REQUIRED_OWNERS,
+    message:result.message,
+    messageHash:result.messageHash,
+    confirmationCount:confirmations.length,
+    confirmations:confirmations.map(item=>({
+      owner:item.owner,
+      signatureType:item.signatureType,
+      created:item.created
+    })),
+    status:
+      confirmations.length>=REQUIRED_THRESHOLD?
+      "READY_FOR_SIGNATURE_VERIFICATION":
+      "PENDING"
+  };
+
+  $("proofCard").classList.remove("hidden");
+  $("proofOutput").value = JSON.stringify(proof,null,2);
+}
+
 // CREATE MESSAGE
 
-$("createMessageBtn").onclick=async()=>{
+$("createMessageBtn").onclick = async() => {
 
-  const message=$("createMessage").value;
+  const message = $("createMessage").value.trim();
 
-  if(!message.trim()){
-    show(
-      "createResult",
-      "bad",
-      "Please write a message first."
-    );
+  if(!message){
+    show("createResult","bad","Please write a message first.");
     return;
   }
 
-  $("createMessageBtn").disabled=true;
-  $("createMessageBtn").textContent="Preparing...";
+  $("createMessageBtn").disabled = true;
+  $("createMessageBtn").textContent = "Preparing...";
 
   try{
 
     show(
       "createResult",
       "info",
-      "Checking Safe and owner configuration..."
+      "Checking Safe and connected owner..."
     );
 
     const {
       protocolKit,
       signer
-    }=await getProtocolKit();
+    } = await getProtocolKit();
 
     show(
       "createResult",
       "info",
-      "Creating Safe message signature. Please approve in your wallet."
+      "Please approve the Safe message signature in your owner wallet."
     );
 
-    const safeMessage=protocolKit.createMessage(message);
+    const safeMessage = protocolKit.createMessage(message);
 
-    const signedMessage=await protocolKit.signMessage(safeMessage);
+    const signedMessage = await protocolKit.signMessage(safeMessage);
 
-    const encodedSignature=
-      signedMessage.encodedSignatures();
+    const encodedSignature = signedMessage.encodedSignatures();
 
-    if(!encodedSignature||encodedSignature==="0x"){
+    if(!encodedSignature || encodedSignature==="0x"){
       throw new Error("Safe signature is empty.");
     }
 
     show(
       "createResult",
       "info",
-      "Submitting the first owner confirmation..."
+      "Submitting the first owner signature to Safe..."
     );
 
-    const result=await safeFetch(
-      "/safes/"+SAFE_ADDRESS+"/messages",
+    const result = await safeFetch(
+      "/safes/" + SAFE_ADDRESS + "/messages",
       {
         method:"POST",
-        headers:safeApiHeaders(),
         body:JSON.stringify({
           chainId:CHAIN_ID,
           message:message,
@@ -673,38 +719,22 @@ $("createMessageBtn").onclick=async()=>{
       }
     );
 
-    if(!result.messageHash){
-      throw new Error("Safe did not return a message hash.");
-    }
+    validateMessageResponse(result);
 
-    const proof={
-      type:"JosJis Safe Message Proof",
-      version:1,
-      network:"Polygon",
-      chainId:CHAIN_ID,
-      safeAddress:SAFE_ADDRESS,
-      threshold:REQUIRED_THRESHOLD,
-      ownerCount:5,
-      message:message,
-      messageHash:result.messageHash,
-      confirmations:result.confirmations||[],
-      confirmationCount:(result.confirmations||[]).length,
-      status:"PENDING"
-    };
+    $("messageHashInput").value = result.messageHash;
+    $("verifyHash").value = result.messageHash;
 
-    $("proofCard").classList.remove("hidden");
-    $("proofOutput").value=JSON.stringify(proof,null,2);
-
-    $("messageHashInput").value=result.messageHash;
-
-    currentMessage=result;
+    currentMessage = result;
 
     await loadMessage(result.messageHash);
 
     show(
       "createResult",
       "good",
-      "Message created. First owner confirmation submitted. Share the Message Hash with the other Safe owners."
+      "Message created successfully.\n\n" +
+      "The first owner signature has been submitted.\n\n" +
+      "Message Hash:\n" + result.messageHash +
+      "\n\nShare this hash with the other Safe owners."
     );
 
   }catch(error){
@@ -714,13 +744,13 @@ $("createMessageBtn").onclick=async()=>{
     show(
       "createResult",
       "bad",
-      error.message||"Unable to create Safe message."
+      error.message || "Unable to create Safe message."
     );
 
   }finally{
 
-    $("createMessageBtn").disabled=!modal.getIsConnected();
-    $("createMessageBtn").textContent="Create Safe Message";
+    $("createMessageBtn").disabled = !modal.getIsConnected();
+    $("createMessageBtn").textContent = "Create Safe Message";
 
   }
 
@@ -734,75 +764,51 @@ async function loadMessage(hash){
     throw new Error("Invalid message hash.");
   }
 
-  const result=await safeFetch(
-    "/messages/"+hash,
-    {
-      method:"GET",
-      headers:safeApiHeaders()
-    }
+  const result = await safeFetch(
+    "/messages/" + hash,
+    {method:"GET"}
   );
 
-  if(result.safe.toLowerCase()!==SAFE_ADDRESS.toLowerCase()){
-    throw new Error("This message belongs to a different Safe.");
-  }
+  validateMessageResponse(result);
 
-  if(Number(result.chainId)!==CHAIN_ID){
-    throw new Error("Message is not on Polygon Mainnet.");
-  }
+  currentMessage = result;
 
-  currentMessage=result;
+  const confirmations = result.confirmations || [];
+  const count = confirmations.length;
 
-  const count=(result.confirmations||[]).length;
-
-  $("confirmMessageBtn").disabled=!modal.getIsConnected();
-  $("refreshMessageBtn").disabled=false;
-
-  const progress=Math.min(
+  const progress = Math.min(
     100,
-    (count/REQUIRED_THRESHOLD)*100
+    count / REQUIRED_THRESHOLD * 100
   );
+
+  $("confirmMessageBtn").disabled =
+    !modal.getIsConnected();
+
+  $("refreshMessageBtn").disabled = false;
 
   show(
     "pendingMessageInfo",
-    count>=REQUIRED_THRESHOLD?"good":"info",
-    "Message: "+result.message+
-    "\n\nConfirmations: "+count+
-    " / "+REQUIRED_THRESHOLD+
-    "\n\nMessage Hash: "+result.messageHash+
-    "\n\nStatus: "+(
-      count>=REQUIRED_THRESHOLD?
-      "THRESHOLD REACHED":
-      "WAITING FOR OWNERS"
-    )
+    count>=REQUIRED_THRESHOLD ? "good" : "info",
+    "Message:\n" + result.message +
+    "\n\nConfirmations: " + count +
+    " / " + REQUIRED_THRESHOLD +
+    "\n\nMessage Hash:\n" + result.messageHash +
+    "\n\nStatus: " +
+    (count>=REQUIRED_THRESHOLD ?
+      "THRESHOLD REACHED — VERIFY SIGNATURE" :
+      "WAITING FOR OWNERS")
   );
 
-  $("proofCard").classList.remove("hidden");
-
-  const proof={
-    type:"JosJis Safe Message Proof",
-    version:1,
-    network:"Polygon",
-    chainId:CHAIN_ID,
-    safeAddress:SAFE_ADDRESS,
-    message:result.message,
-    messageHash:result.messageHash,
-    threshold:REQUIRED_THRESHOLD,
-    confirmationCount:count,
-    confirmations:result.confirmations||[],
-    preparedSignature:result.preparedSignature||null,
-    status:count>=REQUIRED_THRESHOLD?"THRESHOLD REACHED":"PENDING"
-  };
-
-  $("proofOutput").value=JSON.stringify(proof,null,2);
+  updateProof(result);
 
   return result;
 }
 
-$("loadMessageBtn").onclick=async()=>{
+$("loadMessageBtn").onclick = async() => {
 
-  const hash=$("messageHashInput").value.trim();
+  const hash = $("messageHashInput").value.trim();
 
-  $("loadMessageBtn").disabled=true;
+  $("loadMessageBtn").disabled = true;
 
   try{
 
@@ -816,8 +822,8 @@ $("loadMessageBtn").onclick=async()=>{
 
   }catch(error){
 
-    currentMessage=null;
-    $("confirmMessageBtn").disabled=true;
+    currentMessage = null;
+    $("confirmMessageBtn").disabled = true;
 
     show(
       "pendingMessageInfo",
@@ -827,7 +833,7 @@ $("loadMessageBtn").onclick=async()=>{
 
   }finally{
 
-    $("loadMessageBtn").disabled=false;
+    $("loadMessageBtn").disabled = false;
 
   }
 
@@ -835,31 +841,29 @@ $("loadMessageBtn").onclick=async()=>{
 
 // CONFIRM MESSAGE
 
-$("confirmMessageBtn").onclick=async()=>{
+$("confirmMessageBtn").onclick = async() => {
 
   if(!currentMessage){
-    show(
-      "confirmResult",
-      "bad",
-      "Load a Safe message first."
-    );
+    show("confirmResult","bad","Load a Safe message first.");
     return;
   }
 
-  $("confirmMessageBtn").disabled=true;
-  $("confirmMessageBtn").textContent="Signing...";
+  $("confirmMessageBtn").disabled = true;
+  $("confirmMessageBtn").textContent = "Signing...";
 
   try{
 
     const {
       protocolKit,
       signer
-    }=await getProtocolKit();
+    } = await getProtocolKit();
 
-    const alreadySigned=
-      (currentMessage.confirmations||[]).some(
-        x=>x.owner.toLowerCase()===signer.toLowerCase()
-      );
+    const existingConfirmations =
+      currentMessage.confirmations || [];
+
+    const alreadySigned = existingConfirmations.some(
+      item => item.owner.toLowerCase() === signer.toLowerCase()
+    );
 
     if(alreadySigned){
       throw new Error(
@@ -870,19 +874,17 @@ $("confirmMessageBtn").onclick=async()=>{
     show(
       "confirmResult",
       "info",
-      "Preparing Safe message for this owner..."
+      "Please approve the same Safe message in your owner wallet."
     );
 
-    const signedMessage=
+    const signedMessage =
       await protocolKit.signMessage(currentMessage);
 
-    const ownerSignature=
+    const ownerSignature =
       signedMessage.getSignature(signer);
 
-    if(!ownerSignature||!ownerSignature.data){
-      throw new Error(
-        "Unable to obtain the owner's Safe signature."
-      );
+    if(!ownerSignature || !ownerSignature.data){
+      throw new Error("Unable to obtain the owner's signature.");
     }
 
     show(
@@ -892,28 +894,30 @@ $("confirmMessageBtn").onclick=async()=>{
     );
 
     await safeFetch(
-      "/messages/"+currentMessage.messageHash+"/signatures",
+      "/messages/" + currentMessage.messageHash + "/signatures",
       {
         method:"POST",
-        headers:safeApiHeaders(),
         body:JSON.stringify({
           signatures:[ownerSignature.data]
         })
       }
     );
 
-    const updated=await loadMessage(
+    const updated = await loadMessage(
       currentMessage.messageHash
     );
 
-    const count=(updated.confirmations||[]).length;
+    const count = (updated.confirmations || []).length;
 
     if(count>=REQUIRED_THRESHOLD){
 
       show(
         "confirmResult",
         "good",
-        "Threshold reached: "+count+" of 3 confirmations. The Safe message is ready for ERC-1271 verification."
+        "Threshold reached: " + count +
+        " of " + REQUIRED_THRESHOLD +
+        " confirmations.\n\n" +
+        "Now use the Verify Message tab to check the combined signature."
       );
 
     }else{
@@ -921,7 +925,9 @@ $("confirmMessageBtn").onclick=async()=>{
       show(
         "confirmResult",
         "good",
-        "Owner confirmation submitted. Current progress: "+count+" of 3."
+        "Owner confirmation submitted successfully.\n\n" +
+        "Current progress: " + count +
+        " of " + REQUIRED_THRESHOLD + "."
       );
 
     }
@@ -933,15 +939,15 @@ $("confirmMessageBtn").onclick=async()=>{
     show(
       "confirmResult",
       "bad",
-      error.message||"Confirmation failed."
+      error.message || "Confirmation failed."
     );
 
   }finally{
 
-    $("confirmMessageBtn").disabled=
-      !modal.getIsConnected()||!currentMessage;
+    $("confirmMessageBtn").disabled =
+      !modal.getIsConnected() || !currentMessage;
 
-    $("confirmMessageBtn").textContent=
+    $("confirmMessageBtn").textContent =
       "Sign & Confirm Message";
 
   }
@@ -950,11 +956,11 @@ $("confirmMessageBtn").onclick=async()=>{
 
 // REFRESH CONFIRMATIONS
 
-$("refreshMessageBtn").onclick=async()=>{
+$("refreshMessageBtn").onclick = async() => {
 
   try{
 
-    const hash=$("messageHashInput").value.trim();
+    const hash = $("messageHashInput").value.trim();
 
     await loadMessage(hash);
 
@@ -978,7 +984,7 @@ $("refreshMessageBtn").onclick=async()=>{
 
 // COPY PROOF
 
-$("copyProofBtn").onclick=async()=>{
+$("copyProofBtn").onclick = async() => {
 
   try{
 
@@ -1000,7 +1006,7 @@ $("copyProofBtn").onclick=async()=>{
     show(
       "createResult",
       "info",
-      "Please copy the selected text."
+      "Please copy the selected proof manually."
     );
 
   }
@@ -1009,181 +1015,156 @@ $("copyProofBtn").onclick=async()=>{
 
 // VERIFY SAFE MESSAGE
 
-const VERIFY_ABI=[
-  "function getThreshold() view returns (uint256)",
-  "function getOwners() view returns (address[])",
-  "function isValidSignature(bytes data,bytes signature) view returns (bytes4)"
-];
+$("verifyBtn").onclick = async() => {
 
-$("verifyBtn").onclick=async()=>{
-
-  const hash=$("verifyHash").value.trim();
-  const expected=$("expectedMessage").value;
+  const hash = $("verifyHash").value.trim();
+  const expected = $("expectedMessage").value;
 
   if(!/^0x[0-9a-fA-F]{64}$/.test(hash)){
-    show(
-      "verifyResult",
-      "bad",
-      "Invalid message hash."
-    );
+    show("verifyResult","bad","Invalid message hash.");
     return;
   }
 
-  $("verifyBtn").disabled=true;
-  $("verifyBtn").textContent="Verifying...";
+  $("verifyBtn").disabled = true;
+  $("verifyBtn").textContent = "Verifying...";
 
   $("verifyProgress").classList.remove("hidden");
-  $("verifyProgressBar").style.width="10%";
+  $("verifyProgressBar").style.width = "10%";
+  $("verifyProgressText").textContent =
+    "Retrieving Safe message...";
 
   try{
 
-    show(
-      "verifyResult",
-      "info",
-      "Retrieving Safe message and confirmations..."
+    const result = await safeFetch(
+      "/messages/" + hash,
+      {method:"GET"}
     );
 
-    const result=await safeFetch(
-      "/messages/"+hash,
-      {
-        method:"GET",
-        headers:safeApiHeaders()
-      }
-    );
+    validateMessageResponse(result);
 
-    $("verifyProgressBar").style.width="30%";
+    $("verifyProgressBar").style.width = "25%";
 
-    if(result.safe.toLowerCase()!==SAFE_ADDRESS.toLowerCase()){
-      throw new Error("Message belongs to a different Safe.");
-    }
-
-    if(Number(result.chainId)!==CHAIN_ID){
-      throw new Error("Message is not on Polygon Mainnet.");
-    }
-
-    if(expected.length && expected!==result.message){
+    if(expected.trim() && expected !== result.message){
       throw new Error(
         "The original message does not match the Safe message."
       );
     }
 
-    const provider=new ethers.JsonRpcProvider(
+    $("verifyProgressText").textContent =
+      "Checking Safe contract on Polygon...";
+
+    const provider = new ethers.JsonRpcProvider(
       RPC,
       CHAIN_ID
     );
 
-    const code=await provider.getCode(SAFE_ADDRESS);
+    const code = await provider.getCode(SAFE_ADDRESS);
 
     if(code==="0x"){
       throw new Error("Safe contract not found on Polygon.");
     }
 
-    const contract=new ethers.Contract(
-      SAFE_ADDRESS,
-      VERIFY_ABI,
-      provider
+    $("verifyProgressBar").style.width = "45%";
+
+    const verifier = await Safe.init({
+      provider:RPC,
+      safeAddress:SAFE_ADDRESS
+    });
+
+    const info = await verifier.getSafeInfo();
+
+    const owners = info.owners.map(
+      address => address.toLowerCase()
     );
 
-    $("verifyProgressBar").style.width="50%";
+    const threshold = Number(info.threshold);
 
-    const [threshold,owners]=await Promise.all([
-      contract.getThreshold(),
-      contract.getOwners()
-    ]);
-
-    const actualThreshold=Number(threshold);
-
-    if(actualThreshold!==REQUIRED_THRESHOLD){
+    if(threshold!==REQUIRED_THRESHOLD){
       throw new Error(
-        "On-chain Safe threshold is "+actualThreshold+
-        ", not 3."
+        "On-chain Safe threshold is " + threshold +
+        ", not " + REQUIRED_THRESHOLD + "."
       );
     }
 
-    if(owners.length!==5){
+    if(owners.length!==REQUIRED_OWNERS){
       throw new Error(
-        "On-chain Safe has "+owners.length+
-        " owners, not 5."
+        "On-chain Safe has " + owners.length +
+        " owners, not " + REQUIRED_OWNERS + "."
       );
     }
 
-    const ownerSet=new Set(
-      owners.map(x=>x.toLowerCase())
-    );
+    $("verifyProgressBar").style.width = "60%";
 
-    const confirmations=result.confirmations||[];
+    const confirmations = result.confirmations || [];
 
-    const validOwners=new Set(
+    const validOwnerConfirmations = new Set(
       confirmations
-        .map(x=>x.owner.toLowerCase())
-        .filter(x=>ownerSet.has(x))
+        .filter(item =>
+          item.owner &&
+          owners.includes(item.owner.toLowerCase())
+        )
+        .map(item => item.owner.toLowerCase())
     );
 
-    const count=validOwners.size;
+    const count = validOwnerConfirmations.size;
 
-    $("verifyProgressBar").style.width="70%";
-
-    if(count<actualThreshold){
-
-      show(
-        "verifyResult",
-        "bad",
-        "NOT VERIFIED: Only "+count+
-        " valid owner confirmations found. Required: "+
-        actualThreshold+"."
+    if(count<threshold){
+      throw new Error(
+        "Not enough valid owner confirmations. Found " +
+        count + " of " + threshold + "."
       );
-
-      return;
     }
 
     if(!result.preparedSignature){
-
       throw new Error(
-        "Safe has enough confirmations but no prepared signature was returned."
+        "Safe Queue Service has not returned a prepared signature. " +
+        "Refresh later or check the Safe confirmations."
       );
     }
 
-    show(
-      "verifyResult",
-      "info",
-      "Checking the combined signature directly against the Safe contract..."
-    );
+    $("verifyProgressText").textContent =
+      "Checking combined signature with Safe Protocol Kit...";
 
-    const messageBytes=ethers.toUtf8Bytes(
-      result.message
-    );
+    $("verifyProgressBar").style.width = "80%";
 
-    const magic=await contract[
-      "isValidSignature(bytes,bytes)"
-    ](
-      messageBytes,
+    /*
+      Safe Protocol Kit computes the Safe message hash
+      and checks the concatenated owner signatures against
+      the Safe contract's signature validation logic.
+    */
+
+    const rawMessageHash = ethers.hashMessage(result.message);
+
+    const safeMessageHash =
+      await verifier.getSafeMessageHash(rawMessageHash);
+
+    const isValid = await verifier.isValidSignature(
+      safeMessageHash,
       result.preparedSignature
     );
 
-    $("verifyProgressBar").style.width="95%";
+    $("verifyProgressBar").style.width = "100%";
 
-    if(String(magic).toLowerCase()!=="0x20c13b0b"){
-
-      show(
-        "verifyResult",
-        "bad",
-        "NOT VERIFIED: The Safe contract rejected the combined signature."
+    if(!isValid){
+      throw new Error(
+        "The Safe contract rejected the combined signature."
       );
-
-      return;
     }
-
-    $("verifyProgressBar").style.width="100%";
 
     show(
       "verifyResult",
       "good",
-      "VALID SAFE MESSAGE\n\n"+
-      "Safe: "+SAFE_ADDRESS+
-      "\n\nConfirmations: "+count+" / "+actualThreshold+
-      "\n\nMessage Hash: "+result.messageHash+
-      "\n\nThe Safe contract accepted the ERC-1271 signature."
+      "VALID SAFE MESSAGE\n\n" +
+      "Safe: " + SAFE_ADDRESS +
+      "\n\nNetwork: Polygon" +
+      "\n\nConfirmed owners: " + count +
+      " / " + threshold +
+      "\n\nMessage Hash:\n" + result.messageHash +
+      "\n\nThe Safe Protocol Kit accepted the combined signature."
     );
+
+    $("verifyProgressText").textContent =
+      "Signature verification successful.";
 
   }catch(error){
 
@@ -1192,13 +1173,17 @@ $("verifyBtn").onclick=async()=>{
     show(
       "verifyResult",
       "bad",
-      error.message||"Verification failed."
+      "NOT VERIFIED\n\n" +
+      (error.message || "Verification failed.")
     );
+
+    $("verifyProgressText").textContent =
+      "Verification unsuccessful.";
 
   }finally{
 
-    $("verifyBtn").disabled=false;
-    $("verifyBtn").textContent="Verify Safe Message";
+    $("verifyBtn").disabled = false;
+    $("verifyBtn").textContent = "Verify Safe Message";
 
   }
 
