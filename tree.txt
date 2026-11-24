@@ -20,6 +20,7 @@
 │       ├── core
 │       │   ├── contract-registry.js
 │       │   ├── data-manager.js
+│       │   ├── error-manager.js
 │       │   ├── rpc-manager.js
 │       │   ├── token-manager.js
 │       │   ├── transaction-manager.js
@@ -57,4 +58,4 @@
     ├── README.md
     └── web3-config.js
 
-10 directories, 48 files
+10 directories, 49 files
