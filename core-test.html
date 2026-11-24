@@ -1,0 +1,830 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#17130a">
+
+<title>JosJis Core Test</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 20px 14px;
+    min-height: 100vh;
+    background: linear-gradient(145deg,#171717,#302000);
+    color: white;
+    font-family: Arial,sans-serif;
+}
+
+.container {
+    max-width: 600px;
+    margin: auto;
+}
+
+header {
+    text-align: center;
+    margin: 20px 0 28px;
+}
+
+.logo {
+    width: 75px;
+    height: 75px;
+    object-fit: contain;
+    border-radius: 50%;
+}
+
+h1 {
+    margin: 12px 0 5px;
+    color: #f5bd42;
+}
+
+.subtitle {
+    color: #aaa;
+    font-size: 13px;
+}
+
+.card {
+    background: #242424;
+    border: 1px solid #414141;
+    border-radius: 13px;
+    padding: 16px;
+    margin-bottom: 14px;
+}
+
+.card h2 {
+    margin: 0 0 14px;
+    font-size: 16px;
+    color: #f5bd42;
+}
+
+.test-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 0;
+    border-bottom: 1px solid #383838;
+    font-size: 13px;
+}
+
+.test-item:last-child {
+    border-bottom: none;
+}
+
+.test-value {
+    text-align: right;
+    overflow-wrap: anywhere;
+    color: #aaa;
+    max-width: 65%;
+}
+
+.success {
+    color: #42d392;
+}
+
+.failed {
+    color: #ff6969;
+}
+
+.pending {
+    color: #f5bd42;
+}
+
+button {
+    width: 100%;
+    border: none;
+    border-radius: 9px;
+    padding: 13px;
+    background: #e5a928;
+    color: #17130a;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 8px;
+}
+
+button:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+.secondary {
+    background: #383838;
+    color: white;
+}
+
+.address {
+    word-break: break-all;
+    font-size: 12px;
+}
+
+.note {
+    color: #999;
+    font-size: 12px;
+    line-height: 1.6;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.footer {
+    text-align: center;
+    color: #777;
+    font-size: 11px;
+    margin-top: 25px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<header>
+    <img
+        src="./assets/images/josjis-logo-circle.png"
+        class="logo"
+        alt="JosJis Logo"
+    >
+
+    <h1>JosJis Core Test</h1>
+
+    <div class="subtitle">
+        Core Module Diagnostic Dashboard
+    </div>
+</header>
+
+<div class="card">
+    <h2>Test Controls</h2>
+
+    <button id="runBtn">
+        RUN CORE TEST
+    </button>
+
+    <button id="walletBtn" class="secondary">
+        CONNECT WALLET
+    </button>
+</div>
+
+<div class="card">
+    <h2>1. RPC Manager</h2>
+
+    <div class="test-item">
+        <span>RPC Connection</span>
+        <span id="rpcStatus" class="test-value pending">Waiting</span>
+    </div>
+
+    <div class="test-item">
+        <span>Chain ID</span>
+        <span id="chainStatus" class="test-value pending">Waiting</span>
+    </div>
+
+    <div class="test-item">
+        <span>Block Number</span>
+        <span id="blockStatus" class="test-value pending">Waiting</span>
+    </div>
+</div>
+
+<div class="card">
+    <h2>2. Contract Registry</h2>
+
+    <div class="test-item">
+        <span>JJS Contract</span>
+        <span id="jjsContract" class="test-value pending">Waiting</span>
+    </div>
+
+    <div class="test-item">
+        <span>USDT Contract</span>
+        <span id="usdtContract" class="test-value pending">Waiting</span>
+    </div>
+</div>
+
+<div class="card">
+    <h2>3. Wallet Manager</h2>
+
+    <div class="test-item">
+        <span>Connection</span>
+        <span id="walletStatus" class="test-value pending">Waiting</span>
+    </div>
+
+    <div class="test-item">
+        <span>Address</span>
+        <span id="walletAddress" class="test-value">-</span>
+    </div>
+
+    <div class="test-item">
+        <span>Wallet Chain</span>
+        <span id="walletChain" class="test-value">-</span>
+    </div>
+</div>
+
+<div class="card">
+    <h2>4. Token Manager</h2>
+
+    <div class="test-item">
+        <span>JJS Information</span>
+        <span id="jjsInfo" class="test-value pending">Waiting</span>
+    </div>
+
+    <div class="test-item">
+        <span>USDT Information</span>
+        <span id="usdtInfo" class="test-value pending">Waiting</span>
+    </div>
+
+    <div class="test-item">
+        <span>JJS Total Supply</span>
+        <span id="supplyStatus" class="test-value pending">Waiting</span>
+    </div>
+</div>
+
+<div class="card">
+    <h2>5. Wallet Balances</h2>
+
+    <div class="test-item">
+        <span>JJS Balance</span>
+        <span id="jjsBalance" class="test-value">-</span>
+    </div>
+
+    <div class="test-item">
+        <span>POL Balance</span>
+        <span id="polBalance" class="test-value">-</span>
+    </div>
+
+    <div class="test-item">
+        <span>USDT Balance</span>
+        <span id="usdtBalance" class="test-value">-</span>
+    </div>
+</div>
+
+<div class="card">
+    <h2>6. Data Manager</h2>
+
+    <div class="test-item">
+        <span>Dashboard Data</span>
+        <span id="dataStatus" class="test-value pending">Waiting</span>
+    </div>
+
+    <div class="test-item">
+        <span>Last Updated</span>
+        <span id="updateStatus" class="test-value">-</span>
+    </div>
+</div>
+
+<div class="card">
+    <h2>7. Error Manager</h2>
+
+    <div class="test-item">
+        <span>Error Manager</span>
+        <span id="errorStatus" class="test-value pending">Waiting</span>
+    </div>
+
+    <div class="test-item">
+        <span>Test Classification</span>
+        <span id="errorClassification" class="test-value">-</span>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Test Log</h2>
+    <div id="logs" style="
+        font-size:12px;
+        color:#aaa;
+        line-height:1.8;
+        overflow-wrap:anywhere;
+    ">
+        Waiting for test...
+    </div>
+</div>
+
+<p class="note">
+    Read-only diagnostic page. No token transfers,
+    approvals, or blockchain transactions will be performed.
+</p>
+
+<div class="footer">
+    JosJis Ecosystem · Core Diagnostics
+</div>
+
+</div>
+
+<script type="module">
+
+import {
+    RPC,
+    Registry,
+    Wallet,
+    Token,
+    Data,
+    Error as ErrorManager
+} from "./assets/js/core/index.js";
+
+/*
+========================================
+ ELEMENTS
+========================================
+*/
+
+const $ = id => document.getElementById(id);
+
+const runBtn = $("runBtn");
+const walletBtn = $("walletBtn");
+
+/*
+========================================
+ LOG SYSTEM
+========================================
+*/
+
+function log(message, type = "info") {
+
+    const colors = {
+        success: "#42d392",
+        error: "#ff6969",
+        info: "#aaa"
+    };
+
+    const line = document.createElement("div");
+
+    line.style.color = colors[type] || colors.info;
+    line.textContent =
+        `[${new Date().toLocaleTimeString()}] ${message}`;
+
+    if ($("logs").textContent === "Waiting for test...") {
+        $("logs").textContent = "";
+    }
+
+    $("logs").appendChild(line);
+}
+
+/*
+========================================
+ STATUS SYSTEM
+========================================
+*/
+
+function setStatus(id, message, status = "success") {
+
+    const element = $(id);
+
+    element.textContent = message;
+    element.className = `test-value ${status}`;
+}
+
+function setValue(id, value) {
+    $(id).textContent = value;
+}
+
+/*
+========================================
+ FORMAT
+========================================
+*/
+
+function formatBalance(value, digits = 6) {
+
+    if (!value || value === "0.0") {
+        return "0";
+    }
+
+    const number = Number(value);
+
+    if (!Number.isFinite(number)) {
+        return value;
+    }
+
+    return number.toLocaleString("en-US", {
+        maximumFractionDigits: digits
+    });
+}
+
+/*
+========================================
+ 1. RPC TEST
+========================================
+*/
+
+async function testRPC() {
+
+    log("Testing RPC Manager...");
+
+    try {
+
+        const provider = RPC.getProvider();
+
+        const network = await provider.getNetwork();
+        const block = await provider.getBlockNumber();
+
+        const chainId = Number(network.chainId);
+
+        if (chainId !== 137) {
+            throw new Error(
+                `Wrong chain ID: ${chainId}`
+            );
+        }
+
+        setStatus("rpcStatus", "Connected");
+        setStatus("chainStatus", chainId.toString());
+        setStatus("blockStatus", block.toString());
+
+        log("RPC connection successful.", "success");
+
+    } catch (error) {
+
+        setStatus("rpcStatus", "Failed", "failed");
+        setStatus("chainStatus", "Failed", "failed");
+        setStatus("blockStatus", "Failed", "failed");
+
+        log(error.message, "error");
+    }
+}
+
+/*
+========================================
+ 2. CONTRACT REGISTRY TEST
+========================================
+*/
+
+function testRegistry() {
+
+    log("Testing Contract Registry...");
+
+    try {
+
+        const jjs = Registry.CONTRACTS.JJS;
+        const usdt = Registry.CONTRACTS.USDT0;
+
+        if (!jjs || !usdt) {
+            throw new Error("Token registry missing.");
+        }
+
+        setStatus(
+            "jjsContract",
+            jjs.address.slice(0, 8) + "...",
+        );
+
+        setStatus(
+            "usdtContract",
+            usdt.address.slice(0, 8) + "..."
+        );
+
+        log("Contract Registry successful.", "success");
+
+    } catch (error) {
+
+        setStatus("jjsContract", "Failed", "failed");
+        setStatus("usdtContract", "Failed", "failed");
+
+        log(error.message, "error");
+    }
+}
+
+/*
+========================================
+ 3. WALLET TEST
+========================================
+*/
+
+function testWallet() {
+
+    log("Testing Wallet Manager...");
+
+    try {
+
+        const wallet = Wallet.getWalletInfo();
+
+        if (!wallet.connected) {
+
+            setStatus(
+                "walletStatus",
+                "Not Connected",
+                "pending"
+            );
+
+            setValue("walletAddress", "-");
+            setValue("walletChain", "-");
+
+            log("Wallet is not connected.", "info");
+
+            return null;
+        }
+
+        setStatus("walletStatus", "Connected");
+
+        setValue(
+            "walletAddress",
+            wallet.shortAddress || wallet.address
+        );
+
+        setValue(
+            "walletChain",
+            String(wallet.chainId)
+        );
+
+        log("Wallet detected.", "success");
+
+        return wallet.address;
+
+    } catch (error) {
+
+        setStatus("walletStatus", "Failed", "failed");
+
+        log(error.message, "error");
+
+        return null;
+    }
+}
+
+/*
+========================================
+ 4. TOKEN TEST
+========================================
+*/
+
+async function testTokens() {
+
+    log("Testing Token Manager...");
+
+    try {
+
+        const jjs = await Token.getTokenDetails("JJS");
+
+        setStatus(
+            "jjsInfo",
+            `${jjs.name} (${jjs.symbol})`
+        );
+
+        log("JJS information loaded.", "success");
+
+    } catch (error) {
+
+        setStatus("jjsInfo", "Failed", "failed");
+
+        log("JJS: " + error.message, "error");
+    }
+
+    try {
+
+        const usdt = await Token.getTokenDetails("USDT0");
+
+        setStatus(
+            "usdtInfo",
+            `${usdt.name} (${usdt.symbol})`
+        );
+
+        log("USDT information loaded.", "success");
+
+    } catch (error) {
+
+        setStatus("usdtInfo", "Failed", "failed");
+
+        log("USDT: " + error.message, "error");
+    }
+
+    try {
+
+        const supply = await Token.getTotalSupply("JJS");
+
+        setStatus(
+            "supplyStatus",
+            formatBalance(supply.formatted, 0) + " JJS"
+        );
+
+        log("JJS total supply loaded.", "success");
+
+    } catch (error) {
+
+        setStatus("supplyStatus", "Failed", "failed");
+
+        log("Supply: " + error.message, "error");
+    }
+}
+
+/*
+========================================
+ 5. BALANCE TEST
+========================================
+*/
+
+async function testBalances(address) {
+
+    if (!address) {
+
+        setValue("jjsBalance", "Connect wallet first");
+        setValue("polBalance", "Connect wallet first");
+        setValue("usdtBalance", "Connect wallet first");
+
+        return;
+    }
+
+    log("Testing wallet balances...");
+
+    try {
+
+        const balances = await Token.getAllBalances(address);
+
+        if (balances.JJS.error) {
+            throw new Error(balances.JJS.error);
+        }
+
+        setValue(
+            "jjsBalance",
+            formatBalance(balances.JJS.formatted) + " JJS"
+        );
+
+        if (balances.POL.error) {
+            setValue("polBalance", "Failed");
+        } else {
+            setValue(
+                "polBalance",
+                formatBalance(balances.POL.formatted) + " POL"
+            );
+        }
+
+        if (balances.USDT0.error) {
+            setValue("usdtBalance", "Failed");
+        } else {
+            setValue(
+                "usdtBalance",
+                formatBalance(balances.USDT0.formatted) + " USDT"
+            );
+        }
+
+        log("Balance reading completed.", "success");
+
+    } catch (error) {
+
+        log("Balance: " + error.message, "error");
+    }
+}
+
+/*
+========================================
+ 6. DATA MANAGER TEST
+========================================
+*/
+
+async function testData(address) {
+
+    if (!address) {
+
+        setStatus(
+            "dataStatus",
+            "Wallet required",
+            "pending"
+        );
+
+        return;
+    }
+
+    log("Testing Data Manager...");
+
+    try {
+
+        const data = await Data.loadDashboardData(address);
+
+        if (!data || !data.balances) {
+            throw new Error("Dashboard data unavailable.");
+        }
+
+        setStatus("dataStatus", "Loaded");
+
+        setValue(
+            "updateStatus",
+            new Date(data.lastUpdated).toLocaleTimeString()
+        );
+
+        log("Data Manager successful.", "success");
+
+    } catch (error) {
+
+        setStatus("dataStatus", "Failed", "failed");
+
+        log(error.message, "error");
+    }
+}
+
+/*
+========================================
+ 7. ERROR MANAGER TEST
+========================================
+*/
+
+function testErrorManager() {
+
+    log("Testing Error Manager...");
+
+    try {
+
+        const testError = {
+            code: 4001,
+            message: "User rejected transaction"
+        };
+
+        const result = ErrorManager.handleError(
+            testError,
+            "Core Test"
+        );
+
+        setStatus("errorStatus", "Loaded");
+
+        setValue(
+            "errorClassification",
+            result.type
+        );
+
+        log(
+            "Error classification: " + result.type,
+            "success"
+        );
+
+    } catch (error) {
+
+        setStatus("errorStatus", "Failed", "failed");
+
+        log(error.message, "error");
+    }
+}
+
+/*
+========================================
+ RUN ALL TESTS
+========================================
+*/
+
+async function runTests() {
+
+    runBtn.disabled = true;
+    runBtn.textContent = "TESTING...";
+
+    $("logs").textContent = "Starting tests...";
+
+    log("JosJis Core Test started.");
+
+    try {
+
+        testRegistry();
+
+        await testRPC();
+
+        const address = testWallet();
+
+        await testTokens();
+
+        await testBalances(address);
+
+        await testData(address);
+
+        testErrorManager();
+
+        log("Core test completed.", "success");
+
+    } finally {
+
+        runBtn.disabled = false;
+        runBtn.textContent = "RUN CORE TEST";
+    }
+}
+
+/*
+========================================
+ CONNECT WALLET
+========================================
+*/
+
+walletBtn.addEventListener("click", async () => {
+
+    try {
+
+        await Wallet.openConnectModal();
+
+    } catch (error) {
+
+        log(error.message, "error");
+    }
+});
+
+/*
+========================================
+ BUTTON
+========================================
+*/
+
+runBtn.addEventListener("click", runTests);
+
+/*
+========================================
+ INITIALIZATION
+========================================
+*/
+
+log("JosJis Core Test initialized.");
+
+</script>
+
+</body>
+</html>
