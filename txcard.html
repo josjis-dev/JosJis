@@ -134,6 +134,8 @@ button:disabled {
   margin-top: 25px;
 }
 
+/* TRANSACTION CARD */
+
 .tx-card {
   width: 100%;
   aspect-ratio: 1.6 / 1;
@@ -232,9 +234,11 @@ button:disabled {
   font-size: .45em;
 }
 
+/* CARD BOTTOM */
+
 .card-bottom {
   display: grid;
-  grid-template-columns: 1fr 1fr auto;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
   align-items: end;
   gap: 12px;
 }
@@ -252,13 +256,14 @@ button:disabled {
   overflow-wrap: anywhere;
 }
 
-/* LARGE QR CODE */
+/* BIGGER QR CODE */
+
 .qr-box {
-  width: clamp(75px, 13vw, 120px);
-  height: clamp(75px, 13vw, 120px);
+  width: clamp(130px, 26vw, 180px);
+  height: clamp(130px, 26vw, 180px);
   background: white;
-  padding: 6px;
-  border-radius: 7px;
+  padding: 7px;
+  border-radius: 10px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -280,6 +285,8 @@ button:disabled {
   font-size: clamp(7px, 1vw, 10px);
   overflow-wrap: anywhere;
 }
+
+/* TRANSFER DETAILS */
 
 .transfers {
   margin-top: 18px;
@@ -308,6 +315,8 @@ button:disabled {
   line-height: 1.6;
 }
 
+/* ACTIONS */
+
 .actions {
   display: flex;
   gap: 10px;
@@ -326,6 +335,8 @@ button:disabled {
   line-height: 1.6;
 }
 
+/* SMALL SCREENS */
+
 @media (max-width: 420px) {
   body {
     padding-left: 10px;
@@ -338,10 +349,24 @@ button:disabled {
 
   .tx-card {
     border-radius: 10px;
+    aspect-ratio: 1.35 / 1;
   }
 
   .card-bottom {
     gap: 6px;
+  }
+
+  .qr-box {
+    width: clamp(105px, 28vw, 130px);
+    height: clamp(105px, 28vw, 130px);
+  }
+
+  .amount {
+    margin-bottom: 8px;
+  }
+
+  .tx-hash {
+    margin-top: 8px;
   }
 }
 </style>
@@ -357,6 +382,7 @@ button:disabled {
   </div>
 
   <div class="panel">
+
     <label for="txHash">Polygon Transaction Hash</label>
 
     <input
@@ -367,13 +393,18 @@ button:disabled {
       spellcheck="false"
     >
 
-    <button class="primary" id="verifyBtn" onclick="verifyTransaction()">
+    <button
+      class="primary"
+      id="verifyBtn"
+      onclick="verifyTransaction()"
+    >
       Verify Transaction
     </button>
 
     <div class="message" id="message">
       Enter your JJS transaction hash to create a transaction card.
     </div>
+
   </div>
 
   <div class="card-wrap" id="cardWrap">
@@ -383,22 +414,29 @@ button:disabled {
       <div class="card-content">
 
         <div class="card-top">
+
           <div class="brand">
+
             <img
               src="assets/images/josjis-logo-circle.png"
               alt="JosJis Logo"
               crossorigin="anonymous"
             >
+
             <div>
               <div class="brand-name">JOSJIS</div>
               <div class="brand-sub">OFFICIAL TRANSACTION CARD</div>
             </div>
+
           </div>
 
           <div class="status">✓ VERIFIED</div>
+
         </div>
 
-        <div class="card-title">JOSJIS TRANSFER</div>
+        <div class="card-title">
+          JOSJIS TRANSFER
+        </div>
 
         <div class="amount" id="cardAmount">
           0 <small>JJS</small>
@@ -420,14 +458,18 @@ button:disabled {
 
         </div>
 
-        <div class="tx-hash" id="cardHash">TX: -</div>
+        <div class="tx-hash" id="cardHash">
+          TX: -
+        </div>
 
       </div>
+
     </div>
 
     <div class="transfers" id="transferList"></div>
 
     <div class="actions">
+
       <button class="primary" onclick="downloadCard()">
         Download PNG
       </button>
@@ -435,6 +477,7 @@ button:disabled {
       <button class="secondary" onclick="shareCard()">
         Share
       </button>
+
     </div>
 
   </div>
@@ -537,9 +580,12 @@ async function verifyTransaction() {
   const hash = $("txHash").value.trim();
 
   $("cardWrap").style.display = "none";
+  currentCardData = null;
+
   $("verifyBtn").disabled = true;
 
   try {
+
     if (!/^0x[a-fA-F0-9]{64}$/.test(hash)) {
       throw new Error("Invalid transaction hash.");
     }
@@ -627,6 +673,7 @@ async function verifyTransaction() {
     );
 
   } catch (error) {
+
     console.error(error);
 
     setMessage(
@@ -640,6 +687,7 @@ async function verifyTransaction() {
 }
 
 function displayCard(data) {
+
   currentCardData = data;
   currentTransactionUrl = POLYGONSCAN + data.hash;
 
@@ -663,10 +711,12 @@ function displayCard(data) {
   list.innerHTML = "";
 
   data.transfers.forEach((transfer, index) => {
+
     const row = document.createElement("div");
     row.className = "transfer-row";
 
     const title = document.createElement("strong");
+
     title.textContent =
       "Transfer " + (index + 1) + " — " +
       formatJJS(transfer.value) + " JJS";
@@ -679,6 +729,7 @@ function displayCard(data) {
 
     row.append(title, from, to);
     list.appendChild(row);
+
   });
 
   $("qrCode").innerHTML = "";
@@ -689,11 +740,11 @@ function displayCard(data) {
 
   new QRCode($("qrCode"), {
     text: currentTransactionUrl,
-    width: 240,
-    height: 240,
+    width: 360,
+    height: 360,
     colorDark: "#100d1c",
     colorLight: "#ffffff",
-    correctLevel: QRCode.CorrectLevel.M
+    correctLevel: QRCode.CorrectLevel.H
   });
 
   $("cardWrap").style.display = "block";
@@ -704,22 +755,30 @@ function displayCard(data) {
   });
 }
 
-async function downloadCard() {
-  if (!currentCardData) return;
+async function createCardCanvas() {
 
   if (typeof html2canvas === "undefined") {
-    setMessage("Image library unavailable. Reload the page.", "#ff7272");
-    return;
+    throw new Error("Image library unavailable. Reload the page.");
   }
 
+  const card = $("txCard");
+
+  return await html2canvas(card, {
+    scale: 3,
+    backgroundColor: "#171225",
+    useCORS: true
+  });
+}
+
+async function downloadCard() {
+
+  if (!currentCardData) return;
+
   try {
+
     setMessage("Preparing PNG image...");
 
-    const canvas = await html2canvas($("txCard"), {
-      scale: 2,
-      backgroundColor: "#171225",
-      useCORS: true
-    });
+    const canvas = await createCardCanvas();
 
     const link = document.createElement("a");
 
@@ -731,23 +790,30 @@ async function downloadCard() {
     link.href = canvas.toDataURL("image/png");
     link.click();
 
-    setMessage("TxCard PNG created successfully.", "#55d69a");
+    setMessage(
+      "TxCard PNG created successfully.",
+      "#55d69a"
+    );
 
   } catch (error) {
+
     console.error(error);
-    setMessage("Unable to create PNG image.", "#ff7272");
+
+    setMessage(
+      error.message || "Unable to create PNG image.",
+      "#ff7272"
+    );
+
   }
 }
 
 async function shareCard() {
+
   if (!currentCardData) return;
 
   try {
-    const canvas = await html2canvas($("txCard"), {
-      scale: 2,
-      backgroundColor: "#171225",
-      useCORS: true
-    });
+
+    const canvas = await createCardCanvas();
 
     const blob = await new Promise(resolve => {
       canvas.toBlob(resolve, "image/png");
@@ -768,19 +834,30 @@ async function shareCard() {
       navigator.canShare &&
       navigator.canShare({ files: [file] })
     ) {
+
       await navigator.share({
         title: "JosJis Transaction Card",
         text: "Verified JosJis transaction on Polygon.",
         files: [file]
       });
+
     } else {
+
       await downloadCard();
+
     }
 
   } catch (error) {
+
     if (error.name !== "AbortError") {
+
       console.error(error);
-      setMessage("Sharing unavailable. Try Download PNG.", "#ff7272");
+
+      setMessage(
+        "Sharing unavailable. Try Download PNG.",
+        "#ff7272"
+      );
+
     }
   }
 }
