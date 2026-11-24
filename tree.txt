@@ -33,6 +33,7 @@
 ├── community-builders.html
 ├── community-lp.html
 ├── contact.html
+├── core-test.html
 ├── crypto-donations.html
 ├── dashboard.html
 ├── ecosystem.html
@@ -59,4 +60,4 @@
     ├── README.md
     └── web3-config.js
 
-10 directories, 50 files
+10 directories, 51 files
