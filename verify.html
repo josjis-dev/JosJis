@@ -49,16 +49,23 @@ p{color:var(--muted)}
 }
 h2{font-size:18px;margin:0 0 15px}
 label{display:block;font-size:13px;margin:13px 0 6px;color:#ddd6ee}
-input,textarea,select{
+input,textarea{
   width:100%;background:var(--bg);
   border:1px solid var(--line);border-radius:10px;
   padding:12px;color:var(--text);font:inherit;
 }
 textarea{min-height:125px;resize:vertical}
+input[readonly]{opacity:.8}
 button.action{
   background:var(--purple);color:#171329;border:0;
   border-radius:10px;padding:12px 16px;
   font-weight:700;margin-top:13px;width:100%;
+}
+button.secondary{
+  background:#292342;color:var(--text);
+  border:1px solid var(--line);
+  border-radius:10px;padding:12px 16px;
+  font-weight:700;margin-top:10px;width:100%;
 }
 button:disabled{opacity:.5}
 .result{
@@ -74,6 +81,19 @@ button:disabled{opacity:.5}
   font-size:12px;color:var(--muted);
   border:1px solid var(--line);
   padding:13px;border-radius:10px;margin-top:16px;
+}
+.small{font-size:12px;color:var(--muted)}
+.address{
+  font-size:12px;overflow-wrap:anywhere;
+  background:var(--bg);padding:10px;border-radius:8px;
+}
+.progress{
+  height:9px;background:var(--bg);
+  border-radius:20px;overflow:hidden;margin-top:12px;
+}
+.progress div{
+  height:100%;width:0%;
+  background:var(--purple);transition:width .2s;
 }
 footer{text-align:center;color:var(--muted);font-size:12px;margin-top:25px}
 </style>
@@ -91,7 +111,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;margin-top:25px}
 </header>
 
 <h1>Message Verification</h1>
-<p>Create an authentic message or verify a message signed by a wallet.</p>
+<p>Create an authentic message or verify a message signed by a Safe wallet.</p>
 
 <div class="tabs">
   <button class="tab active" id="createTab">Create Message</button>
@@ -99,34 +119,74 @@ footer{text-align:center;color:var(--muted);font-size:12px;margin-top:25px}
 </div>
 
 <!-- CREATE MESSAGE -->
+
 <section id="createSection">
 
 <div class="card">
-  <h2>Create a signed message</h2>
+  <h2>Safe Wallet</h2>
+
+  <div class="small">Official JosJis Safe address</div>
+  <div class="address" id="safeAddressDisplay"></div>
+
+  <div class="small" style="margin-top:12px">
+    Required confirmations: 3 of 5 owners
+  </div>
 
   <button class="action" id="connectBtn">
-    Connect Wallet
+    Connect Owner Wallet
   </button>
 
   <div id="walletInfo" class="result"></div>
+</div>
+
+<div class="card">
+  <h2>Create a Safe message</h2>
 
   <label for="createMessage">Your message</label>
   <textarea id="createMessage"
     placeholder="Write your announcement or message here..."></textarea>
 
-  <button class="action" id="signBtn" disabled>
-    Sign Message
+  <button class="action" id="createMessageBtn" disabled>
+    Create Safe Message
   </button>
 
   <div id="createResult" class="result"></div>
 </div>
 
+<div class="card">
+  <h2>Confirm an existing message</h2>
+
+  <p class="small">
+    Other Safe owners can connect their own wallet and confirm the same message.
+  </p>
+
+  <label for="messageHashInput">Message Hash</label>
+  <input id="messageHashInput"
+    placeholder="0x...">
+
+  <button class="secondary" id="loadMessageBtn">
+    Load Message
+  </button>
+
+  <div id="pendingMessageInfo" class="result"></div>
+
+  <button class="action" id="confirmMessageBtn" disabled>
+    Sign & Confirm Message
+  </button>
+
+  <button class="secondary" id="refreshMessageBtn" disabled>
+    Refresh Confirmations
+  </button>
+
+  <div id="confirmResult" class="result"></div>
+</div>
+
 <div class="card hidden" id="proofCard">
   <h2>Message Proof</h2>
 
-  <label for="proofOutput">Signed message data</label>
+  <label for="proofOutput">Safe message proof</label>
   <textarea id="proofOutput" readonly
-    style="min-height:180px"></textarea>
+    style="min-height:220px"></textarea>
 
   <button class="action" id="copyProofBtn">
     Copy Message Proof
@@ -134,46 +194,48 @@ footer{text-align:center;color:var(--muted);font-size:12px;margin-top:25px}
 </div>
 
 <div class="note">
-  Connect your wallet through Reown. Safe Wallet signing depends on
-  the wallet's supported signing method and Safe approval process.
-  A signature must be verified against the correct wallet rules.
+  Each confirmation must come from a different owner of the Safe.
+  Three valid owner signatures are required. No JJS tokens or gas fees
+  are required for this off-chain message process.
 </div>
 
 </section>
 
 <!-- VERIFY MESSAGE -->
+
 <section id="verifySection" class="hidden">
 
 <div class="card">
-  <h2>Verify a signed message</h2>
+  <h2>Verify a Safe message</h2>
 
-  <label for="network">Network</label>
-  <select id="network">
-    <option value="137">Polygon Mainnet</option>
-    <option value="80002">Polygon Amoy Testnet</option>
-  </select>
+  <div class="small">Safe address</div>
+  <div class="address" id="verifySafeDisplay"></div>
 
-  <label for="safeAddress">Wallet / Safe address</label>
-  <input id="safeAddress" placeholder="0x...">
+  <label for="verifyHash">Message Hash</label>
+  <input id="verifyHash" placeholder="0x...">
 
-  <label for="verifyMessage">Original message</label>
-  <textarea id="verifyMessage"
-    placeholder="Paste the exact original message..."></textarea>
-
-  <label for="verifySignature">Signature</label>
-  <textarea id="verifySignature"
-    placeholder="Paste signature beginning with 0x..."></textarea>
+  <label for="expectedMessage">Expected original message (optional)</label>
+  <textarea id="expectedMessage"
+    placeholder="Paste the original message to compare..."></textarea>
 
   <button class="action" id="verifyBtn">
-    Verify Message
+    Verify Safe Message
   </button>
 
   <div id="verifyResult" class="result"></div>
+
+  <div id="verifyProgress" class="hidden">
+    <div class="small" id="verifyProgressText"></div>
+    <div class="progress">
+      <div id="verifyProgressBar"></div>
+    </div>
+  </div>
 </div>
 
 <div class="note">
-  A valid signature proves that the wallet authorized the message under
-  its signing rules. It does not prove that the message's claims are true.
+  A valid result means the Safe contract accepted the signature
+  and the required owner threshold was reached. It does not prove
+  that the message's claims are true.
 </div>
 
 </section>
@@ -197,6 +259,21 @@ import { EthersAdapter } from
 import { polygon } from
 "https://esm.sh/@reown/appkit@2.0.0/networks";
 
+import Safe from
+"https://esm.sh/@safe-global/protocol-kit";
+
+const SAFE_ADDRESS =
+"0x6F7279389C2c22120D8136EE4B75fC141FF1Aa0E";
+
+const CHAIN_ID = 137;
+const REQUIRED_THRESHOLD = 3;
+
+const RPC =
+"https://polygon-bor-rpc.publicnode.com";
+
+const QUEUE =
+"https://api.safe.global/queue/api/v1";
+
 const PROJECT_ID =
 "ea2b7e670f2c0331bca41ba7f66f0126";
 
@@ -209,8 +286,6 @@ const metadata = {
   ]
 };
 
-// REOWN CONFIGURATION
-
 const modal = createAppKit({
   adapters:[new EthersAdapter()],
   networks:[polygon],
@@ -218,15 +293,18 @@ const modal = createAppKit({
   projectId:PROJECT_ID,
   metadata,
   enableReconnect:true,
-  features:{
-    analytics:true
-  }
+  features:{analytics:true}
 });
 
 const $ = id => document.getElementById(id);
 
 let connectedAddress=null;
 let connectedChain=null;
+let currentMessage=null;
+let currentProtocolKit=null;
+
+$("safeAddressDisplay").textContent=SAFE_ADDRESS;
+$("verifySafeDisplay").textContent=SAFE_ADDRESS;
 
 function show(id,type,message){
   const el=$(id);
@@ -234,8 +312,11 @@ function show(id,type,message){
   el.textContent=message;
 }
 
-function switchTab(tab){
+function hide(id){
+  $(id).className="result";
+}
 
+function switchTab(tab){
   const create=tab==="create";
 
   $("createSection").classList.toggle("hidden",!create);
@@ -248,34 +329,29 @@ function switchTab(tab){
 $("createTab").onclick=()=>switchTab("create");
 $("verifyTab").onclick=()=>switchTab("verify");
 
-// WALLET CONNECTION
-
 function updateConnectedUI(address,chainId){
 
+  connectedAddress=address||null;
+  connectedChain=chainId||null;
+
+  $("createMessageBtn").disabled=!address;
+  $("confirmMessageBtn").disabled=!address||!currentMessage;
+
   if(!address){
-
-    connectedAddress=null;
-    connectedChain=null;
-
-    $("signBtn").disabled=true;
-    $("connectBtn").textContent="Connect Wallet";
-    $("walletInfo").className="result";
-
+    $("connectBtn").textContent="Connect Owner Wallet";
+    hide("walletInfo");
+    currentProtocolKit=null;
     return;
   }
-
-  connectedAddress=address;
-  connectedChain=chainId;
 
   $("connectBtn").textContent="Wallet Connected";
 
   show(
     "walletInfo",
     "good",
-    "Connected: "+address+" | Chain ID: "+chainId
+    "Connected owner: "+address+
+    " | Chain ID: "+chainId
   );
-
-  $("signBtn").disabled=false;
 }
 
 async function refreshWallet(){
@@ -298,34 +374,27 @@ async function refreshWallet(){
     updateConnectedUI(address,chainId);
 
   }catch(error){
-
-    console.error("Wallet refresh:",error);
-
+    console.error(error);
   }
 }
 
 // REOWN SUBSCRIPTIONS
 
-modal.subscribeState((state)=>{
-
+modal.subscribeState(state=>{
   if(state.isConnected){
     refreshWallet();
   }else{
     updateConnectedUI(null,null);
   }
-
 });
 
-modal.subscribeAccount((account)=>{
+modal.subscribeAccount(account=>{
 
   if(account.isConnected && account.address){
 
-    connectedAddress=account.address;
-    connectedChain=modal.getChainId();
-
     updateConnectedUI(
-      connectedAddress,
-      connectedChain
+      account.address,
+      modal.getChainId()
     );
 
   }else if(!modal.getIsConnected()){
@@ -337,11 +406,7 @@ modal.subscribeAccount((account)=>{
 });
 
 modal.subscribeNetwork(()=>{
-
-  if(modal.getIsConnected()){
-    refreshWallet();
-  }
-
+  if(modal.getIsConnected()) refreshWallet();
 });
 
 // CONNECT WALLET
@@ -366,13 +431,11 @@ $("connectBtn").onclick=async()=>{
     await refreshWallet();
 
     if(!modal.getIsConnected()){
-
       show(
         "walletInfo",
         "info",
-        "Wallet connection has not been detected yet. Please check Reown."
+        "Wallet connection has not been detected."
       );
-
     }
 
   }catch(error){
@@ -384,11 +447,12 @@ $("connectBtn").onclick=async()=>{
     );
 
   }
+
 };
 
 // RESTORE SESSION
 
-async function restoreWalletSession(){
+async function restoreSession(){
 
   for(let i=0;i<40;i++){
 
@@ -404,136 +468,509 @@ async function restoreWalletSession(){
   await refreshWallet();
 }
 
-await restoreWalletSession();
+await restoreSession();
 
-// CREATE MESSAGE / SIGN MESSAGE
+// SAFE API
 
-$("signBtn").onclick=async()=>{
+async function safeFetch(path,options={}){
+
+  const headers={
+    "Accept":"application/json",
+    "Content-Type":"application/json",
+    ...(options.headers||{})
+  };
+
+  const response=await fetch(QUEUE+path,{
+    ...options,
+    headers
+  });
+
+  const text=await response.text();
+
+  let data={};
+
+  try{
+    data=text?JSON.parse(text):{};
+  }catch{
+    data={detail:text};
+  }
+
+  if(!response.ok){
+
+    let message=
+      data.detail||
+      data.message||
+      "Safe Queue Service error: "+response.status;
+
+    if(response.status===401){
+      message="Safe API authentication failed. Check the API key or service access.";
+    }
+
+    if(response.status===429){
+      message="Safe API rate limit reached. Please try again later.";
+    }
+
+    throw new Error(
+      typeof message==="string"?
+      message:
+      JSON.stringify(message)
+    );
+
+  }
+
+  return data;
+}
+
+function safeApiHeaders(){
+
+  const key=$("safeApiKey")?.value.trim();
+
+  if(key){
+    return {
+      "Authorization":"Bearer "+key
+    };
+  }
+
+  return {};
+}
+
+// CREATE SAFE PROTOCOL KIT
+
+async function getProtocolKit(){
+
+  if(!modal.getIsConnected()){
+    throw new Error("Please connect an owner wallet first.");
+  }
+
+  const provider=modal.getWalletProvider();
+
+  if(!provider){
+    throw new Error("Wallet provider unavailable.");
+  }
+
+  const chain=await provider.request({
+    method:"eth_chainId"
+  });
+
+  if(Number(chain)!==CHAIN_ID){
+    throw new Error("Please switch your wallet to Polygon Mainnet.");
+  }
+
+  const accounts=await provider.request({
+    method:"eth_accounts"
+  });
+
+  if(!accounts||!accounts.length){
+    throw new Error("No connected wallet account.");
+  }
+
+  const signer=accounts[0];
+
+  const protocolKit=await Safe.init({
+    provider:provider,
+    signer:signer,
+    safeAddress:SAFE_ADDRESS
+  });
+
+  const info=await protocolKit.getSafeInfo();
+
+  const owners=info.owners.map(x=>x.toLowerCase());
+  const threshold=Number(info.threshold);
+
+  if(!owners.includes(signer.toLowerCase())){
+    throw new Error(
+      "Connected wallet is not an owner of the JosJis Safe."
+    );
+  }
+
+  if(threshold!==REQUIRED_THRESHOLD){
+    throw new Error(
+      "Safe threshold mismatch. Expected 3, detected "+threshold+"."
+    );
+  }
+
+  if(owners.length!==5){
+    throw new Error(
+      "Safe owner count mismatch. Expected 5, detected "+owners.length+"."
+    );
+  }
+
+  currentProtocolKit=protocolKit;
+
+  return {
+    protocolKit,
+    signer,
+    info
+  };
+}
+
+// CREATE MESSAGE
+
+$("createMessageBtn").onclick=async()=>{
 
   const message=$("createMessage").value;
 
   if(!message.trim()){
-
     show(
       "createResult",
       "bad",
       "Please write a message first."
     );
-
     return;
   }
 
-  $("signBtn").disabled=true;
-  $("signBtn").textContent="Preparing...";
+  $("createMessageBtn").disabled=true;
+  $("createMessageBtn").textContent="Preparing...";
 
   try{
 
     show(
       "createResult",
       "info",
-      "Checking wallet connection..."
+      "Checking Safe and owner configuration..."
     );
 
-    if(!modal.getIsConnected()){
-      throw new Error("Wallet is not connected. Please reconnect.");
-    }
+    const {
+      protocolKit,
+      signer
+    }=await getProtocolKit();
 
-    const walletProvider=modal.getWalletProvider();
+    show(
+      "createResult",
+      "info",
+      "Creating Safe message signature. Please approve in your wallet."
+    );
 
-    if(!walletProvider){
-      throw new Error("Wallet provider unavailable.");
+    const safeMessage=protocolKit.createMessage(message);
+
+    const signedMessage=await protocolKit.signMessage(safeMessage);
+
+    const encodedSignature=
+      signedMessage.encodedSignatures();
+
+    if(!encodedSignature||encodedSignature==="0x"){
+      throw new Error("Safe signature is empty.");
     }
 
     show(
       "createResult",
       "info",
-      "Reading wallet account..."
+      "Submitting the first owner confirmation..."
     );
 
-    const accounts=await walletProvider.request({
-      method:"eth_accounts"
-    });
-
-    if(!accounts || !accounts.length){
-      throw new Error("No wallet account found.");
-    }
-
-    const address=accounts[0];
-
-    const chainId=await walletProvider.request({
-      method:"eth_chainId"
-    });
-
-    if(Number(chainId)!==137){
-      throw new Error("Please switch to Polygon Mainnet.");
-    }
-
-    show(
-      "createResult",
-      "info",
-      "Requesting signature. Please check your wallet..."
+    const result=await safeFetch(
+      "/safes/"+SAFE_ADDRESS+"/messages",
+      {
+        method:"POST",
+        headers:safeApiHeaders(),
+        body:JSON.stringify({
+          chainId:CHAIN_ID,
+          message:message,
+          originName:"JosJis Verify",
+          originUrl:window.location.href,
+          signatures:[encodedSignature]
+        })
+      }
     );
 
-    $("signBtn").textContent="Waiting for wallet...";
-
-    // PERSONAL SIGN THROUGH REOWN PROVIDER
-
-    const messageHex=ethers.hexlify(
-      ethers.toUtf8Bytes(message)
-    );
-
-    const signature=await walletProvider.request({
-      method:"personal_sign",
-      params:[messageHex,address]
-    });
-
-    if(!signature){
-      throw new Error("Wallet returned an empty signature.");
+    if(!result.messageHash){
+      throw new Error("Safe did not return a message hash.");
     }
-
-    // CREATE PROOF
 
     const proof={
-      type:"JosJis Verify Message",
+      type:"JosJis Safe Message Proof",
       version:1,
       network:"Polygon",
-      chainId:137,
-      walletAddress:address,
-      signingMethod:"personal_sign",
+      chainId:CHAIN_ID,
+      safeAddress:SAFE_ADDRESS,
+      threshold:REQUIRED_THRESHOLD,
+      ownerCount:5,
       message:message,
-      signature:signature
+      messageHash:result.messageHash,
+      confirmations:result.confirmations||[],
+      confirmationCount:(result.confirmations||[]).length,
+      status:"PENDING"
     };
 
     $("proofCard").classList.remove("hidden");
+    $("proofOutput").value=JSON.stringify(proof,null,2);
 
-    $("proofOutput").value=JSON.stringify(
-      proof,
-      null,
-      2
-    );
+    $("messageHashInput").value=result.messageHash;
+
+    currentMessage=result;
+
+    await loadMessage(result.messageHash);
 
     show(
       "createResult",
       "good",
-      "Signature received. Your message proof is ready."
+      "Message created. First owner confirmation submitted. Share the Message Hash with the other Safe owners."
     );
 
   }catch(error){
 
-    console.error("Signing error:",error);
+    console.error("Safe create error:",error);
 
     show(
       "createResult",
       "bad",
-      error.shortMessage||
-      error.message||
-      "Signing failed."
+      error.message||"Unable to create Safe message."
     );
 
   }finally{
 
-    $("signBtn").disabled=!modal.getIsConnected();
-    $("signBtn").textContent="Sign Message";
+    $("createMessageBtn").disabled=!modal.getIsConnected();
+    $("createMessageBtn").textContent="Create Safe Message";
+
+  }
+
+};
+
+// LOAD MESSAGE
+
+async function loadMessage(hash){
+
+  if(!/^0x[0-9a-fA-F]{64}$/.test(hash)){
+    throw new Error("Invalid message hash.");
+  }
+
+  const result=await safeFetch(
+    "/messages/"+hash,
+    {
+      method:"GET",
+      headers:safeApiHeaders()
+    }
+  );
+
+  if(result.safe.toLowerCase()!==SAFE_ADDRESS.toLowerCase()){
+    throw new Error("This message belongs to a different Safe.");
+  }
+
+  if(Number(result.chainId)!==CHAIN_ID){
+    throw new Error("Message is not on Polygon Mainnet.");
+  }
+
+  currentMessage=result;
+
+  const count=(result.confirmations||[]).length;
+
+  $("confirmMessageBtn").disabled=!modal.getIsConnected();
+  $("refreshMessageBtn").disabled=false;
+
+  const progress=Math.min(
+    100,
+    (count/REQUIRED_THRESHOLD)*100
+  );
+
+  show(
+    "pendingMessageInfo",
+    count>=REQUIRED_THRESHOLD?"good":"info",
+    "Message: "+result.message+
+    "\n\nConfirmations: "+count+
+    " / "+REQUIRED_THRESHOLD+
+    "\n\nMessage Hash: "+result.messageHash+
+    "\n\nStatus: "+(
+      count>=REQUIRED_THRESHOLD?
+      "THRESHOLD REACHED":
+      "WAITING FOR OWNERS"
+    )
+  );
+
+  $("proofCard").classList.remove("hidden");
+
+  const proof={
+    type:"JosJis Safe Message Proof",
+    version:1,
+    network:"Polygon",
+    chainId:CHAIN_ID,
+    safeAddress:SAFE_ADDRESS,
+    message:result.message,
+    messageHash:result.messageHash,
+    threshold:REQUIRED_THRESHOLD,
+    confirmationCount:count,
+    confirmations:result.confirmations||[],
+    preparedSignature:result.preparedSignature||null,
+    status:count>=REQUIRED_THRESHOLD?"THRESHOLD REACHED":"PENDING"
+  };
+
+  $("proofOutput").value=JSON.stringify(proof,null,2);
+
+  return result;
+}
+
+$("loadMessageBtn").onclick=async()=>{
+
+  const hash=$("messageHashInput").value.trim();
+
+  $("loadMessageBtn").disabled=true;
+
+  try{
+
+    show(
+      "pendingMessageInfo",
+      "info",
+      "Loading Safe message..."
+    );
+
+    await loadMessage(hash);
+
+  }catch(error){
+
+    currentMessage=null;
+    $("confirmMessageBtn").disabled=true;
+
+    show(
+      "pendingMessageInfo",
+      "bad",
+      error.message
+    );
+
+  }finally{
+
+    $("loadMessageBtn").disabled=false;
+
+  }
+
+};
+
+// CONFIRM MESSAGE
+
+$("confirmMessageBtn").onclick=async()=>{
+
+  if(!currentMessage){
+    show(
+      "confirmResult",
+      "bad",
+      "Load a Safe message first."
+    );
+    return;
+  }
+
+  $("confirmMessageBtn").disabled=true;
+  $("confirmMessageBtn").textContent="Signing...";
+
+  try{
+
+    const {
+      protocolKit,
+      signer
+    }=await getProtocolKit();
+
+    const alreadySigned=
+      (currentMessage.confirmations||[]).some(
+        x=>x.owner.toLowerCase()===signer.toLowerCase()
+      );
+
+    if(alreadySigned){
+      throw new Error(
+        "This owner has already confirmed this message."
+      );
+    }
+
+    show(
+      "confirmResult",
+      "info",
+      "Preparing Safe message for this owner..."
+    );
+
+    const signedMessage=
+      await protocolKit.signMessage(currentMessage);
+
+    const ownerSignature=
+      signedMessage.getSignature(signer);
+
+    if(!ownerSignature||!ownerSignature.data){
+      throw new Error(
+        "Unable to obtain the owner's Safe signature."
+      );
+    }
+
+    show(
+      "confirmResult",
+      "info",
+      "Submitting owner confirmation to Safe Queue Service..."
+    );
+
+    await safeFetch(
+      "/messages/"+currentMessage.messageHash+"/signatures",
+      {
+        method:"POST",
+        headers:safeApiHeaders(),
+        body:JSON.stringify({
+          signatures:[ownerSignature.data]
+        })
+      }
+    );
+
+    const updated=await loadMessage(
+      currentMessage.messageHash
+    );
+
+    const count=(updated.confirmations||[]).length;
+
+    if(count>=REQUIRED_THRESHOLD){
+
+      show(
+        "confirmResult",
+        "good",
+        "Threshold reached: "+count+" of 3 confirmations. The Safe message is ready for ERC-1271 verification."
+      );
+
+    }else{
+
+      show(
+        "confirmResult",
+        "good",
+        "Owner confirmation submitted. Current progress: "+count+" of 3."
+      );
+
+    }
+
+  }catch(error){
+
+    console.error("Safe confirmation error:",error);
+
+    show(
+      "confirmResult",
+      "bad",
+      error.message||"Confirmation failed."
+    );
+
+  }finally{
+
+    $("confirmMessageBtn").disabled=
+      !modal.getIsConnected()||!currentMessage;
+
+    $("confirmMessageBtn").textContent=
+      "Sign & Confirm Message";
+
+  }
+
+};
+
+// REFRESH CONFIRMATIONS
+
+$("refreshMessageBtn").onclick=async()=>{
+
+  try{
+
+    const hash=$("messageHashInput").value.trim();
+
+    await loadMessage(hash);
+
+    show(
+      "confirmResult",
+      "good",
+      "Confirmation status refreshed."
+    );
+
+  }catch(error){
+
+    show(
+      "confirmResult",
+      "bad",
+      error.message
+    );
 
   }
 
@@ -570,164 +1007,198 @@ $("copyProofBtn").onclick=async()=>{
 
 };
 
-// VERIFY MESSAGE
+// VERIFY SAFE MESSAGE
 
-const RPCS={
-  "137":"https://polygon-bor-rpc.publicnode.com",
-  "80002":"https://rpc-amoy.polygon.technology"
-};
-
-const ABI=[
-  "function isValidSignature(bytes32 hash,bytes signature) view returns (bytes4)",
+const VERIFY_ABI=[
+  "function getThreshold() view returns (uint256)",
+  "function getOwners() view returns (address[])",
   "function isValidSignature(bytes data,bytes signature) view returns (bytes4)"
 ];
 
 $("verifyBtn").onclick=async()=>{
 
-  const chain=$("network").value;
-  const safe=$("safeAddress").value.trim();
-  const message=$("verifyMessage").value;
-  const signature=$("verifySignature").value.trim();
+  const hash=$("verifyHash").value.trim();
+  const expected=$("expectedMessage").value;
 
-  if(!ethers.isAddress(safe)){
-
+  if(!/^0x[0-9a-fA-F]{64}$/.test(hash)){
     show(
       "verifyResult",
       "bad",
-      "Invalid wallet address."
+      "Invalid message hash."
     );
-
-    return;
-  }
-
-  if(!message.length){
-
-    show(
-      "verifyResult",
-      "bad",
-      "Please enter the original message."
-    );
-
-    return;
-  }
-
-  if(!/^0x([0-9a-fA-F]{2})+$/.test(signature)){
-
-    show(
-      "verifyResult",
-      "bad",
-      "Invalid signature format."
-    );
-
     return;
   }
 
   $("verifyBtn").disabled=true;
   $("verifyBtn").textContent="Verifying...";
 
+  $("verifyProgress").classList.remove("hidden");
+  $("verifyProgressBar").style.width="10%";
+
   try{
 
-    const provider=new ethers.JsonRpcProvider(
-      RPCS[chain],
-      Number(chain)
+    show(
+      "verifyResult",
+      "info",
+      "Retrieving Safe message and confirmations..."
     );
 
-    const code=await provider.getCode(safe);
+    const result=await safeFetch(
+      "/messages/"+hash,
+      {
+        method:"GET",
+        headers:safeApiHeaders()
+      }
+    );
+
+    $("verifyProgressBar").style.width="30%";
+
+    if(result.safe.toLowerCase()!==SAFE_ADDRESS.toLowerCase()){
+      throw new Error("Message belongs to a different Safe.");
+    }
+
+    if(Number(result.chainId)!==CHAIN_ID){
+      throw new Error("Message is not on Polygon Mainnet.");
+    }
+
+    if(expected.length && expected!==result.message){
+      throw new Error(
+        "The original message does not match the Safe message."
+      );
+    }
+
+    const provider=new ethers.JsonRpcProvider(
+      RPC,
+      CHAIN_ID
+    );
+
+    const code=await provider.getCode(SAFE_ADDRESS);
 
     if(code==="0x"){
+      throw new Error("Safe contract not found on Polygon.");
+    }
+
+    const contract=new ethers.Contract(
+      SAFE_ADDRESS,
+      VERIFY_ABI,
+      provider
+    );
+
+    $("verifyProgressBar").style.width="50%";
+
+    const [threshold,owners]=await Promise.all([
+      contract.getThreshold(),
+      contract.getOwners()
+    ]);
+
+    const actualThreshold=Number(threshold);
+
+    if(actualThreshold!==REQUIRED_THRESHOLD){
+      throw new Error(
+        "On-chain Safe threshold is "+actualThreshold+
+        ", not 3."
+      );
+    }
+
+    if(owners.length!==5){
+      throw new Error(
+        "On-chain Safe has "+owners.length+
+        " owners, not 5."
+      );
+    }
+
+    const ownerSet=new Set(
+      owners.map(x=>x.toLowerCase())
+    );
+
+    const confirmations=result.confirmations||[];
+
+    const validOwners=new Set(
+      confirmations
+        .map(x=>x.owner.toLowerCase())
+        .filter(x=>ownerSet.has(x))
+    );
+
+    const count=validOwners.size;
+
+    $("verifyProgressBar").style.width="70%";
+
+    if(count<actualThreshold){
 
       show(
         "verifyResult",
         "bad",
-        "No smart contract found at this address on the selected network."
+        "NOT VERIFIED: Only "+count+
+        " valid owner confirmations found. Required: "+
+        actualThreshold+"."
       );
 
       return;
     }
 
-    const contract=new ethers.Contract(
-      safe,
-      ABI,
-      provider
+    if(!result.preparedSignature){
+
+      throw new Error(
+        "Safe has enough confirmations but no prepared signature was returned."
+      );
+    }
+
+    show(
+      "verifyResult",
+      "info",
+      "Checking the combined signature directly against the Safe contract..."
     );
 
-    const messageBytes=ethers.toUtf8Bytes(message);
-    const messageHash=ethers.hashMessage(message);
+    const messageBytes=ethers.toUtf8Bytes(
+      result.message
+    );
 
-    let valid=false;
+    const magic=await contract[
+      "isValidSignature(bytes,bytes)"
+    ](
+      messageBytes,
+      result.preparedSignature
+    );
 
-    // ERC-1271 BYTES METHOD
+    $("verifyProgressBar").style.width="95%";
 
-    try{
-
-      const result=await contract[
-        "isValidSignature(bytes,bytes)"
-      ](messageBytes,signature);
-
-      if(String(result).toLowerCase()==="0x20c13b0b"){
-        valid=true;
-      }
-
-    }catch(error){
-
-      console.log("ERC-1271 bytes check:",error);
-
-    }
-
-    // ERC-1271 BYTES32 METHOD
-
-    if(!valid){
-
-      try{
-
-        const result=await contract[
-          "isValidSignature(bytes32,bytes)"
-        ](messageHash,signature);
-
-        if(String(result).toLowerCase()==="0x1626ba7e"){
-          valid=true;
-        }
-
-      }catch(error){
-
-        console.log("ERC-1271 bytes32 check:",error);
-
-      }
-
-    }
-
-    if(valid){
-
-      show(
-        "verifyResult",
-        "good",
-        "VALID: The wallet contract accepted this signature."
-      );
-
-    }else{
+    if(String(magic).toLowerCase()!=="0x20c13b0b"){
 
       show(
         "verifyResult",
         "bad",
-        "NOT VERIFIED: The wallet contract did not accept this signature. Check the exact message, signature format, wallet and network."
+        "NOT VERIFIED: The Safe contract rejected the combined signature."
       );
 
+      return;
     }
 
+    $("verifyProgressBar").style.width="100%";
+
+    show(
+      "verifyResult",
+      "good",
+      "VALID SAFE MESSAGE\n\n"+
+      "Safe: "+SAFE_ADDRESS+
+      "\n\nConfirmations: "+count+" / "+actualThreshold+
+      "\n\nMessage Hash: "+result.messageHash+
+      "\n\nThe Safe contract accepted the ERC-1271 signature."
+    );
+
   }catch(error){
+
+    console.error("Verification error:",error);
 
     show(
       "verifyResult",
       "bad",
-      error.shortMessage||
-      error.message||
-      "Verification error."
+      error.message||"Verification failed."
     );
 
   }finally{
 
     $("verifyBtn").disabled=false;
-    $("verifyBtn").textContent="Verify Message";
+    $("verifyBtn").textContent="Verify Safe Message";
 
   }
 
