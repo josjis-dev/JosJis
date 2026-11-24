@@ -22,6 +22,7 @@
 │       │   ├── data-manager.js
 │       │   ├── rpc-manager.js
 │       │   ├── token-manager.js
+│       │   ├── transaction-manager.js
 │       │   └── wallet-manager.js
 │       ├── footer.js
 │       ├── header.js
@@ -56,4 +57,4 @@
     ├── README.md
     └── web3-config.js
 
-10 directories, 47 files
+10 directories, 48 files
