@@ -1,0 +1,530 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#090812">
+  <title>JosJis Smart Account</title>
+
+  <!-- Existing project stylesheet -->
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    :root {
+      --bg: #090812;
+      --panel: #141222;
+      --panel2: #1b172d;
+      --purple: #9870ff;
+      --gold: #e8bd62;
+      --text: #f5f1ff;
+      --muted: #9992ad;
+      --border: rgba(255,255,255,.09);
+      --green: #4ed6a0;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: auto;
+      padding: 28px 18px 45px;
+    }
+
+    .page-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 22px;
+    }
+
+    h1 {
+      font-size: 29px;
+      margin: 0 0 7px;
+    }
+
+    h2 {
+      font-size: 17px;
+      margin: 0;
+    }
+
+    p {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .subtitle {
+      margin: 0;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 7px 11px;
+      border-radius: 20px;
+      background: #9870ff20;
+      color: #c4aaff;
+      font-size: 11px;
+      font-weight: bold;
+    }
+
+    .notice {
+      padding: 14px;
+      background: #9870ff12;
+      border: 1px solid #9870ff35;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .notice strong {
+      font-size: 13px;
+    }
+
+    .notice p {
+      margin: 5px 0 0;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .account-card {
+      background: linear-gradient(130deg,#251a42,#151122);
+      border: 1px solid #9870ff45;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: 1.2px;
+      margin-bottom: 8px;
+    }
+
+    .account-address {
+      font-size: 13px;
+      overflow-wrap: anywhere;
+    }
+
+    .account-balance {
+      font-size: 30px;
+      font-weight: bold;
+      margin-top: 25px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 14px;
+    }
+
+    .stat-value {
+      font-size: 21px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .green {
+      color: var(--green);
+    }
+
+    .gold {
+      color: var(--gold);
+    }
+
+    .purple {
+      color: var(--purple);
+    }
+
+    .section-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 17px;
+    }
+
+    .asset-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+      gap: 10px;
+    }
+
+    .asset-row:last-child {
+      border-bottom: 0;
+    }
+
+    .asset-name {
+      font-weight: bold;
+      font-size: 13px;
+    }
+
+    .asset-symbol {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 4px;
+    }
+
+    .asset-value {
+      text-align: right;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .controller-box {
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      padding: 15px;
+      border-radius: 12px;
+      margin-top: 12px;
+    }
+
+    .controller-address {
+      overflow-wrap: anywhere;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+
+    .permission {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 15px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .permission:last-child {
+      border-bottom: 0;
+    }
+
+    .permission-name {
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .permission-description {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 5px;
+    }
+
+    .status {
+      font-size: 10px;
+      padding: 6px 9px;
+      border-radius: 20px;
+      background: #9870ff20;
+      color: #c4aaff;
+      white-space: nowrap;
+    }
+
+    .status-green {
+      background: #4ed6a018;
+      color: var(--green);
+    }
+
+    .status-gold {
+      background: #e8bd6218;
+      color: var(--gold);
+    }
+
+    .empty {
+      text-align: center;
+      padding: 25px 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .security-list {
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 2;
+    }
+
+    .two-column {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .coming-soon {
+      text-align: center;
+      padding: 15px;
+      border: 1px dashed #9870ff55;
+      border-radius: 12px;
+      background: #9870ff09;
+    }
+
+    @media(max-width:650px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .two-column {
+        grid-template-columns: 1fr;
+      }
+
+      .page-heading {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      h1 {
+        font-size: 25px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Existing header component -->
+  <div id="header"></div>
+
+  <main class="container">
+
+    <div class="page-heading">
+      <div>
+        <h1>Smart Account</h1>
+        <p class="subtitle">
+          Manage your JosJis Smart Account.
+        </p>
+      </div>
+
+      <span class="badge">PLANNING PREVIEW</span>
+    </div>
+
+    <div class="notice">
+      <strong>ⓘ Prototype Mode</strong>
+      <p>
+        This is a planning interface. It is not connected
+        to Polygon or any smart contract yet.
+      </p>
+    </div>
+
+    <!-- ACCOUNT OVERVIEW -->
+    <section class="card account-card">
+
+      <div class="label">SMART ACCOUNT ADDRESS</div>
+
+      <div class="account-address">
+        Not deployed yet
+      </div>
+
+      <div class="account-balance">
+        $0.00
+      </div>
+
+      <p>Estimated total asset value · Demo only</p>
+
+      <span class="badge">Polygon Network</span>
+
+    </section>
+
+    <!-- ACCOUNT STATUS -->
+    <section class="grid">
+
+      <div class="card">
+        <div class="label">CONTROLLER</div>
+        <div class="stat-value purple">Single</div>
+        <p>One active Controller</p>
+      </div>
+
+      <div class="card">
+        <div class="label">READ-ONLY</div>
+        <div class="stat-value green">Enabled</div>
+        <p>View account information</p>
+      </div>
+
+      <div class="card">
+        <div class="label">RECOVERY</div>
+        <div class="stat-value gold">Later</div>
+        <p>Reserved for future development</p>
+      </div>
+
+    </section>
+
+    <!-- ASSETS -->
+    <section class="card">
+
+      <div class="section-heading">
+        <h2>Account Assets</h2>
+        <span class="badge">DEMO DATA</span>
+      </div>
+
+      <div class="asset-row">
+        <div>
+          <div class="asset-name">JosJis</div>
+          <span class="asset-symbol">JJS · Polygon</span>
+        </div>
+        <div class="asset-value">0.00 JJS</div>
+      </div>
+
+      <div class="asset-row">
+        <div>
+          <div class="asset-name">POL</div>
+          <span class="asset-symbol">Polygon Gas Token</span>
+        </div>
+        <div class="asset-value">0.00 POL</div>
+      </div>
+
+      <div class="asset-row">
+        <div>
+          <div class="asset-name">USDT</div>
+          <span class="asset-symbol">Tether USD · Polygon</span>
+        </div>
+        <div class="asset-value">0.00 USDT</div>
+      </div>
+
+      <p>
+        Live balances will be displayed after blockchain integration.
+      </p>
+
+    </section>
+
+    <!-- CONTROLLER MANAGEMENT -->
+    <section class="card">
+
+      <div class="section-heading">
+        <h2>Controller Management</h2>
+        <span class="status status-green">Single Controller</span>
+      </div>
+
+      <div class="controller-box">
+        <div class="label">ACTIVE CONTROLLER</div>
+
+        <strong>Not assigned</strong>
+
+        <div class="controller-address">
+          Controller wallet will appear here after account creation.
+        </div>
+      </div>
+
+      <p>
+        The Controller has permission to manage the Smart Account,
+        send assets, and authorize a Controller replacement.
+      </p>
+
+    </section>
+
+    <!-- PERMISSIONS -->
+    <section class="card">
+
+      <div class="section-heading">
+        <h2>Permission Management</h2>
+        <span class="badge">PLANNED</span>
+      </div>
+
+      <div class="permission">
+        <div>
+          <div class="permission-name">Owner / Controller</div>
+          <div class="permission-description">
+            Send assets and manage account permissions.
+          </div>
+        </div>
+        <span class="status status-green">Planned</span>
+      </div>
+
+      <div class="permission">
+        <div>
+          <div class="permission-name">Read-Only</div>
+          <div class="permission-description">
+            View balances, account address, and activity.
+          </div>
+        </div>
+        <span class="status">Planned</span>
+      </div>
+
+      <div class="permission">
+        <div>
+          <div class="permission-name">Recovery</div>
+          <div class="permission-description">
+            Future recovery mechanism.
+          </div>
+        </div>
+        <span class="status status-gold">Later</span>
+      </div>
+
+    </section>
+
+    <!-- ACTIVITY AND SECURITY -->
+    <div class="two-column">
+
+      <section class="card">
+        <div class="section-heading">
+          <h2>Recent Activity</h2>
+        </div>
+
+        <div class="empty">
+          No activity yet.<br>
+          Activity will appear after deployment.
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-heading">
+          <h2>Security</h2>
+        </div>
+
+        <ul class="security-list">
+          <li>Never enter a seed phrase on this website.</li>
+          <li>Wallet signatures authorize transactions.</li>
+          <li>Controller changes require blockchain confirmation.</li>
+          <li>Without Recovery, losing the Controller key may permanently lock the account.</li>
+        </ul>
+      </section>
+
+    </div>
+
+    <!-- RECOVERY -->
+    <section class="card">
+      <div class="section-heading">
+        <h2>Recovery System</h2>
+        <span class="status status-gold">Coming Later</span>
+      </div>
+
+      <div class="coming-soon">
+        <h2 class="gold">Recovery Not Implemented</h2>
+        <p>
+          Recovery is intentionally excluded from the first version.
+          Its rules will be designed separately in a future update.
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Existing footer component -->
+  <div id="footer"></div>
+
+  <!-- Existing project scripts -->
+  <script src="component.js"></script>
+  <script src="header.js"></script>
+  <script src="footer.js"></script>
+
+  <!--
+    Header and footer mounting:
+    Connect these placeholders to the actual function names
+    provided by your existing JavaScript components.
+  -->
+
+</body>
+</html>
