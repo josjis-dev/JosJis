@@ -16,8 +16,6 @@
   --text:#f7f4ff;
   --muted:#b9b2cc;
   --purple:#a78bfa;
-  --green:#4ade80;
-  --red:#fb7185;
 }
 *{box-sizing:border-box}
 body{
@@ -71,7 +69,6 @@ button:disabled{opacity:.5}
 .good{background:#123321;color:#bbf7d0}
 .bad{background:#3b1722;color:#fecdd3}
 .info{background:#211b38;color:#e9ddff}
-.hint{font-size:12px;color:var(--muted);margin-top:6px}
 .hidden{display:none}
 .note{
   font-size:12px;color:var(--muted);
@@ -137,10 +134,9 @@ footer{text-align:center;color:var(--muted);font-size:12px;margin-top:25px}
 </div>
 
 <div class="note">
-  Connect your Safe Wallet through Reown. The wallet must support the requested
-  signing method. A signature returned through the wallet provider is not
-  automatically proof of a completed Safe multisig approval. Always verify
-  the signature against the Safe contract.
+  Connect your wallet through Reown. Safe Wallet signing depends on
+  the wallet's supported signing method and Safe approval process.
+  A signature must be verified against the correct wallet rules.
 </div>
 
 </section>
@@ -157,7 +153,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;margin-top:25px}
     <option value="80002">Polygon Amoy Testnet</option>
   </select>
 
-  <label for="safeAddress">Safe Wallet address</label>
+  <label for="safeAddress">Wallet / Safe address</label>
   <input id="safeAddress" placeholder="0x...">
 
   <label for="verifyMessage">Original message</label>
@@ -176,8 +172,8 @@ footer{text-align:center;color:var(--muted);font-size:12px;margin-top:25px}
 </div>
 
 <div class="note">
-  A valid signature proves that the wallet authorized the message under its
-  signing rules. It does not prove that the message's claims are true.
+  A valid signature proves that the wallet authorized the message under
+  its signing rules. It does not prove that the message's claims are true.
 </div>
 
 </section>
@@ -214,6 +210,7 @@ const metadata = {
 };
 
 // REOWN CONFIGURATION
+
 const modal = createAppKit({
   adapters:[new EthersAdapter()],
   networks:[polygon],
@@ -228,8 +225,8 @@ const modal = createAppKit({
 
 const $ = id => document.getElementById(id);
 
-let connectedAddress = null;
-let connectedChain = null;
+let connectedAddress=null;
+let connectedChain=null;
 
 function show(id,type,message){
   const el=$(id);
@@ -238,6 +235,7 @@ function show(id,type,message){
 }
 
 function switchTab(tab){
+
   const create=tab==="create";
 
   $("createSection").classList.toggle("hidden",!create);
@@ -255,6 +253,7 @@ $("verifyTab").onclick=()=>switchTab("verify");
 function updateConnectedUI(address,chainId){
 
   if(!address){
+
     connectedAddress=null;
     connectedChain=null;
 
@@ -273,8 +272,7 @@ function updateConnectedUI(address,chainId){
   show(
     "walletInfo",
     "good",
-    "Connected: "+address+
-    " | Chain ID: "+chainId
+    "Connected: "+address+" | Chain ID: "+chainId
   );
 
   $("signBtn").disabled=false;
@@ -284,9 +282,7 @@ async function refreshWallet(){
 
   try{
 
-    const connected=modal.getIsConnected();
-
-    if(!connected){
+    if(!modal.getIsConnected()){
       updateConnectedUI(null,null);
       return;
     }
@@ -302,12 +298,13 @@ async function refreshWallet(){
     updateConnectedUI(address,chainId);
 
   }catch(error){
-    console.error("Wallet refresh error:",error);
+
+    console.error("Wallet refresh:",error);
+
   }
 }
 
-// REOWN STATE SUBSCRIPTION
-// Follow the working dashboard subscription pattern.
+// REOWN SUBSCRIPTIONS
 
 modal.subscribeState((state)=>{
 
@@ -347,7 +344,7 @@ modal.subscribeNetwork(()=>{
 
 });
 
-// CONNECT BUTTON
+// CONNECT WALLET
 
 $("connectBtn").onclick=async()=>{
 
@@ -355,7 +352,6 @@ $("connectBtn").onclick=async()=>{
 
     await modal.open({view:"Connect"});
 
-    // Wait for Reown connection state to update.
     for(let i=0;i<40;i++){
 
       await new Promise(resolve=>setTimeout(resolve,250));
@@ -370,11 +366,13 @@ $("connectBtn").onclick=async()=>{
     await refreshWallet();
 
     if(!modal.getIsConnected()){
+
       show(
         "walletInfo",
         "info",
         "Wallet connection has not been detected yet. Please check Reown."
       );
+
     }
 
   }catch(error){
@@ -388,7 +386,7 @@ $("connectBtn").onclick=async()=>{
   }
 };
 
-// RESTORE EXISTING WALLET SESSION
+// RESTORE SESSION
 
 async function restoreWalletSession(){
 
@@ -397,41 +395,48 @@ async function restoreWalletSession(){
     await new Promise(resolve=>setTimeout(resolve,250));
 
     if(modal.getIsConnected()){
-
       await refreshWallet();
       return;
-
     }
 
   }
 
   await refreshWallet();
-
 }
 
 await restoreWalletSession();
 
-// CREATE MESSAGE
+// CREATE MESSAGE / SIGN MESSAGE
 
 $("signBtn").onclick=async()=>{
 
   const message=$("createMessage").value;
 
   if(!message.trim()){
-    show("createResult","bad","Please write a message first.");
-    return;
-  }
 
-  if(!modal.getIsConnected()){
-    show("createResult","bad","Please connect your wallet first.");
-    await refreshWallet();
+    show(
+      "createResult",
+      "bad",
+      "Please write a message first."
+    );
+
     return;
   }
 
   $("signBtn").disabled=true;
-  $("signBtn").textContent="Waiting for signature...";
+  $("signBtn").textContent="Preparing...";
 
   try{
+
+    show(
+      "createResult",
+      "info",
+      "Checking wallet connection..."
+    );
+
+    if(!modal.getIsConnected()){
+      throw new Error("Wallet is not connected. Please reconnect.");
+    }
 
     const walletProvider=modal.getWalletProvider();
 
@@ -439,31 +444,73 @@ $("signBtn").onclick=async()=>{
       throw new Error("Wallet provider unavailable.");
     }
 
-    const provider=new ethers.BrowserProvider(walletProvider);
-    const signer=await provider.getSigner();
+    show(
+      "createResult",
+      "info",
+      "Reading wallet account..."
+    );
 
-    const address=await signer.getAddress();
-    const network=await provider.getNetwork();
+    const accounts=await walletProvider.request({
+      method:"eth_accounts"
+    });
 
-    if(Number(network.chainId)!==137){
-      throw new Error("Please switch your wallet to Polygon Mainnet.");
+    if(!accounts || !accounts.length){
+      throw new Error("No wallet account found.");
     }
 
-    // Request message signature through Reown.
-    const signature=await signer.signMessage(message);
+    const address=accounts[0];
+
+    const chainId=await walletProvider.request({
+      method:"eth_chainId"
+    });
+
+    if(Number(chainId)!==137){
+      throw new Error("Please switch to Polygon Mainnet.");
+    }
+
+    show(
+      "createResult",
+      "info",
+      "Requesting signature. Please check your wallet..."
+    );
+
+    $("signBtn").textContent="Waiting for wallet...";
+
+    // PERSONAL SIGN THROUGH REOWN PROVIDER
+
+    const messageHex=ethers.hexlify(
+      ethers.toUtf8Bytes(message)
+    );
+
+    const signature=await walletProvider.request({
+      method:"personal_sign",
+      params:[messageHex,address]
+    });
+
+    if(!signature){
+      throw new Error("Wallet returned an empty signature.");
+    }
+
+    // CREATE PROOF
 
     const proof={
       type:"JosJis Verify Message",
       version:1,
       network:"Polygon",
-      chainId:Number(network.chainId),
+      chainId:137,
       walletAddress:address,
+      signingMethod:"personal_sign",
       message:message,
       signature:signature
     };
 
     $("proofCard").classList.remove("hidden");
-    $("proofOutput").value=JSON.stringify(proof,null,2);
+
+    $("proofOutput").value=JSON.stringify(
+      proof,
+      null,
+      2
+    );
 
     show(
       "createResult",
@@ -473,10 +520,14 @@ $("signBtn").onclick=async()=>{
 
   }catch(error){
 
+    console.error("Signing error:",error);
+
     show(
       "createResult",
       "bad",
-      error.shortMessage||error.message||"Signing failed."
+      error.shortMessage||
+      error.message||
+      "Signing failed."
     );
 
   }finally{
@@ -485,6 +536,7 @@ $("signBtn").onclick=async()=>{
     $("signBtn").textContent="Sign Message";
 
   }
+
 };
 
 // COPY PROOF
@@ -497,16 +549,25 @@ $("copyProofBtn").onclick=async()=>{
       $("proofOutput").value
     );
 
-    show("createResult","good","Message proof copied.");
+    show(
+      "createResult",
+      "good",
+      "Message proof copied."
+    );
 
   }catch(error){
 
     $("proofOutput").focus();
     $("proofOutput").select();
 
-    show("createResult","info","Please copy the selected text.");
+    show(
+      "createResult",
+      "info",
+      "Please copy the selected text."
+    );
 
   }
+
 };
 
 // VERIFY MESSAGE
@@ -529,17 +590,35 @@ $("verifyBtn").onclick=async()=>{
   const signature=$("verifySignature").value.trim();
 
   if(!ethers.isAddress(safe)){
-    show("verifyResult","bad","Invalid Safe Wallet address.");
+
+    show(
+      "verifyResult",
+      "bad",
+      "Invalid wallet address."
+    );
+
     return;
   }
 
   if(!message.length){
-    show("verifyResult","bad","Please enter the original message.");
+
+    show(
+      "verifyResult",
+      "bad",
+      "Please enter the original message."
+    );
+
     return;
   }
 
   if(!/^0x([0-9a-fA-F]{2})+$/.test(signature)){
-    show("verifyResult","bad","Invalid signature format.");
+
+    show(
+      "verifyResult",
+      "bad",
+      "Invalid signature format."
+    );
+
     return;
   }
 
@@ -566,14 +645,19 @@ $("verifyBtn").onclick=async()=>{
       return;
     }
 
-    const contract=new ethers.Contract(safe,ABI,provider);
+    const contract=new ethers.Contract(
+      safe,
+      ABI,
+      provider
+    );
 
     const messageBytes=ethers.toUtf8Bytes(message);
     const messageHash=ethers.hashMessage(message);
 
     let valid=false;
 
-    // ERC-1271 bytes method
+    // ERC-1271 BYTES METHOD
+
     try{
 
       const result=await contract[
@@ -590,7 +674,8 @@ $("verifyBtn").onclick=async()=>{
 
     }
 
-    // ERC-1271 bytes32 method
+    // ERC-1271 BYTES32 METHOD
+
     if(!valid){
 
       try{
@@ -616,7 +701,7 @@ $("verifyBtn").onclick=async()=>{
       show(
         "verifyResult",
         "good",
-        "VALID: The Safe contract accepted this signature."
+        "VALID: The wallet contract accepted this signature."
       );
 
     }else{
@@ -624,7 +709,7 @@ $("verifyBtn").onclick=async()=>{
       show(
         "verifyResult",
         "bad",
-        "NOT VERIFIED: The Safe contract did not accept this signature. Check the exact message, signature format, Safe address and network."
+        "NOT VERIFIED: The wallet contract did not accept this signature. Check the exact message, signature format, wallet and network."
       );
 
     }
@@ -634,7 +719,9 @@ $("verifyBtn").onclick=async()=>{
     show(
       "verifyResult",
       "bad",
-      error.shortMessage||error.message||"Verification error."
+      error.shortMessage||
+      error.message||
+      "Verification error."
     );
 
   }finally{
