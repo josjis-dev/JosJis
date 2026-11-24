@@ -1,495 +1,663 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#100d1c">
-<title>JosJis TxCard</title>
+<meta name="theme-color" content="#0c0914">
 
+<title>JosJis TxCard | Transaction Verification</title>
+
+<meta name="description" content="Verify JosJis transactions on Polygon and create shareable transaction cards.">
+
+<!-- Shared CSS -->
+<link rel="stylesheet" href="assets/css/style.css">
+
+<!-- Shared Header, Footer & Components -->
+<script src="assets/js/header.js" defer></script>
+<script src="assets/js/footer.js" defer></script>
+<script src="assets/js/components.js" defer></script>
+
+<!-- External Libraries -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <style>
-:root {
-  color-scheme: dark;
-  --bg: #100d1c;
-  --panel: #1b1730;
-  --line: #393252;
-  --text: #f7f4ff;
-  --muted: #a9a1bd;
-  --gold: #f5c96a;
-  --purple: #9b7cff;
-  --green: #55d69a;
-  --red: #ff7272;
+html {
+    scroll-behavior: smooth;
 }
 
 * {
-  box-sizing: border-box;
+    box-sizing: border-box;
 }
 
-body {
-  margin: 0;
-  padding: 24px 15px 50px;
-  background:
-    radial-gradient(circle at top, #292044 0, transparent 45%),
-    var(--bg);
-  color: var(--text);
-  font-family: Arial, sans-serif;
+/* HERO */
+
+.hero .tag {
+    color: var(--purple-light);
+    letter-spacing: 3px;
+    font-size: 12px;
+    font-weight: bold;
 }
 
-.container {
-  width: 100%;
-  max-width: 760px;
-  margin: auto;
+.hero h1 {
+    line-height: 1.2;
 }
 
-.header {
-  text-align: center;
-  margin-bottom: 28px;
+.hero h1 span {
+    color: var(--purple-light);
 }
 
-.header h1 {
-  margin: 0 0 8px;
-  font-size: 28px;
-  letter-spacing: 1px;
+/* MAIN */
+
+.tx-container {
+    width: 100%;
+    max-width: 900px;
+    margin: auto;
+    padding: 30px 20px 60px;
 }
 
-.header h1 span {
-  color: var(--gold);
+.tx-section {
+    margin-bottom: 30px;
 }
 
-.header p {
-  color: var(--muted);
-  font-size: 14px;
+/* PANELS */
+
+.tx-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    padding: 25px;
 }
 
-.panel {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  padding: 20px;
-  margin-bottom: 22px;
+.tx-panel h2 {
+    color: var(--purple-light);
+    font-size: 22px;
+    margin: 0 0 10px;
 }
 
-label {
-  display: block;
-  margin-bottom: 9px;
-  color: var(--muted);
-  font-size: 13px;
+.tx-description {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.7;
+    margin-bottom: 22px;
 }
 
-input {
-  width: 100%;
-  padding: 15px;
-  background: #100d1c;
-  color: white;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  outline: none;
-  font-size: 13px;
+/* INPUT */
+
+.tx-label {
+    display: block;
+    margin-bottom: 9px;
+    color: var(--muted);
+    font-size: 13px;
 }
 
-input:focus {
-  border-color: var(--purple);
+.tx-input {
+    width: 100%;
+    padding: 15px;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    outline: none;
+    font-size: 13px;
 }
 
-button {
-  border: 0;
-  border-radius: 10px;
-  padding: 14px 18px;
-  font-weight: bold;
-  cursor: pointer;
-  font-size: 14px;
+.tx-input:focus {
+    border-color: var(--purple);
 }
 
-.primary {
-  width: 100%;
-  margin-top: 13px;
-  color: #171123;
-  background: linear-gradient(135deg, #f5d58a, #c99b43);
+.tx-input::placeholder {
+    color: var(--muted);
 }
 
-.secondary {
-  color: white;
-  background: #33294e;
-  border: 1px solid var(--line);
+/* BUTTONS */
+
+.tx-button {
+    border: 0;
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 14px;
+    transition: .2s ease;
 }
 
-button:disabled {
-  opacity: .5;
-  cursor: not-allowed;
+.tx-button:disabled {
+    opacity: .5;
+    cursor: not-allowed;
 }
+
+.tx-primary {
+    color: #fff;
+    background: var(--purple);
+}
+
+.tx-primary:hover {
+    filter: brightness(1.12);
+}
+
+.tx-secondary {
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+}
+
+.tx-secondary:hover {
+    border-color: var(--purple);
+}
+
+.verify-button {
+    width: 100%;
+    margin-top: 13px;
+}
+
+/* MESSAGE */
 
 .message {
-  margin-top: 13px;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--muted);
-  overflow-wrap: anywhere;
+    margin-top: 15px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--muted);
+    overflow-wrap: anywhere;
 }
 
+/* CARD WRAPPER */
+
 .card-wrap {
-  display: none;
-  margin-top: 25px;
+    display: none;
+    margin-top: 30px;
+}
+
+.card-heading {
+    color: var(--purple-light);
+    font-size: 22px;
+    margin-bottom: 18px;
 }
 
 /* TRANSACTION CARD */
 
 .tx-card {
-  width: 100%;
-  aspect-ratio: 1.6 / 1;
-  position: relative;
-  overflow: hidden;
-  padding: 4.5%;
-  border-radius: 18px;
-  background:
-    radial-gradient(circle at 85% 10%, #49336c 0, transparent 36%),
-    linear-gradient(135deg, #171225, #211936 55%, #100d1c);
-  border: 1px solid #725b9b;
-  box-shadow: 0 20px 50px #0007;
+    width: 100%;
+    aspect-ratio: 1.6 / 1;
+    position: relative;
+    overflow: hidden;
+    padding: 4.5%;
+    border-radius: 18px;
+
+    background:
+        radial-gradient(
+            circle at 85% 10%,
+            #49336c 0,
+            transparent 36%
+        ),
+        linear-gradient(
+            135deg,
+            #171225,
+            #211936 55%,
+            #100d1c
+        );
+
+    border: 1px solid #725b9b;
+    box-shadow: 0 20px 50px #0007;
 }
 
 .tx-card::before {
-  content: "";
-  position: absolute;
-  width: 45%;
-  height: 150%;
-  right: -15%;
-  top: -25%;
-  transform: rotate(30deg);
-  border: 1px solid #ffffff0d;
-  border-radius: 50%;
+    content: "";
+    position: absolute;
+    width: 45%;
+    height: 150%;
+    right: -15%;
+    top: -25%;
+    transform: rotate(30deg);
+    border: 1px solid #ffffff0d;
+    border-radius: 50%;
 }
 
 .card-content {
-  position: relative;
-  z-index: 1;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
+/* CARD TOP */
+
 .card-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
 }
 
 .brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .brand img {
-  width: clamp(32px, 6vw, 58px);
-  height: clamp(32px, 6vw, 58px);
-  object-fit: contain;
-  border-radius: 50%;
-  background: #fff;
+    width: clamp(32px, 6vw, 58px);
+    height: clamp(32px, 6vw, 58px);
+    object-fit: contain;
+    border-radius: 50%;
+    background: #fff;
 }
 
 .brand-name {
-  font-weight: 800;
-  font-size: clamp(13px, 2.4vw, 23px);
-  letter-spacing: 1px;
+    font-weight: 800;
+    font-size: clamp(13px, 2.4vw, 23px);
+    letter-spacing: 1px;
+    color: #fff;
 }
 
 .brand-sub {
-  color: var(--muted);
-  font-size: clamp(8px, 1.2vw, 11px);
-  margin-top: 4px;
+    color: #a9a1bd;
+    font-size: clamp(8px, 1.2vw, 11px);
+    margin-top: 4px;
 }
 
 .status {
-  border: 1px solid #55d69a66;
-  background: #55d69a18;
-  color: var(--green);
-  border-radius: 30px;
-  padding: 7px 12px;
-  font-size: clamp(8px, 1.2vw, 12px);
-  font-weight: bold;
-  white-space: nowrap;
+    border: 1px solid #55d69a66;
+    background: #55d69a18;
+    color: #55d69a;
+    border-radius: 30px;
+    padding: 7px 12px;
+    font-size: clamp(8px, 1.2vw, 12px);
+    font-weight: bold;
+    white-space: nowrap;
 }
 
+/* CARD AMOUNT */
+
 .card-title {
-  margin-top: auto;
-  color: var(--gold);
-  font-size: clamp(9px, 1.5vw, 14px);
-  letter-spacing: 2px;
-  font-weight: bold;
+    margin-top: auto;
+    color: #f5c96a;
+    font-size: clamp(9px, 1.5vw, 14px);
+    letter-spacing: 2px;
+    font-weight: bold;
 }
 
 .amount {
-  font-size: clamp(23px, 5vw, 48px);
-  font-weight: 800;
-  margin: 5px 0 12px;
-  overflow-wrap: anywhere;
+    color: #fff;
+    font-size: clamp(23px, 5vw, 48px);
+    font-weight: 800;
+    margin: 5px 0 12px;
+    overflow-wrap: anywhere;
 }
 
 .amount small {
-  color: var(--gold);
-  font-size: .45em;
+    color: #f5c96a;
+    font-size: .45em;
 }
 
 /* CARD BOTTOM */
 
 .card-bottom {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
-  align-items: end;
-  gap: 12px;
+    display: grid;
+    grid-template-columns:
+        minmax(0, 1fr)
+        minmax(0, 1fr)
+        auto;
+    align-items: end;
+    gap: 12px;
 }
 
 .detail-label {
-  color: var(--muted);
-  font-size: clamp(7px, 1vw, 10px);
-  letter-spacing: 1px;
-  margin-bottom: 5px;
+    color: #a9a1bd;
+    font-size: clamp(7px, 1vw, 10px);
+    letter-spacing: 1px;
+    margin-bottom: 5px;
 }
 
 .detail-value {
-  font-size: clamp(8px, 1.2vw, 12px);
-  font-weight: bold;
-  overflow-wrap: anywhere;
+    color: #fff;
+    font-size: clamp(8px, 1.2vw, 12px);
+    font-weight: bold;
+    overflow-wrap: anywhere;
 }
 
-/* BIGGER QR CODE */
+/* QR CODE */
 
 .qr-box {
-  width: clamp(130px, 26vw, 180px);
-  height: clamp(130px, 26vw, 180px);
-  background: white;
-  padding: 7px;
-  border-radius: 10px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    width: clamp(130px, 26vw, 180px);
+    height: clamp(130px, 26vw, 180px);
+    background: white;
+    padding: 7px;
+    border-radius: 10px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .qr-box img,
 .qr-box canvas {
-  width: 100% !important;
-  height: 100% !important;
-  display: block;
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
 }
 
+/* TRANSACTION HASH */
+
 .tx-hash {
-  margin-top: 12px;
-  padding-top: 9px;
-  border-top: 1px solid #ffffff20;
-  color: #b9afd0;
-  font-size: clamp(7px, 1vw, 10px);
-  overflow-wrap: anywhere;
+    margin-top: 12px;
+    padding-top: 9px;
+    border-top: 1px solid #ffffff20;
+    color: #b9afd0;
+    font-size: clamp(7px, 1vw, 10px);
+    overflow-wrap: anywhere;
 }
 
 /* TRANSFER DETAILS */
 
 .transfers {
-  margin-top: 18px;
-  display: grid;
-  gap: 9px;
+    margin-top: 18px;
+    display: grid;
+    gap: 10px;
 }
 
 .transfer-row {
-  padding: 12px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: #100d1c88;
+    padding: 15px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--card);
 }
 
 .transfer-row strong {
-  display: block;
-  color: var(--gold);
-  margin-bottom: 7px;
-  font-size: 13px;
+    display: block;
+    color: var(--purple-light);
+    margin-bottom: 8px;
+    font-size: 13px;
 }
 
 .transfer-row div {
-  font-size: 11px;
-  color: var(--muted);
-  overflow-wrap: anywhere;
-  line-height: 1.6;
+    font-size: 12px;
+    color: var(--muted);
+    overflow-wrap: anywhere;
+    line-height: 1.7;
 }
 
 /* ACTIONS */
 
 .actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 16px;
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
 }
 
 .actions button {
-  flex: 1;
+    flex: 1;
 }
 
-.note {
-  margin-top: 22px;
-  color: var(--muted);
-  text-align: center;
-  font-size: 12px;
-  line-height: 1.6;
+/* NOTICE */
+
+.tx-notice {
+    margin-top: 28px;
+    padding: 18px;
+    border-left: 4px solid var(--purple);
+    background: var(--card);
+    border-radius: 10px;
 }
 
-/* SMALL SCREENS */
+.tx-notice p {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.7;
+    margin: 0;
+}
+
+/* MOBILE */
+
+@media (max-width: 600px) {
+
+    .tx-container {
+        padding: 20px 15px 45px;
+    }
+
+    .tx-panel {
+        padding: 20px;
+    }
+
+    .card-heading {
+        font-size: 20px;
+    }
+}
 
 @media (max-width: 420px) {
-  body {
-    padding-left: 10px;
-    padding-right: 10px;
-  }
 
-  .panel {
-    padding: 15px;
-  }
+    .tx-container {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
 
-  .tx-card {
-    border-radius: 10px;
-    aspect-ratio: 1.35 / 1;
-  }
+    .tx-panel {
+        padding: 15px;
+    }
 
-  .card-bottom {
-    gap: 6px;
-  }
+    .tx-card {
+        border-radius: 10px;
+        aspect-ratio: 1.35 / 1;
+    }
 
-  .qr-box {
-    width: clamp(105px, 28vw, 130px);
-    height: clamp(105px, 28vw, 130px);
-  }
+    .card-bottom {
+        gap: 6px;
+    }
 
-  .amount {
-    margin-bottom: 8px;
-  }
+    .qr-box {
+        width: clamp(105px, 28vw, 130px);
+        height: clamp(105px, 28vw, 130px);
+    }
 
-  .tx-hash {
-    margin-top: 8px;
-  }
+    .amount {
+        margin-bottom: 8px;
+    }
+
+    .tx-hash {
+        margin-top: 8px;
+    }
+}
+
+@media (max-width: 340px) {
+
+    .brand {
+        gap: 6px;
+    }
+
+    .status {
+        padding: 5px 7px;
+    }
+
+    .actions {
+        flex-direction: column;
+    }
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<!-- SHARED HEADER LOADED FROM header.js -->
 
-  <div class="header">
-    <h1>JosJis <span>TxCard</span></h1>
-    <p>Verify and create your JosJis transaction card</p>
-  </div>
+<!-- HERO -->
 
-  <div class="panel">
+<div class="hero">
 
-    <label for="txHash">Polygon Transaction Hash</label>
-
-    <input
-      id="txHash"
-      type="text"
-      placeholder="0x..."
-      autocomplete="off"
-      spellcheck="false"
-    >
-
-    <button
-      class="primary"
-      id="verifyBtn"
-      onclick="verifyTransaction()"
-    >
-      Verify Transaction
-    </button>
-
-    <div class="message" id="message">
-      Enter your JJS transaction hash to create a transaction card.
+    <div class="tag">
+        JOSJIS BLOCKCHAIN TOOLS
     </div>
 
-  </div>
+    <h1>
+        JosJis <span>TxCard</span>
+    </h1>
 
-  <div class="card-wrap" id="cardWrap">
-
-    <div class="tx-card" id="txCard">
-
-      <div class="card-content">
-
-        <div class="card-top">
-
-          <div class="brand">
-
-            <img
-              src="assets/images/josjis-logo-circle.png"
-              alt="JosJis Logo"
-              crossorigin="anonymous"
-            >
-
-            <div>
-              <div class="brand-name">JOSJIS</div>
-              <div class="brand-sub">OFFICIAL TRANSACTION CARD</div>
-            </div>
-
-          </div>
-
-          <div class="status">✓ VERIFIED</div>
-
-        </div>
-
-        <div class="card-title">
-          JOSJIS TRANSFER
-        </div>
-
-        <div class="amount" id="cardAmount">
-          0 <small>JJS</small>
-        </div>
-
-        <div class="card-bottom">
-
-          <div>
-            <div class="detail-label">FROM</div>
-            <div class="detail-value" id="cardFrom">-</div>
-          </div>
-
-          <div>
-            <div class="detail-label">DATE</div>
-            <div class="detail-value" id="cardDate">-</div>
-          </div>
-
-          <div class="qr-box" id="qrCode"></div>
-
-        </div>
-
-        <div class="tx-hash" id="cardHash">
-          TX: -
-        </div>
-
-      </div>
-
-    </div>
-
-    <div class="transfers" id="transferList"></div>
-
-    <div class="actions">
-
-      <button class="primary" onclick="downloadCard()">
-        Download PNG
-      </button>
-
-      <button class="secondary" onclick="shareCard()">
-        Share
-      </button>
-
-    </div>
-
-  </div>
-
-  <div class="note">
-    JosJis TxCard verifies JJS transfer events on Polygon.
-    Always verify transaction details on PolygonScan.
-    <br>
-    This card is a transaction receipt, not proof of token ownership.
-  </div>
+    <p>
+        Verify your JosJis transactions on Polygon
+        and create a shareable transaction card.
+    </p>
 
 </div>
+
+<main class="tx-container">
+
+    <!-- VERIFICATION -->
+
+    <section class="tx-section">
+
+        <div class="tx-panel">
+
+            <h2>Transaction Verification</h2>
+
+            <p class="tx-description">
+                Enter your JJS transaction hash to verify
+                the transfer directly through the Polygon network.
+            </p>
+
+            <label class="tx-label" for="txHash">
+                Polygon Transaction Hash
+            </label>
+
+            <input
+                class="tx-input"
+                id="txHash"
+                type="text"
+                placeholder="0x..."
+                autocomplete="off"
+                spellcheck="false"
+            >
+
+            <button
+                class="tx-button tx-primary verify-button"
+                id="verifyBtn"
+                onclick="verifyTransaction()"
+            >
+                Verify Transaction
+            </button>
+
+            <div class="message" id="message">
+                Enter your JJS transaction hash to create
+                a transaction card.
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- GENERATED CARD -->
+
+    <section class="card-wrap" id="cardWrap">
+
+        <h2 class="card-heading">
+            Verified Transaction Card
+        </h2>
+
+        <div class="tx-card" id="txCard">
+
+            <div class="card-content">
+
+                <div class="card-top">
+
+                    <div class="brand">
+
+                        <img
+                            src="assets/images/josjis-logo-circle.png"
+                            alt="JosJis Logo"
+                            crossorigin="anonymous"
+                        >
+
+                        <div>
+                            <div class="brand-name">JOSJIS</div>
+                            <div class="brand-sub">
+                                OFFICIAL TRANSACTION CARD
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="status">
+                        ✓ VERIFIED
+                    </div>
+
+                </div>
+
+                <div class="card-title">
+                    JOSJIS TRANSFER
+                </div>
+
+                <div class="amount" id="cardAmount">
+                    0 <small>JJS</small>
+                </div>
+
+                <div class="card-bottom">
+
+                    <div>
+                        <div class="detail-label">FROM</div>
+                        <div class="detail-value" id="cardFrom">-</div>
+                    </div>
+
+                    <div>
+                        <div class="detail-label">DATE</div>
+                        <div class="detail-value" id="cardDate">-</div>
+                    </div>
+
+                    <div class="qr-box" id="qrCode"></div>
+
+                </div>
+
+                <div class="tx-hash" id="cardHash">
+                    TX: -
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- TRANSFER DETAILS -->
+
+        <div class="transfers" id="transferList"></div>
+
+        <!-- ACTIONS -->
+
+        <div class="actions">
+
+            <button
+                class="tx-button tx-primary"
+                onclick="downloadCard()"
+            >
+                Download PNG
+            </button>
+
+            <button
+                class="tx-button tx-secondary"
+                onclick="shareCard()"
+            >
+                Share
+            </button>
+
+        </div>
+
+    </section>
+
+    <!-- NOTICE -->
+
+    <section class="tx-notice">
+
+        <p>
+            JosJis TxCard verifies JJS Transfer events
+            on Polygon. Always verify transaction details
+            on PolygonScan.
+
+            <br><br>
+
+            This card is a transaction receipt,
+            not proof of token ownership.
+        </p>
+
+    </section>
+
+</main>
+
+<!-- SHARED FOOTER LOADED FROM footer.js -->
 
 <script>
 "use strict";
