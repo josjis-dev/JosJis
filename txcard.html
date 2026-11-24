@@ -252,12 +252,17 @@ button:disabled {
   overflow-wrap: anywhere;
 }
 
+/* LARGE QR CODE */
 .qr-box {
-  width: clamp(48px, 10vw, 90px);
-  height: clamp(48px, 10vw, 90px);
+  width: clamp(75px, 13vw, 120px);
+  height: clamp(75px, 13vw, 120px);
   background: white;
-  padding: 4px;
-  border-radius: 5px;
+  padding: 6px;
+  border-radius: 7px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .qr-box img,
@@ -684,8 +689,8 @@ function displayCard(data) {
 
   new QRCode($("qrCode"), {
     text: currentTransactionUrl,
-    width: 160,
-    height: 160,
+    width: 240,
+    height: 240,
     colorDark: "#100d1c",
     colorLight: "#ffffff",
     correctLevel: QRCode.CorrectLevel.M
