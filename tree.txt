@@ -41,6 +41,7 @@
 │       └── index.html
 ├── member.html
 ├── roadmap.html
+├── smart-account.html
 ├── tokenomics.html
 ├── tree.txt
 ├── txcard.html
@@ -49,4 +50,4 @@
     ├── README.md
     └── web3-config.js
 
-9 directories, 41 files
+9 directories, 42 files
