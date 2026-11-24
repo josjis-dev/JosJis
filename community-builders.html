@@ -1,0 +1,853 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Community Builders | JosJis ($JJS)</title>
+
+    <meta name="description" content="Build real-world utilities, services, digital products, and Web3 applications with the JosJis community.">
+
+    <meta name="theme-color" content="#0c0914">
+
+    <!-- Shared CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <!-- Shared Header, Footer & Components -->
+    <script src="assets/js/header.js" defer></script>
+    <script src="assets/js/footer.js" defer></script>
+    <script src="assets/js/components.js" defer></script>
+
+    <style>
+        .builders-hero {
+            text-align: center;
+            padding: 105px 20px 85px;
+            background:
+                radial-gradient(
+                    ellipse at top,
+                    #422365 0%,
+                    #1b102b 35%,
+                    #0c0914 75%
+                );
+        }
+
+        .builders-hero-tag {
+            color: var(--purple-light);
+            letter-spacing: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .builders-hero h1 {
+            font-size: clamp(38px, 8vw, 65px);
+            line-height: 1.15;
+            margin: 20px 0;
+        }
+
+        .builders-hero h1 span {
+            color: var(--purple-light);
+        }
+
+        .builders-hero p {
+            color: var(--muted);
+            max-width: 720px;
+            margin: auto;
+            font-size: 16px;
+        }
+
+        .builders-hero-actions {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 28px;
+        }
+
+        .builders-button {
+            display: inline-block;
+            padding: 12px 24px;
+            border-radius: 9px;
+            background: var(--purple-dark);
+            color: white;
+            font-weight: bold;
+            transition: var(--transition);
+        }
+
+        .builders-button:hover {
+            background: var(--purple);
+            transform: translateY(-2px);
+        }
+
+        .builders-button-outline {
+            background: transparent;
+            border: 1px solid var(--purple);
+        }
+
+        .builders-button-outline:hover {
+            background: var(--purple-dark);
+        }
+
+        .builders-section {
+            margin-bottom: 75px;
+        }
+
+        .builders-section-tag {
+            color: var(--purple);
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 3px;
+            margin-bottom: 8px;
+        }
+
+        .builders-section h2 {
+            color: var(--purple-light);
+            font-size: 30px;
+            margin-bottom: 15px;
+        }
+
+        .builders-intro {
+            color: var(--muted);
+            max-width: 760px;
+            margin-bottom: 25px;
+        }
+
+        .builders-grid {
+            display: grid;
+            grid-template-columns: repeat(
+                auto-fit,
+                minmax(230px, 1fr)
+            );
+            gap: 20px;
+        }
+
+        .builders-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+        }
+
+        .builders-card:hover {
+            border-color: var(--purple);
+            transform: translateY(-4px);
+        }
+
+        .builders-card-icon {
+            font-size: 34px;
+            margin-bottom: 12px;
+        }
+
+        .builders-card h3 {
+            color: var(--purple-light);
+            font-size: 19px;
+            margin-bottom: 10px;
+        }
+
+        .builders-card p {
+            color: var(--muted);
+            font-size: 14px;
+            flex-grow: 1;
+        }
+
+        .builders-card-link {
+            display: inline-block;
+            margin-top: 18px;
+            color: var(--purple-light);
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .builders-highlight {
+            background: linear-gradient(
+                135deg,
+                #39205a,
+                #1b1229,
+                #171222
+            );
+            border: 1px solid var(--purple-dark);
+            border-radius: 20px;
+            padding: 35px 25px;
+            text-align: center;
+        }
+
+        .builders-highlight h2 {
+            color: white;
+        }
+
+        .builders-highlight p {
+            color: var(--muted);
+            max-width: 720px;
+            margin: auto;
+        }
+
+        .builders-steps {
+            display: grid;
+            grid-template-columns: repeat(
+                auto-fit,
+                minmax(200px, 1fr)
+            );
+            gap: 18px;
+            margin-top: 25px;
+        }
+
+        .builders-step {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 22px;
+        }
+
+        .builders-step-number {
+            color: var(--purple);
+            font-size: 25px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .builders-step h3 {
+            color: var(--purple-light);
+            font-size: 17px;
+            margin-bottom: 8px;
+        }
+
+        .builders-step p {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .builders-project-box {
+            background: var(--card);
+            border: 1px dashed var(--purple-dark);
+            border-radius: 16px;
+            padding: 35px 20px;
+            text-align: center;
+        }
+
+        .builders-project-box .icon {
+            font-size: 38px;
+            margin-bottom: 12px;
+        }
+
+        .builders-project-box h3 {
+            color: var(--purple-light);
+            margin-bottom: 10px;
+        }
+
+        .builders-project-box p {
+            color: var(--muted);
+            max-width: 650px;
+            margin: auto;
+            font-size: 14px;
+        }
+
+        .builders-resource {
+            background: linear-gradient(
+                135deg,
+                #241536,
+                #171222
+            );
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 28px;
+        }
+
+        .builders-resource h3 {
+            color: var(--purple-light);
+            margin-bottom: 15px;
+        }
+
+        .builders-resource-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 13px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .builders-resource-row:last-child {
+            border-bottom: none;
+        }
+
+        .builders-resource-label {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .builders-resource-value {
+            color: white;
+            font-size: 13px;
+            font-weight: bold;
+            overflow-wrap: anywhere;
+        }
+
+        .builders-resource-value a {
+            color: var(--purple-light);
+        }
+
+        .builders-notice {
+            background: var(--card);
+            border-left: 3px solid var(--purple);
+            border-radius: 6px;
+            padding: 20px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .builders-final {
+            text-align: center;
+            padding: 45px 25px;
+            border-radius: 20px;
+            border: 1px solid var(--purple-dark);
+            background: radial-gradient(
+                circle at center,
+                #39205a,
+                #171222 75%
+            );
+        }
+
+        .builders-final h2 {
+            color: white;
+            font-size: clamp(25px, 5vw, 36px);
+            margin-bottom: 15px;
+        }
+
+        .builders-final p {
+            color: var(--muted);
+            max-width: 700px;
+            margin: auto;
+        }
+
+        @media (max-width: 600px) {
+            .builders-hero {
+                padding-top: 75px;
+            }
+
+            .builders-section h2 {
+                font-size: 25px;
+            }
+
+            .builders-resource-row {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- SHARED HEADER LOADED FROM header.js -->
+
+<div class="builders-hero">
+
+    <div class="builders-hero-tag">
+        THE JOSJIS COMMUNITY INITIATIVE
+    </div>
+
+    <h1>
+        Build Something.<br>
+        <span>Build with JosJis.</span>
+    </h1>
+
+    <p>
+        JosJis is more than a token.
+        It is an opportunity for developers, creators,
+        freelancers, and business owners to build
+        practical utilities and real-world services
+        with the community.
+    </p>
+
+    <div class="builders-hero-actions">
+
+        <a
+            href="https://t.me/josjis_token"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="builders-button"
+        >
+            Join the Community
+        </a>
+
+        <a
+            href="#build-ideas"
+            class="builders-button builders-button-outline"
+        >
+            Explore Build Ideas
+        </a>
+
+    </div>
+
+</div>
+
+<main>
+
+    <!-- INTRODUCTION -->
+    <section class="builders-section">
+
+        <div class="builders-section-tag">
+            INTRODUCTION
+        </div>
+
+        <h2>A Community That Builds</h2>
+
+        <p class="builders-intro">
+            A blockchain ecosystem becomes more meaningful
+            when people create useful things with it.
+            JosJis welcomes independent builders who want
+            to experiment, develop, and introduce practical
+            ways to use JJS.
+        </p>
+
+        <p class="builders-intro">
+            You do not need to be an experienced blockchain
+            developer. Start with a simple idea, a useful
+            service, or a product that can accept JJS.
+        </p>
+
+    </section>
+
+    <!-- BUILD IDEAS -->
+    <section id="build-ideas" class="builders-section">
+
+        <div class="builders-section-tag">
+            01 · BUILD IDEAS
+        </div>
+
+        <h2>What Can You Build?</h2>
+
+        <p class="builders-intro">
+            Here are some possible directions.
+            These are examples and invitations for
+            community experimentation, not existing
+            operational products.
+        </p>
+
+        <div class="builders-grid">
+
+            <div class="builders-card">
+
+                <div class="builders-card-icon">💳</div>
+
+                <h3>JJS Payments</h3>
+
+                <p>
+                    Accept JJS as payment for products,
+                    services, digital goods, or online
+                    transactions.
+                </p>
+
+            </div>
+
+            <div class="builders-card">
+
+                <div class="builders-card-icon">📦</div>
+
+                <h3>Digital Products</h3>
+
+                <p>
+                    Sell digital files, templates,
+                    design assets, tutorials, and
+                    other downloadable products.
+                </p>
+
+            </div>
+
+            <div class="builders-card">
+
+                <div class="builders-card-icon">🌐</div>
+
+                <h3>Web3 Applications</h3>
+
+                <p>
+                    Experiment with decentralized
+                    applications, smart contracts,
+                    dashboards, and blockchain tools.
+                </p>
+
+            </div>
+
+            <div class="builders-card">
+
+                <div class="builders-card-icon">🎟️</div>
+
+                <h3>NFT & Membership</h3>
+
+                <p>
+                    Explore NFT memberships, digital
+                    collectibles, event tickets, and
+                    token-based access systems.
+                </p>
+
+            </div>
+
+            <div class="builders-card">
+
+                <div class="builders-card-icon">🛠️</div>
+
+                <h3>Business Services</h3>
+
+                <p>
+                    Offer freelance work, creative
+                    services, technical support, or
+                    other services that accept JJS.
+                </p>
+
+            </div>
+
+            <div class="builders-card">
+
+                <div class="builders-card-icon">📡</div>
+
+                <h3>Everyday Utilities</h3>
+
+                <p>
+                    Build practical services such as
+                    WiFi vouchers, digital access,
+                    subscriptions, and more.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- HOW TO PARTICIPATE -->
+    <section class="builders-section">
+
+        <div class="builders-section-tag">
+            02 · GET STARTED
+        </div>
+
+        <h2>How to Participate</h2>
+
+        <p class="builders-intro">
+            Start small. Build something useful.
+            Share your progress with the community.
+        </p>
+
+        <div class="builders-steps">
+
+            <div class="builders-step">
+
+                <div class="builders-step-number">01</div>
+
+                <h3>Bring an Idea</h3>
+
+                <p>
+                    Think of a product, service, or
+                    application that could use JJS.
+                </p>
+
+            </div>
+
+            <div class="builders-step">
+
+                <div class="builders-step-number">02</div>
+
+                <h3>Build & Experiment</h3>
+
+                <p>
+                    Develop your idea independently.
+                    Start with a simple prototype and
+                    test it carefully.
+                </p>
+
+            </div>
+
+            <div class="builders-step">
+
+                <div class="builders-step-number">03</div>
+
+                <h3>Share Your Project</h3>
+
+                <p>
+                    Introduce your project to the
+                    JosJis community through Telegram.
+                </p>
+
+            </div>
+
+            <div class="builders-step">
+
+                <div class="builders-step-number">04</div>
+
+                <h3>Grow Together</h3>
+
+                <p>
+                    Collect feedback, improve your
+                    product, and explore opportunities
+                    for collaboration.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- COMMUNITY PROJECTS -->
+    <section class="builders-section">
+
+        <div class="builders-section-tag">
+            03 · COMMUNITY PROJECTS
+        </div>
+
+        <h2>Built by the Community</h2>
+
+        <p class="builders-intro">
+            This section will showcase community-built
+            projects as they are introduced and reviewed.
+        </p>
+
+        <div class="builders-project-box">
+
+            <div class="icon">🚀</div>
+
+            <h3>Your Project Could Be Here</h3>
+
+            <p>
+                Have you built something using JJS?
+                Share your project with the community.
+                Selected projects may be featured here
+                after review and confirmation.
+            </p>
+
+            <a
+                href="https://t.me/josjis_token"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="builders-button"
+                style="margin-top:22px;"
+            >
+                Introduce Your Project
+            </a>
+
+        </div>
+
+    </section>
+
+    <!-- DEVELOPER RESOURCES -->
+    <section class="builders-section">
+
+        <div class="builders-section-tag">
+            04 · DEVELOPER RESOURCES
+        </div>
+
+        <h2>Build on Polygon</h2>
+
+        <p class="builders-intro">
+            Start with the official JJS token information
+            and the Polygon network.
+        </p>
+
+        <div class="builders-resource">
+
+            <h3>JosJis ($JJS) Token Information</h3>
+
+            <div class="builders-resource-row">
+
+                <span class="builders-resource-label">
+                    Token Name
+                </span>
+
+                <span class="builders-resource-value">
+                    JosJis
+                </span>
+
+            </div>
+
+            <div class="builders-resource-row">
+
+                <span class="builders-resource-label">
+                    Symbol
+                </span>
+
+                <span class="builders-resource-value">
+                    JJS
+                </span>
+
+            </div>
+
+            <div class="builders-resource-row">
+
+                <span class="builders-resource-label">
+                    Network
+                </span>
+
+                <span class="builders-resource-value">
+                    Polygon
+                </span>
+
+            </div>
+
+            <div class="builders-resource-row">
+
+                <span class="builders-resource-label">
+                    Token Standard
+                </span>
+
+                <span class="builders-resource-value">
+                    ERC-20
+                </span>
+
+            </div>
+
+            <div class="builders-resource-row">
+
+                <span class="builders-resource-label">
+                    Decimals
+                </span>
+
+                <span class="builders-resource-value">
+                    18
+                </span>
+
+            </div>
+
+            <div class="builders-resource-row">
+
+                <span class="builders-resource-label">
+                    Fixed Supply
+                </span>
+
+                <span class="builders-resource-value">
+                    10²⁵ JJS
+                </span>
+
+            </div>
+
+            <div class="builders-resource-row">
+
+                <span class="builders-resource-label">
+                    Contract Address
+                </span>
+
+                <span class="builders-resource-value">
+                    <a
+                        href="https://polygonscan.com/token/0x52C8Ff13ada1431376b3E77E8219b644805122dF"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        0x52C8Ff13ada1431376b3E77E8219b644805122dF
+                    </a>
+                </span>
+
+            </div>
+
+            <div class="builders-resource-row">
+
+                <span class="builders-resource-label">
+                    Block Explorer
+                </span>
+
+                <span class="builders-resource-value">
+                    <a
+                        href="https://polygonscan.com/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        PolygonScan
+                    </a>
+                </span>
+
+            </div>
+
+            <div class="builders-resource-row">
+
+                <span class="builders-resource-label">
+                    Source Repository
+                </span>
+
+                <span class="builders-resource-value">
+                    <a
+                        href="https://github.com/josjis-dev/JosJis"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        GitHub
+                    </a>
+                </span>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- COMMUNITY INVITATION -->
+    <section class="builders-section">
+
+        <div class="builders-final">
+
+            <h2>Don't Just Hold JJS. Build Something With It.</h2>
+
+            <p>
+                Whether you are a developer, creator,
+                freelancer, entrepreneur, or business owner,
+                there is room to experiment and contribute.
+                Bring your ideas and help expand the
+                JosJis community ecosystem.
+            </p>
+
+            <div class="builders-hero-actions">
+
+                <a
+                    href="https://t.me/josjis_token"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="builders-button"
+                >
+                    Join JosJis Telegram
+                </a>
+
+                <a
+                    href="ecosystem.html"
+                    class="builders-button builders-button-outline"
+                >
+                    Explore Ecosystem
+                </a>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- PROJECT STATUS NOTICE -->
+    <section class="builders-section">
+
+        <div class="builders-notice">
+
+            <strong>Community Project Notice</strong>
+
+            <br><br>
+
+            Community-built projects are independently
+            developed unless explicitly announced as
+            official JosJis products.
+
+            Listing or mentioning a community project
+            does not automatically mean that JosJis
+            operates, audits, endorses, or guarantees it.
+
+            Always verify project details, smart contracts,
+            payment addresses, and associated risks
+            before interacting with any third-party service.
+
+        </div>
+
+    </section>
+
+</main>
+
+<!-- SHARED FOOTER LOADED FROM footer.js -->
+
+</body>
+</html>
