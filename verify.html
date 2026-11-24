@@ -3,246 +3,366 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#171329">
 <title>JosJis Verify</title>
 <style>
-:root{color-scheme:dark;--bg:#100d1c;--panel:#1b1730;--panel2:#24203b;--line:#393252;--text:#f7f4ff;--muted:#b9b2cc;--purple:#a78bfa;--green:#4ade80;--red:#fb7185}
+:root{color-scheme:dark;--bg:#100d1c;--panel:#1b1730;--line:#393252;--text:#f7f4ff;--muted:#b9b2cc;--purple:#a78bfa;--green:#4ade80;--red:#fb7185}
 *{box-sizing:border-box}
-body{margin:0;background:radial-gradient(circle at 80% 0%,#30204e 0,transparent 34%),var(--bg);color:var(--text);font:15px/1.55 system-ui,sans-serif}
-.wrap{max-width:760px;margin:auto;padding:24px 16px 48px}
-.brand{display:flex;align-items:center;gap:12px;margin-bottom:26px}
-.mark{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#f5c542,#a78bfa);display:grid;place-items:center;color:#171329;font-weight:900;font-size:21px}
-.brand strong{display:block;font-size:19px}
-.brand small{color:var(--muted)}
-h1{font-size:clamp(28px,7vw,40px);line-height:1.12;margin:0 0 10px}
-.intro{color:var(--muted);margin:0 0 24px}
-.card{background:rgba(27,23,48,.94);border:1px solid var(--line);border-radius:18px;padding:19px;margin:15px 0}
-.card h2{font-size:18px;margin:0 0 14px}
-.field{margin:13px 0}
-.field label{display:block;font-size:13px;color:#d8d1e8;margin-bottom:7px}
-input,textarea,select{width:100%;background:#100d1c;border:1px solid var(--line);border-radius:11px;color:var(--text);padding:12px 13px;font:inherit;outline:none}
-textarea{min-height:130px;resize:vertical}
-input:focus,textarea:focus{border-color:var(--purple)}
-.hint{font-size:12px;color:var(--muted);margin-top:6px;overflow-wrap:anywhere}
-.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
-button{border:0;border-radius:11px;padding:12px 16px;font:600 14px system-ui;cursor:pointer;background:var(--purple);color:#160f27}
-button.secondary{background:var(--panel2);border:1px solid var(--line);color:var(--text)}
-button:disabled{opacity:.5;cursor:not-allowed}
-.status{display:none;margin-top:14px;padding:13px;border-radius:12px;font-size:14px;overflow-wrap:anywhere}
-.status.show{display:block}
-.status.good{background:#123321;border:1px solid #236a42;color:#bbf7d0}
-.status.bad{background:#3b1722;border:1px solid #783044;color:#fecdd3}
-.status.info{background:#211b38;border:1px solid #514276;color:#e9ddff}
-.pill{display:inline-block;border:1px solid #66558f;color:#d9caff;border-radius:99px;padding:3px 9px;font-size:11px;margin-left:6px}
-.notice{font-size:13px;color:var(--muted);background:#151126;border:1px solid var(--line);padding:13px;border-radius:12px}
-.foot{text-align:center;color:var(--muted);font-size:12px;margin-top:25px}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 system-ui,sans-serif}
+.wrap{max-width:720px;margin:auto;padding:24px 16px 45px}
+header{display:flex;align-items:center;gap:12px;margin-bottom:30px}
+.logo{width:45px;height:45px;border-radius:13px;background:linear-gradient(135deg,#f5c542,#a78bfa);display:grid;place-items:center;color:#171329;font-weight:900;font-size:22px}
+header strong{font-size:19px}
+header small{display:block;color:var(--muted)}
+h1{font-size:30px;margin:0 0 8px}
+p{color:var(--muted)}
+.tabs{display:flex;gap:8px;margin:24px 0 16px}
+.tab{flex:1;background:#24203b;color:var(--muted);border:1px solid var(--line);padding:13px 8px;border-radius:11px;font-weight:700}
+.tab.active{background:var(--purple);color:#171329;border-color:var(--purple)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:15px}
+h2{font-size:18px;margin:0 0 15px}
+label{display:block;font-size:13px;margin:13px 0 6px;color:#ddd6ee}
+input,textarea,select{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;color:var(--text);font:inherit}
+textarea{min-height:125px;resize:vertical}
+button.action{background:var(--purple);color:#171329;border:0;border-radius:10px;padding:12px 16px;font-weight:700;margin-top:13px;width:100%}
+button:disabled{opacity:.5}
+.result{display:none;padding:13px;border-radius:10px;margin-top:13px;overflow-wrap:anywhere;font-size:13px}
+.result.show{display:block}
+.good{background:#123321;color:#bbf7d0}
+.bad{background:#3b1722;color:#fecdd3}
+.info{background:#211b38;color:#e9ddff}
+.hint{font-size:12px;color:var(--muted);margin-top:6px}
+.output{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}
+.hidden{display:none}
+.note{font-size:12px;color:var(--muted);border:1px solid var(--line);padding:13px;border-radius:10px;margin-top:16px}
+footer{text-align:center;color:var(--muted);font-size:12px;margin-top:25px}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-<header class="brand">
-  <div class="mark">J</div>
+<header>
+  <div class="logo">J</div>
   <div>
     <strong>JosJis Verify</strong>
-    <small>Verify the signer. Check the message.</small>
+    <small>Prove who signed it. Verify what's original.</small>
   </div>
 </header>
 
-<h1>Verify a signed message</h1>
-<p class="intro">Check whether a message was signed by a particular Safe wallet and whether the submitted signature is valid.</p>
+<h1>Message Verification</h1>
+<p>Create an authentic message or verify a message signed by a Safe wallet.</p>
 
-<section class="card">
-<h2>Message details <span class="pill">Safe / ERC-1271</span></h2>
-
-<div class="field">
-<label for="chain">Network</label>
-<select id="chain">
-<option value="137">Polygon Mainnet</option>
-<option value="80002">Polygon Amoy Testnet</option>
-</select>
-<div class="hint">Choose the network where the Safe contract is deployed.</div>
+<div class="tabs">
+  <button class="tab active" id="createTab">Create Message</button>
+  <button class="tab" id="verifyTab">Verify Message</button>
 </div>
 
-<div class="field">
-<label for="safe">Safe wallet address</label>
-<input id="safe" placeholder="0x..." autocomplete="off" spellcheck="false">
-</div>
+<!-- CREATE MESSAGE -->
+<section id="createSection">
 
-<div class="field">
-<label for="message">Original message</label>
-<textarea id="message" placeholder="Paste the exact message that was signed..."></textarea>
-<div class="hint">Even a single changed character can make verification fail. Preserve spaces and line breaks.</div>
-</div>
+  <div class="card">
+    <h2>Create a signed message</h2>
 
-<div class="field">
-<label for="signature">Safe signature</label>
-<textarea id="signature" style="min-height:105px" placeholder="Paste the signature exported or copied from Safe..."></textarea>
-</div>
+    <label for="createMessage">Your message</label>
+    <textarea id="createMessage" placeholder="Write your announcement or message here..."></textarea>
 
-<div class="btns">
-<button id="verifyBtn">Verify Safe signature</button>
-<button class="secondary" id="clearBtn" type="button">Clear</button>
-</div>
+    <button class="action" id="signBtn">Sign with Safe Wallet</button>
 
-<div id="result" class="status" role="status" aria-live="polite"></div>
+    <div id="createResult" class="result"></div>
+  </div>
+
+  <div class="card hidden" id="signatureCard">
+    <h2>Signature status</h2>
+    <p id="signatureStatus">Waiting for Safe owner approvals.</p>
+
+    <button class="action" id="refreshBtn">Check signature status</button>
+
+    <label for="proofOutput">Message proof</label>
+    <textarea id="proofOutput" class="output" readonly placeholder="The signed message proof will appear here..."></textarea>
+
+    <button class="action" id="copyProofBtn">Copy Message Proof</button>
+  </div>
+
+  <div class="note">
+    This feature must be opened inside Safe Wallet as a Safe App. Safe owners must approve the message according to the wallet's signing requirements. A message is not fully signed until the required approvals are collected.
+  </div>
 </section>
 
-<section class="card">
-<h2>How to use</h2>
-<ol style="padding-left:21px;margin:0;color:#ddd6ee">
-<li>Obtain the exact original message and its signature from the Safe signing workflow.</li>
-<li>Enter the Safe address and select the network where it exists.</li>
-<li>Paste the exact message and signature, then press <b>Verify Safe signature</b>.</li>
-<li>Only treat it as verified when the result says the Safe contract accepted the signature.</li>
-</ol>
+<!-- VERIFY MESSAGE -->
+<section id="verifySection" class="hidden">
+
+  <div class="card">
+    <h2>Verify a signed message</h2>
+
+    <label for="network">Network</label>
+    <select id="network">
+      <option value="137">Polygon Mainnet</option>
+      <option value="80002">Polygon Amoy Testnet</option>
+    </select>
+
+    <label for="safeAddress">Safe wallet address</label>
+    <input id="safeAddress" placeholder="0x..." autocomplete="off">
+
+    <label for="verifyMessage">Original message</label>
+    <textarea id="verifyMessage" placeholder="Paste the exact original message..."></textarea>
+
+    <label for="verifySignature">Safe signature</label>
+    <textarea id="verifySignature" placeholder="Paste the signature beginning with 0x..."></textarea>
+
+    <button class="action" id="verifyBtn">Verify Message</button>
+
+    <div id="verifyResult" class="result"></div>
+  </div>
+
+  <div class="note">
+    Verification checks whether the Safe contract accepts the submitted signature. The exact message, signature format, Safe address and network must match. A valid signature proves authorization by the Safe, not the truth of the message's contents.
+  </div>
 </section>
 
-<div class="notice">
-<b>Important:</b> This first version is a Safe signature verifier, not a message-signing interface. Safe signatures can use Safe-specific message hashes and signature encodings. This page checks ERC-1271 validation methods against the supplied message; compatibility depends on how the signature was created/exported. A valid signature proves authorization by the Safe under its configured rules—it does not prove that the message's claims are true.
-</div>
-
-<div class="foot">JosJis Verify · Non-custodial · No transaction required for verification</div>
+<footer>JosJis Verify · Non-custodial · No transaction required for off-chain verification</footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.5/dist/ethers.umd.min.js"></script>
-<script>
-(() => {
+
+<script type="module">
+import SafeAppsSDK from "https://esm.sh/@safe-global/safe-apps-sdk";
+
 const $ = id => document.getElementById(id);
 
-const RPCS = {
-"137":"https://polygon-bor-rpc.publicnode.com",
-"80002":"https://rpc-amoy.polygon.technology"
+let safeSDK;
+let currentMessageHash = "";
+let currentMessage = "";
+let currentSafeAddress = "";
+let currentChainId = "";
+
+function show(id,type,message){
+  const el=$(id);
+  el.className="result show "+type;
+  el.textContent=message;
+}
+
+function switchTab(tab){
+  const create=tab==="create";
+
+  $("createSection").classList.toggle("hidden",!create);
+  $("verifySection").classList.toggle("hidden",create);
+
+  $("createTab").classList.toggle("active",create);
+  $("verifyTab").classList.toggle("active",!create);
+}
+
+$("createTab").onclick=()=>switchTab("create");
+$("verifyTab").onclick=()=>switchTab("verify");
+
+// CREATE MESSAGE WITH SAFE
+$("signBtn").onclick=async()=>{
+  const message=$("createMessage").value;
+
+  if(!message.trim()){
+    show("createResult","bad","Please write a message first.");
+    return;
+  }
+
+  $("signBtn").disabled=true;
+  $("signBtn").textContent="Connecting to Safe...";
+
+  try{
+    safeSDK=new SafeAppsSDK();
+
+    const safeInfo=await safeSDK.safe.getInfo();
+
+    currentSafeAddress=safeInfo.safeAddress;
+    currentChainId=String(safeInfo.chainId);
+    currentMessage=message;
+
+    $("signatureCard").classList.remove("hidden");
+
+    show("createResult","info",
+      "Safe connected: "+currentSafeAddress+
+      ". Requesting message signature...");
+
+    const response=await safeSDK.txs.signMessage(message);
+
+    currentMessageHash=response.messageHash;
+
+    $("signatureStatus").textContent=
+      "Message submitted to Safe. Waiting for required owner approvals.";
+
+    await refreshSignature();
+
+  }catch(error){
+    show("createResult","bad",
+      "Could not sign message. Open this page inside Safe Wallet as a Safe App. "+
+      (error.message||""));
+  }finally{
+    $("signBtn").disabled=false;
+    $("signBtn").textContent="Sign with Safe Wallet";
+  }
 };
 
-const MAGIC_BYTES32 = "0x1626ba7e";
-const MAGIC_BYTES = "0x20c13b0b";
+async function refreshSignature(){
+  if(!safeSDK||!currentMessageHash){
+    show("createResult","bad","No pending Safe message found.");
+    return;
+  }
 
-const abi = [
-"function isValidSignature(bytes32 hash, bytes signature) view returns (bytes4)",
-"function isValidSignature(bytes data, bytes signature) view returns (bytes4)"
+  $("refreshBtn").disabled=true;
+
+  try{
+    const signature=await safeSDK.safe.getOffChainSignature(
+      currentMessageHash
+    );
+
+    if(!signature||signature==="0x"){
+      $("signatureStatus").textContent=
+        "Still waiting for the required Safe owner approvals.";
+
+      show("createResult","info",
+        "Signature is not ready yet. Collect the required Safe approvals, then check again.");
+
+      return;
+    }
+
+    const proof={
+      type:"JosJis Verify Safe Message",
+      version:1,
+      networkChainId:currentChainId,
+      safeAddress:currentSafeAddress,
+      message:currentMessage,
+      messageHash:currentMessageHash,
+      signature:signature
+    };
+
+    $("proofOutput").value=JSON.stringify(proof,null,2);
+
+    $("signatureStatus").textContent=
+      "Signature collected. The proof is ready to share.";
+
+    show("createResult","good",
+      "Safe signature is ready. Copy and share the message proof.");
+
+  }catch(error){
+    show("createResult","bad",
+      "Could not retrieve the Safe signature: "+error.message);
+  }finally{
+    $("refreshBtn").disabled=false;
+  }
+}
+
+$("refreshBtn").onclick=refreshSignature;
+
+$("copyProofBtn").onclick=async()=>{
+  const proof=$("proofOutput").value;
+
+  if(!proof)return;
+
+  try{
+    await navigator.clipboard.writeText(proof);
+    show("createResult","good","Message proof copied.");
+  }catch(error){
+    $("proofOutput").focus();
+    $("proofOutput").select();
+    show("createResult","info","Select and copy the proof manually.");
+  }
+};
+
+// VERIFY MESSAGE WITH ERC-1271
+const RPCS={
+  "137":"https://polygon-bor-rpc.publicnode.com",
+  "80002":"https://rpc-amoy.polygon.technology"
+};
+
+const ABI=[
+  "function isValidSignature(bytes32 hash,bytes signature) view returns (bytes4)",
+  "function isValidSignature(bytes data,bytes signature) view returns (bytes4)"
 ];
 
-function show(type,text){
-const el=$("result");
-el.className="status show "+type;
-el.textContent=text;
-}
+$("verifyBtn").onclick=async()=>{
+  if(!window.ethers){
+    show("verifyResult","bad","Ethers.js could not load.");
+    return;
+  }
 
-function clear(){
-$("safe").value="";
-$("message").value="";
-$("signature").value="";
-$("result").className="status";
-$("result").textContent="";
-}
+  const chain=$("network").value;
+  const safe=$("safeAddress").value.trim();
+  const message=$("verifyMessage").value;
+  const signature=$("verifySignature").value.trim();
 
-async function verify(){
+  if(!ethers.isAddress(safe)){
+    show("verifyResult","bad","Invalid Safe wallet address.");
+    return;
+  }
 
-if(!window.ethers){
-show("bad","The ethers.js library could not load. Check your internet connection and reload this page.");
-return;
-}
+  if(!message.length){
+    show("verifyResult","bad","Please enter the original message.");
+    return;
+  }
 
-const chainId=$("chain").value;
-const safe=$("safe").value.trim();
-const message=$("message").value;
-const signature=$("signature").value.trim();
+  if(!/^0x([0-9a-fA-F]{2})+$/.test(signature)){
+    show("verifyResult","bad","Invalid signature format.");
+    return;
+  }
 
-if(!ethers.isAddress(safe)){
-show("bad","Please enter a valid Safe wallet address.");
-return;
-}
+  $("verifyBtn").disabled=true;
+  $("verifyBtn").textContent="Verifying...";
 
-if(!message.length){
-show("bad","Please enter the original message.");
-return;
-}
+  try{
+    const provider=new ethers.JsonRpcProvider(
+      RPCS[chain],Number(chain)
+    );
 
-if(!/^0x([0-9a-fA-F]{2})+$/.test(signature)){
-show("bad","The signature must be hexadecimal data beginning with 0x.");
-return;
-}
+    const code=await provider.getCode(safe);
 
-const btn=$("verifyBtn");
-btn.disabled=true;
-btn.textContent="Checking...";
-show("info","Connecting to the selected network and checking the Safe contract...");
+    if(code==="0x"){
+      show("verifyResult","bad",
+        "No smart contract found at this address on the selected network.");
+      return;
+    }
 
-try{
+    const contract=new ethers.Contract(safe,ABI,provider);
+    const messageBytes=ethers.toUtf8Bytes(message);
+    const hash=ethers.hashMessage(message);
 
-const provider=new ethers.JsonRpcProvider(RPCS[chainId],Number(chainId));
-const code=await provider.getCode(safe);
+    let valid=false;
 
-if(code==="0x"){
-show("bad","No smart contract was found at this address on the selected network. Check the Safe address and network.");
-return;
-}
+    try{
+      const result=await contract[
+        "isValidSignature(bytes,bytes)"
+      ](messageBytes,signature);
 
-const contract=new ethers.Contract(safe,abi,provider);
-const bytesMessage=ethers.toUtf8Bytes(message);
-const messageHash=ethers.hashMessage(message);
+      if(String(result).toLowerCase().startsWith("0x20c13b0b")){
+        valid=true;
+      }
+    }catch(error){}
 
-let accepted=false;
-const checks=[];
+    try{
+      const result=await contract[
+        "isValidSignature(bytes32,bytes)"
+      ](hash,signature);
 
-// ERC-1271 bytes32 validation
-try{
-const result=await contract["isValidSignature(bytes32,bytes)"](messageHash,signature);
-checks.push("bytes32: "+result);
+      if(String(result).toLowerCase().startsWith("0x1626ba7e")){
+        valid=true;
+      }
+    }catch(error){}
 
-if(String(result).toLowerCase().startsWith(MAGIC_BYTES32)){
-accepted=true;
-}
-}catch(e){
-checks.push("bytes32 method unavailable/rejected");
-}
+    if(valid){
+      show("verifyResult","good",
+        "VALID: The Safe contract accepted this signature for the supplied message.");
+    }else{
+      show("verifyResult","bad",
+        "NOT VERIFIED: The Safe contract did not accept this signature. Check the message, signature format, Safe address and network.");
+    }
 
-// ERC-1271 bytes validation
-try{
-const result=await contract["isValidSignature(bytes,bytes)"](bytesMessage,signature);
-checks.push("bytes: "+result);
+  }catch(error){
+    show("verifyResult","bad",
+      "Verification error: "+(error.shortMessage||error.message));
+  }finally{
+    $("verifyBtn").disabled=false;
+    $("verifyBtn").textContent="Verify Message";
+  }
+};
 
-if(String(result).toLowerCase().startsWith(MAGIC_BYTES)){
-accepted=true;
-}
-}catch(e){
-checks.push("bytes method unavailable/rejected");
-}
-
-if(accepted){
-
-show("good",
-"VALID: The Safe contract accepted this signature for the supplied message using an ERC-1271 validation method. Network: "+
-(chainId==="137"?"Polygon Mainnet":"Polygon Amoy Testnet")+
-". Safe: "+safe);
-
-}else{
-
-show("bad",
-"NOT VERIFIED: The Safe contract did not accept this message/signature combination. Check the exact message, signature format, Safe address, network, and Safe signing method. "+
-checks.join(" | "));
-
-}
-
-}catch(err){
-
-show("bad","Verification error: "+
-(err&&err.shortMessage?err.shortMessage:err.message||"Unknown error"));
-
-}finally{
-
-btn.disabled=false;
-btn.textContent="Verify Safe signature";
-
-}
-}
-
-$("verifyBtn").addEventListener("click",verify);
-$("clearBtn").addEventListener("click",clear);
-
-})();
 </script>
 </body>
 </html>
