@@ -27,8 +27,6 @@
 ├── crypto-donations.html
 ├── dashboard.html
 ├── ecosystem.html
-├── game
-│   └── index.html
 ├── googledf2d0e38f864d907.html
 ├── index.html
 ├── liquidity
@@ -52,4 +50,4 @@
     ├── README.md
     └── web3-config.js
 
-10 directories, 43 files
+9 directories, 42 files
