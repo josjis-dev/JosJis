@@ -6,8 +6,10 @@ import {
     rpcProvider
 } from "../../web3/web3-config.js";
 
-import { Contract } from
-    "https://esm.sh/ethers@6.15.0";
+import {
+    Contract,
+    JsonRpcProvider
+} from "https://esm.sh/ethers@6.15.0";
 
 
 // =====================================
@@ -31,19 +33,46 @@ const explorerLink = document.getElementById("explorerLink");
 let currentAddress = null;
 let refreshInterval = null;
 let isRefreshing = false;
+let refreshQueued = false;
 let refreshNumber = 0;
 
 
 // =====================================
-// USDT0 POLYGON CONFIGURATION
+// RPC CONFIGURATION
+// =====================================
+
+// Primary RPC:
+// Diambil dari web3-config.js
+
+// Backup RPC:
+// Digunakan jika primary RPC gagal.
+
+const backupRPCs = [
+    "https://polygon.drpc.org",
+    "https://polygon-rpc.com"
+];
+
+const rpcProviders = [
+    rpcProvider,
+    ...backupRPCs.map(url =>
+        new JsonRpcProvider(
+            url,
+            137,
+            { staticNetwork: true }
+        )
+    )
+];
+
+
+// =====================================
+// CONTRACT CONFIGURATION
 // =====================================
 
 const USDT0_CONTRACT =
     "0xc2132D05D31c914a87C6611C10748AEb04B58e8F";
 
 const USDT0_ABI = [
-    "function balanceOf(address account) view returns (uint256)",
-    "function decimals() view returns (uint8)"
+    "function balanceOf(address account) view returns (uint256)"
 ];
 
 const usdt0Token = new Contract(
@@ -51,6 +80,82 @@ const usdt0Token = new Contract(
     USDT0_ABI,
     rpcProvider
 );
+
+
+// =====================================
+// RPC TIMEOUT
+// =====================================
+
+const RPC_TIMEOUT = 8000;
+
+function withTimeout(promise, milliseconds) {
+
+    return new Promise((resolve, reject) => {
+
+        const timer = setTimeout(() => {
+
+            reject(new Error("RPC request timeout"));
+
+        }, milliseconds);
+
+        Promise.resolve(promise).then(
+
+            result => {
+                clearTimeout(timer);
+                resolve(result);
+            },
+
+            error => {
+                clearTimeout(timer);
+                reject(error);
+            }
+
+        );
+
+    });
+
+}
+
+
+// =====================================
+// RPC FALLBACK READER
+// =====================================
+
+async function readWithFallback(readFunction) {
+
+    let lastError = null;
+
+    for (let i = 0; i < rpcProviders.length; i++) {
+
+        const provider = rpcProviders[i];
+
+        try {
+
+            const result = await withTimeout(
+                Promise.resolve().then(() =>
+                    readFunction(provider)
+                ),
+                RPC_TIMEOUT
+            );
+
+            return result;
+
+        } catch (error) {
+
+            lastError = error;
+
+            console.warn(
+                `Polygon RPC ${i + 1} failed:`,
+                error
+            );
+
+        }
+
+    }
+
+    throw lastError || new Error("All RPC endpoints failed");
+
+}
 
 
 // =====================================
@@ -76,6 +181,20 @@ function formatBalance(value, decimals = 4) {
     return decimalPart
         ? `${integerPart}.${decimalPart}`
         : integerPart;
+
+}
+
+
+// =====================================
+// RESET BALANCES
+// =====================================
+
+function resetBalances() {
+
+    jjsBalance.textContent = "--";
+    polBalance.textContent = "--";
+    usdt0Balance.textContent = "--";
+
 }
 
 
@@ -109,7 +228,9 @@ function showWallet(address) {
 function showDisconnected() {
 
     refreshNumber++;
+
     currentAddress = null;
+    refreshQueued = false;
 
     walletAddress.textContent = "Not connected";
     walletStatus.textContent = "Disconnected";
@@ -120,19 +241,16 @@ function showDisconnected() {
 
     refreshBtn.disabled = true;
 
-    jjsBalance.textContent = "--";
-    polBalance.textContent = "--";
-
-    if (usdt0Balance) {
-        usdt0Balance.textContent = "--";
-    }
+    resetBalances();
 
     assetsMessage.textContent =
         "Connect your wallet to view your assets.";
 
     if (refreshInterval) {
+
         clearInterval(refreshInterval);
         refreshInterval = null;
+
     }
 
 }
@@ -145,7 +263,9 @@ function showDisconnected() {
 function showWrongNetwork(address) {
 
     refreshNumber++;
+
     currentAddress = null;
+    refreshQueued = false;
 
     walletAddress.textContent = address;
     walletStatus.textContent = "Wrong Network";
@@ -156,20 +276,66 @@ function showWrongNetwork(address) {
 
     refreshBtn.disabled = true;
 
-    jjsBalance.textContent = "--";
-    polBalance.textContent = "--";
-
-    if (usdt0Balance) {
-        usdt0Balance.textContent = "--";
-    }
+    resetBalances();
 
     assetsMessage.textContent =
         "Please switch to Polygon Mainnet.";
 
     if (refreshInterval) {
+
         clearInterval(refreshInterval);
         refreshInterval = null;
+
     }
+
+}
+
+
+// =====================================
+// READ JJS BALANCE
+// =====================================
+
+async function readJJS(address) {
+
+    return readWithFallback(provider => {
+
+        const contract = token.connect(provider);
+
+        return contract.balanceOf(address);
+
+    });
+
+}
+
+
+// =====================================
+// READ POL BALANCE
+// =====================================
+
+async function readPOL(address) {
+
+    return readWithFallback(provider => {
+
+        return provider.getBalance(address);
+
+    });
+
+}
+
+
+// =====================================
+// READ USDT0 BALANCE
+// =====================================
+
+async function readUSDT0(address) {
+
+    return readWithFallback(provider => {
+
+        const contract = usdt0Token.connect(provider);
+
+        return contract.balanceOf(address);
+
+    });
 
 }
 
@@ -180,8 +346,17 @@ function showWrongNetwork(address) {
 
 async function refreshAssets() {
 
-    if (!currentAddress || isRefreshing) {
+    if (!currentAddress) {
         return;
+    }
+
+    // Queue refresh if another request is running.
+
+    if (isRefreshing) {
+
+        refreshQueued = true;
+        return;
+
     }
 
     const address = currentAddress;
@@ -195,25 +370,17 @@ async function refreshAssets() {
 
     try {
 
-        const [
-            jjsResult,
-            polResult,
-            usdt0Result,
-            jjsDecimals,
-            usdt0Decimals
-        ] = await Promise.all([
+        // Each asset is loaded independently.
 
-            token.balanceOf(address),
+        const results = await Promise.allSettled([
 
-            rpcProvider.getBalance(address),
-
-            usdt0Token.balanceOf(address),
-
-            token.decimals(),
-
-            usdt0Token.decimals()
+            readJJS(address),
+            readPOL(address),
+            readUSDT0(address)
 
         ]);
+
+        // Ignore outdated requests.
 
         if (
             currentAddress !== address ||
@@ -222,38 +389,113 @@ async function refreshAssets() {
             return;
         }
 
-        const jjsFormatted = formatUnits(
-            jjsResult,
-            jjsDecimals
-        );
+        const failedAssets = [];
 
-        const polFormatted = formatUnits(
-            polResult,
-            18
-        );
+        // ---------------------------------
+        // JJS
+        // ---------------------------------
 
-        const usdt0Formatted = formatUnits(
-            usdt0Result,
-            usdt0Decimals
-        );
+        if (results[0].status === "fulfilled") {
 
-        jjsBalance.textContent =
-            formatBalance(jjsFormatted);
+            const formatted = formatUnits(
+                results[0].value,
+                18
+            );
 
-        polBalance.textContent =
-            formatBalance(polFormatted);
+            jjsBalance.textContent =
+                formatBalance(formatted);
 
-        if (usdt0Balance) {
-            usdt0Balance.textContent =
-                formatBalance(usdt0Formatted);
+        } else {
+
+            failedAssets.push("JJS");
+
+            console.error(
+                "JJS Balance Error:",
+                results[0].reason
+            );
+
         }
 
-        assetsMessage.textContent =
-            "Balances successfully updated.";
+
+        // ---------------------------------
+        // POL
+        // ---------------------------------
+
+        if (results[1].status === "fulfilled") {
+
+            const formatted = formatUnits(
+                results[1].value,
+                18
+            );
+
+            polBalance.textContent =
+                formatBalance(formatted);
+
+        } else {
+
+            failedAssets.push("POL");
+
+            console.error(
+                "POL Balance Error:",
+                results[1].reason
+            );
+
+        }
+
+
+        // ---------------------------------
+        // USDT0
+        // ---------------------------------
+
+        if (results[2].status === "fulfilled") {
+
+            const formatted = formatUnits(
+                results[2].value,
+                6
+            );
+
+            usdt0Balance.textContent =
+                formatBalance(formatted);
+
+        } else {
+
+            failedAssets.push("USDT0");
+
+            console.error(
+                "USDT0 Balance Error:",
+                results[2].reason
+            );
+
+        }
+
+
+        // ---------------------------------
+        // UPDATE MESSAGE
+        // ---------------------------------
+
+        if (failedAssets.length === 0) {
+
+            assetsMessage.textContent =
+                "Balances successfully updated.";
+
+        } else if (failedAssets.length === 3) {
+
+            assetsMessage.textContent =
+                "Unable to refresh balances. Showing last available values.";
+
+        } else {
+
+            assetsMessage.textContent =
+                `Some balances could not be updated (${failedAssets.join(", ")}). Showing last available values.`;
+
+        }
 
     } catch (error) {
 
-        console.error("My Assets Error:", error);
+        console.error(
+            "My Assets Error:",
+            error
+        );
 
         if (
             currentAddress === address &&
@@ -261,7 +503,7 @@ async function refreshAssets() {
         ) {
 
             assetsMessage.textContent =
-                "Unable to load balances. Check Polygon RPC connection.";
+                "Unable to update balances. Please try again.";
 
         }
 
@@ -273,6 +515,18 @@ async function refreshAssets() {
             refreshBtn.disabled = false;
         }
 
+        // Run queued refresh after current request.
+
+        if (refreshQueued) {
+
+            refreshQueued = false;
+
+            if (currentAddress) {
+                refreshAssets();
+            }
+
+        }
+
     }
 
 }
@@ -280,7 +534,6 @@ async function refreshAssets() {
 
 // =====================================
 // SYNC WALLET
-// Dashboard-style address detection
 // =====================================
 
 function syncWallet(accountAddress = null) {
@@ -303,11 +556,16 @@ function syncWallet(accountAddress = null) {
 
     const addressChanged =
         !currentAddress ||
-        currentAddress.toLowerCase() !== address.toLowerCase();
+        currentAddress.toLowerCase() !==
+        address.toLowerCase();
 
     if (addressChanged) {
 
         refreshNumber++;
+
+        // Do not display another wallet's old balance.
+
+        resetBalances();
 
         showWallet(address);
 
@@ -321,7 +579,6 @@ function syncWallet(accountAddress = null) {
         refreshInterval = setInterval(() => {
 
             syncWallet();
-            refreshAssets();
 
         }, 15000);
 
@@ -346,7 +603,10 @@ connectBtn.addEventListener("click", async () => {
 
     } catch (error) {
 
-        console.error("Connect Error:", error);
+        console.error(
+            "Connect Error:",
+            error
+        );
 
         assetsMessage.textContent =
             "Unable to open wallet connection.";
@@ -375,7 +635,10 @@ copyBtn.addEventListener("click", async () => {
 
     } catch (error) {
 
-        console.error("Copy Error:", error);
+        console.error(
+            "Copy Error:",
+            error
+        );
 
         assetsMessage.textContent =
             "Unable to copy wallet address.";
@@ -400,10 +663,16 @@ refreshBtn.addEventListener("click", () => {
 // APPKIT STATE LISTENER
 // =====================================
 
-modal.subscribeState((state) => {
+modal.subscribeState(state => {
 
     if (state.isConnected) {
+
         syncWallet();
+
+    } else {
+
+        showDisconnected();
+
     }
 
 });
@@ -413,10 +682,12 @@ modal.subscribeState((state) => {
 // ACCOUNT LISTENER
 // =====================================
 
-modal.subscribeAccount((account) => {
+modal.subscribeAccount(account => {
 
     if (account.address) {
+
         syncWallet(account.address);
+
     }
 
 });
@@ -459,7 +730,10 @@ async function restoreWalletSession() {
 
         } catch (error) {
 
-            console.error("Restore Error:", error);
+            console.error(
+                "Restore Error:",
+                error
+            );
 
         }
 
@@ -471,7 +745,8 @@ async function restoreWalletSession() {
 
     if (!currentAddress) {
 
-        walletStatus.textContent = "Waiting for wallet";
+        walletStatus.textContent =
+            "Waiting for wallet";
 
         assetsMessage.textContent =
             "No active wallet session detected. Connect your wallet.";
