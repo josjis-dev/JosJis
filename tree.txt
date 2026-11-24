@@ -45,9 +45,8 @@
 ├── tree.txt
 ├── txcard.html
 ├── utility.html
-├── verify.html
 └── web3
     ├── README.md
     └── web3-config.js
 
-9 directories, 42 files
+9 directories, 41 files
