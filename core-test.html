@@ -1,7 +1,9 @@
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#17130a">
@@ -9,6 +11,7 @@
 <title>JosJis Core Test</title>
 
 <style>
+
 * {
     box-sizing: border-box;
 }
@@ -138,7 +141,28 @@ button:disabled {
     font-size: 11px;
     margin-top: 25px;
 }
+
+.log-box {
+    font-size: 12px;
+    color: #aaa;
+    line-height: 1.8;
+    overflow-wrap: anywhere;
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+.summary {
+    font-size: 13px;
+    line-height: 1.8;
+    color: #aaa;
+}
+
+.summary strong {
+    color: #f5bd42;
+}
+
 </style>
+
 </head>
 
 <body>
@@ -146,6 +170,7 @@ button:disabled {
 <div class="container">
 
 <header>
+
     <img
         src="./assets/images/josjis-logo-circle.png"
         class="logo"
@@ -157,9 +182,13 @@ button:disabled {
     <div class="subtitle">
         Core Module Diagnostic Dashboard
     </div>
+
 </header>
 
+<!-- TEST CONTROLS -->
+
 <div class="card">
+
     <h2>Test Controls</h2>
 
     <button id="runBtn">
@@ -169,14 +198,23 @@ button:disabled {
     <button id="walletBtn" class="secondary">
         CONNECT WALLET
     </button>
+
 </div>
 
+<!-- RPC MANAGER -->
+
 <div class="card">
+
     <h2>1. RPC Manager</h2>
 
     <div class="test-item">
         <span>RPC Connection</span>
         <span id="rpcStatus" class="test-value pending">Waiting</span>
+    </div>
+
+    <div class="test-item">
+        <span>Active Endpoint</span>
+        <span id="activeRPC" class="test-value">-</span>
     </div>
 
     <div class="test-item">
@@ -188,9 +226,18 @@ button:disabled {
         <span>Block Number</span>
         <span id="blockStatus" class="test-value pending">Waiting</span>
     </div>
+
+    <div class="test-item">
+        <span>Available RPC</span>
+        <span id="rpcList" class="test-value">-</span>
+    </div>
+
 </div>
 
+<!-- CONTRACT REGISTRY -->
+
 <div class="card">
+
     <h2>2. Contract Registry</h2>
 
     <div class="test-item">
@@ -202,9 +249,18 @@ button:disabled {
         <span>USDT Contract</span>
         <span id="usdtContract" class="test-value pending">Waiting</span>
     </div>
+
+    <div class="test-item">
+        <span>Network</span>
+        <span id="networkStatus" class="test-value">-</span>
+    </div>
+
 </div>
 
+<!-- WALLET MANAGER -->
+
 <div class="card">
+
     <h2>3. Wallet Manager</h2>
 
     <div class="test-item">
@@ -221,9 +277,18 @@ button:disabled {
         <span>Wallet Chain</span>
         <span id="walletChain" class="test-value">-</span>
     </div>
+
+    <div class="test-item">
+        <span>Polygon Network</span>
+        <span id="walletNetwork" class="test-value">-</span>
+    </div>
+
 </div>
 
+<!-- TOKEN MANAGER -->
+
 <div class="card">
+
     <h2>4. Token Manager</h2>
 
     <div class="test-item">
@@ -240,9 +305,13 @@ button:disabled {
         <span>JJS Total Supply</span>
         <span id="supplyStatus" class="test-value pending">Waiting</span>
     </div>
+
 </div>
 
+<!-- WALLET BALANCES -->
+
 <div class="card">
+
     <h2>5. Wallet Balances</h2>
 
     <div class="test-item">
@@ -259,9 +328,13 @@ button:disabled {
         <span>USDT Balance</span>
         <span id="usdtBalance" class="test-value">-</span>
     </div>
+
 </div>
 
+<!-- DATA MANAGER -->
+
 <div class="card">
+
     <h2>6. Data Manager</h2>
 
     <div class="test-item">
@@ -270,12 +343,21 @@ button:disabled {
     </div>
 
     <div class="test-item">
+        <span>Balance Validation</span>
+        <span id="dataBalanceStatus" class="test-value">-</span>
+    </div>
+
+    <div class="test-item">
         <span>Last Updated</span>
         <span id="updateStatus" class="test-value">-</span>
     </div>
+
 </div>
 
+<!-- ERROR MANAGER -->
+
 <div class="card">
+
     <h2>7. Error Manager</h2>
 
     <div class="test-item">
@@ -287,23 +369,40 @@ button:disabled {
         <span>Test Classification</span>
         <span id="errorClassification" class="test-value">-</span>
     </div>
+
 </div>
 
+<!-- TEST SUMMARY -->
+
 <div class="card">
-    <h2>Test Log</h2>
-    <div id="logs" style="
-        font-size:12px;
-        color:#aaa;
-        line-height:1.8;
-        overflow-wrap:anywhere;
-    ">
+
+    <h2>Test Summary</h2>
+
+    <div class="summary" id="summary">
         Waiting for test...
     </div>
+
+</div>
+
+<!-- TEST LOG -->
+
+<div class="card">
+
+    <h2>Test Log</h2>
+
+    <div id="logs" class="log-box">
+        Waiting for test...
+    </div>
+
 </div>
 
 <p class="note">
-    Read-only diagnostic page. No token transfers,
-    approvals, or blockchain transactions will be performed.
+
+    Read-only diagnostic page.
+
+    No token transfers, approvals, or blockchain
+    transactions will be performed.
+
 </p>
 
 <div class="footer">
@@ -334,6 +433,8 @@ const $ = id => document.getElementById(id);
 const runBtn = $("runBtn");
 const walletBtn = $("walletBtn");
 
+let testResults = [];
+
 /*
 ========================================
  LOG SYSTEM
@@ -351,6 +452,7 @@ function log(message, type = "info") {
     const line = document.createElement("div");
 
     line.style.color = colors[type] || colors.info;
+
     line.textContent =
         `[${new Date().toLocaleTimeString()}] ${message}`;
 
@@ -359,6 +461,42 @@ function log(message, type = "info") {
     }
 
     $("logs").appendChild(line);
+
+    $("logs").scrollTop = $("logs").scrollHeight;
+
+}
+
+/*
+========================================
+ TEST RESULT TRACKER
+========================================
+*/
+
+function recordTest(name, success) {
+
+    testResults.push({
+        name,
+        success
+    });
+
+}
+
+function updateSummary() {
+
+    const passed = testResults.filter(
+        item => item.success
+    ).length;
+
+    const failed = testResults.length - passed;
+
+    $("summary").innerHTML = `
+        <strong>Total Tests:</strong> ${testResults.length}<br>
+        <strong>Passed:</strong> ${passed}<br>
+        <strong>Failed:</strong> ${failed}<br>
+        <strong>Result:</strong>
+        ${failed === 0 ? "All tests passed" : "Some tests failed"}
+    `;
+
 }
 
 /*
@@ -372,11 +510,15 @@ function setStatus(id, message, status = "success") {
     const element = $(id);
 
     element.textContent = message;
+
     element.className = `test-value ${status}`;
+
 }
 
 function setValue(id, value) {
+
     $(id).textContent = value;
+
 }
 
 /*
@@ -387,19 +529,71 @@ function setValue(id, value) {
 
 function formatBalance(value, digits = 6) {
 
-    if (!value || value === "0.0") {
-        return "0";
+    if (value === null || value === undefined) {
+        return "-";
     }
 
     const number = Number(value);
 
     if (!Number.isFinite(number)) {
-        return value;
+        return String(value);
     }
 
     return number.toLocaleString("en-US", {
         maximumFractionDigits: digits
     });
+
+}
+
+/*
+========================================
+ RESET TEST STATUS
+========================================
+*/
+
+function resetTests() {
+
+    testResults = [];
+
+    const statusIds = [
+        "rpcStatus",
+        "chainStatus",
+        "blockStatus",
+        "jjsContract",
+        "usdtContract",
+        "walletStatus",
+        "jjsInfo",
+        "usdtInfo",
+        "supplyStatus",
+        "dataStatus",
+        "errorStatus"
+    ];
+
+    statusIds.forEach(id => {
+        setStatus(id, "Waiting", "pending");
+    });
+
+    const valueIds = [
+        "activeRPC",
+        "rpcList",
+        "networkStatus",
+        "walletAddress",
+        "walletChain",
+        "walletNetwork",
+        "jjsBalance",
+        "polBalance",
+        "usdtBalance",
+        "dataBalanceStatus",
+        "updateStatus",
+        "errorClassification"
+    ];
+
+    valueIds.forEach(id => {
+        setValue(id, "-");
+    });
+
+    $("summary").textContent = "Testing...";
+
 }
 
 /*
@@ -414,33 +608,62 @@ async function testRPC() {
 
     try {
 
-        const provider = RPC.getProvider();
+        const provider = await RPC.getHealthyProvider();
 
-        const network = await provider.getNetwork();
-        const block = await provider.getBlockNumber();
+        const [network, block] = await Promise.all([
+            provider.getNetwork(),
+            provider.getBlockNumber()
+        ]);
 
         const chainId = Number(network.chainId);
 
         if (chainId !== 137) {
-            throw new Error(
-                `Wrong chain ID: ${chainId}`
-            );
+            throw new Error(`Wrong chain ID: ${chainId}`);
         }
 
-        setStatus("rpcStatus", "Connected");
-        setStatus("chainStatus", chainId.toString());
-        setStatus("blockStatus", block.toString());
+        const active = RPC.getActiveRPC();
 
-        log("RPC connection successful.", "success");
+        setStatus("rpcStatus", "Connected");
+
+        setStatus("chainStatus", String(chainId));
+
+        setStatus("blockStatus", String(block));
+
+        setValue("activeRPC", active.name);
+
+        const rpcList = RPC.getRPCList();
+
+        setValue(
+            "rpcList",
+            rpcList.map(rpc =>
+                `${rpc.name}: ${rpc.active ? "Active" : "Standby"}`
+            ).join(" | ")
+        );
+
+        setStatus("networkStatus", "Polygon Mainnet");
+
+        log(`RPC connected: ${active.name}`, "success");
+
+        recordTest("RPC Manager", true);
+
+        return true;
 
     } catch (error) {
 
         setStatus("rpcStatus", "Failed", "failed");
+
         setStatus("chainStatus", "Failed", "failed");
+
         setStatus("blockStatus", "Failed", "failed");
 
-        log(error.message, "error");
+        log("RPC: " + error.message, "error");
+
+        recordTest("RPC Manager", false);
+
+        return false;
+
     }
+
 }
 
 /*
@@ -456,6 +679,7 @@ function testRegistry() {
     try {
 
         const jjs = Registry.CONTRACTS.JJS;
+
         const usdt = Registry.CONTRACTS.USDT0;
 
         if (!jjs || !usdt) {
@@ -464,7 +688,7 @@ function testRegistry() {
 
         setStatus(
             "jjsContract",
-            jjs.address.slice(0, 8) + "...",
+            jjs.address.slice(0, 8) + "..."
         );
 
         setStatus(
@@ -474,13 +698,24 @@ function testRegistry() {
 
         log("Contract Registry successful.", "success");
 
+        recordTest("Contract Registry", true);
+
+        return true;
+
     } catch (error) {
 
         setStatus("jjsContract", "Failed", "failed");
+
         setStatus("usdtContract", "Failed", "failed");
 
-        log(error.message, "error");
+        log("Registry: " + error.message, "error");
+
+        recordTest("Contract Registry", false);
+
+        return false;
+
     }
+
 }
 
 /*
@@ -506,11 +741,17 @@ function testWallet() {
             );
 
             setValue("walletAddress", "-");
+
             setValue("walletChain", "-");
+
+            setValue("walletNetwork", "-");
 
             log("Wallet is not connected.", "info");
 
+            recordTest("Wallet Manager", false);
+
             return null;
+
         }
 
         setStatus("walletStatus", "Connected");
@@ -525,7 +766,17 @@ function testWallet() {
             String(wallet.chainId)
         );
 
+        const isPolygon = Number(wallet.chainId) === 137;
+
+        setStatus(
+            "walletNetwork",
+            isPolygon ? "Polygon" : "Wrong Network",
+            isPolygon ? "success" : "failed"
+        );
+
         log("Wallet detected.", "success");
+
+        recordTest("Wallet Manager", true);
 
         return wallet.address;
 
@@ -533,10 +784,14 @@ function testWallet() {
 
         setStatus("walletStatus", "Failed", "failed");
 
-        log(error.message, "error");
+        log("Wallet: " + error.message, "error");
+
+        recordTest("Wallet Manager", false);
 
         return null;
+
     }
+
 }
 
 /*
@@ -548,6 +803,8 @@ function testWallet() {
 async function testTokens() {
 
     log("Testing Token Manager...");
+
+    let allSuccess = true;
 
     try {
 
@@ -562,9 +819,12 @@ async function testTokens() {
 
     } catch (error) {
 
+        allSuccess = false;
+
         setStatus("jjsInfo", "Failed", "failed");
 
         log("JJS: " + error.message, "error");
+
     }
 
     try {
@@ -580,9 +840,12 @@ async function testTokens() {
 
     } catch (error) {
 
+        allSuccess = false;
+
         setStatus("usdtInfo", "Failed", "failed");
 
         log("USDT: " + error.message, "error");
+
     }
 
     try {
@@ -598,10 +861,18 @@ async function testTokens() {
 
     } catch (error) {
 
+        allSuccess = false;
+
         setStatus("supplyStatus", "Failed", "failed");
 
         log("Supply: " + error.message, "error");
+
     }
+
+    recordTest("Token Manager", allSuccess);
+
+    return allSuccess;
+
 }
 
 /*
@@ -615,10 +886,15 @@ async function testBalances(address) {
     if (!address) {
 
         setValue("jjsBalance", "Connect wallet first");
+
         setValue("polBalance", "Connect wallet first");
+
         setValue("usdtBalance", "Connect wallet first");
 
-        return;
+        recordTest("Wallet Balances", false);
+
+        return false;
+
     }
 
     log("Testing wallet balances...");
@@ -627,39 +903,89 @@ async function testBalances(address) {
 
         const balances = await Token.getAllBalances(address);
 
-        if (balances.JJS.error) {
-            throw new Error(balances.JJS.error);
+        const assets = [
+            {
+                key: "JJS",
+                element: "jjsBalance",
+                symbol: "JJS"
+            },
+            {
+                key: "POL",
+                element: "polBalance",
+                symbol: "POL"
+            },
+            {
+                key: "USDT0",
+                element: "usdtBalance",
+                symbol: "USDT"
+            }
+        ];
+
+        let successCount = 0;
+
+        for (const asset of assets) {
+
+            const balance = balances[asset.key];
+
+            if (!balance || balance.error) {
+
+                setStatus(
+                    asset.element,
+                    "Failed: " + (balance?.error || "No data"),
+                    "failed"
+                );
+
+                log(
+                    `${asset.symbol}: ${balance?.error || "No data"}`,
+                    "error"
+                );
+
+                continue;
+
+            }
+
+            setStatus(
+                asset.element,
+                formatBalance(balance.formatted) +
+                " " + asset.symbol
+            );
+
+            successCount++;
+
+            log(
+                `${asset.symbol} balance loaded.`,
+                "success"
+            );
+
         }
 
-        setValue(
-            "jjsBalance",
-            formatBalance(balances.JJS.formatted) + " JJS"
+        const success = successCount === 3;
+
+        log(
+            `Balance result: ${successCount}/3 assets loaded.`,
+            success ? "success" : "error"
         );
 
-        if (balances.POL.error) {
-            setValue("polBalance", "Failed");
-        } else {
-            setValue(
-                "polBalance",
-                formatBalance(balances.POL.formatted) + " POL"
-            );
-        }
+        recordTest("Wallet Balances", success);
 
-        if (balances.USDT0.error) {
-            setValue("usdtBalance", "Failed");
-        } else {
-            setValue(
-                "usdtBalance",
-                formatBalance(balances.USDT0.formatted) + " USDT"
-            );
-        }
-
-        log("Balance reading completed.", "success");
+        return success;
 
     } catch (error) {
 
+        setStatus("jjsBalance", "Failed", "failed");
+
+        setStatus("polBalance", "Failed", "failed");
+
+        setStatus("usdtBalance", "Failed", "failed");
+
         log("Balance: " + error.message, "error");
+
+        recordTest("Wallet Balances", false);
+
+        return false;
+
     }
+
 }
 
 /*
@@ -678,7 +1004,15 @@ async function testData(address) {
             "pending"
         );
 
-        return;
+        setValue(
+            "dataBalanceStatus",
+            "Not tested"
+        );
+
+        recordTest("Data Manager", false);
+
+        return false;
+
     }
 
     log("Testing Data Manager...");
@@ -691,21 +1025,65 @@ async function testData(address) {
             throw new Error("Dashboard data unavailable.");
         }
 
+        const balances = data.balances;
+
+        const keys = ["JJS", "POL", "USDT0"];
+
+        const failedAssets = keys.filter(key =>
+            !balances[key] || balances[key].error
+        );
+
+        if (failedAssets.length > 0) {
+
+            setStatus(
+                "dataStatus",
+                "Partial Failure",
+                "failed"
+            );
+
+            setValue(
+                "dataBalanceStatus",
+                `${3 - failedAssets.length}/3 successful`
+            );
+
+            throw new Error(
+                "Failed assets: " + failedAssets.join(", ")
+            );
+
+        }
+
         setStatus("dataStatus", "Loaded");
+
+        setStatus(
+            "dataBalanceStatus",
+            "3/3 successful"
+        );
 
         setValue(
             "updateStatus",
-            new Date(data.lastUpdated).toLocaleTimeString()
+            data.lastUpdated
+                ? new Date(data.lastUpdated).toLocaleTimeString()
+                : new Date().toLocaleTimeString()
         );
 
         log("Data Manager successful.", "success");
+
+        recordTest("Data Manager", true);
+
+        return true;
 
     } catch (error) {
 
         setStatus("dataStatus", "Failed", "failed");
 
-        log(error.message, "error");
+        log("Data Manager: " + error.message, "error");
+
+        recordTest("Data Manager", false);
+
+        return false;
+
     }
+
 }
 
 /*
@@ -742,12 +1120,22 @@ function testErrorManager() {
             "success"
         );
 
+        recordTest("Error Manager", true);
+
+        return true;
+
     } catch (error) {
 
         setStatus("errorStatus", "Failed", "failed");
 
-        log(error.message, "error");
+        log("Error Manager: " + error.message, "error");
+
+        recordTest("Error Manager", false);
+
+        return false;
+
     }
+
 }
 
 /*
@@ -758,10 +1146,17 @@ function testErrorManager() {
 
 async function runTests() {
 
+    if (runBtn.disabled) {
+        return;
+    }
+
     runBtn.disabled = true;
+
     runBtn.textContent = "TESTING...";
 
     $("logs").textContent = "Starting tests...";
+
+    resetTests();
 
     log("JosJis Core Test started.");
 
@@ -781,13 +1176,22 @@ async function runTests() {
 
         testErrorManager();
 
+        updateSummary();
+
         log("Core test completed.", "success");
+
+    } catch (error) {
+
+        log("Unexpected error: " + error.message, "error");
 
     } finally {
 
         runBtn.disabled = false;
+
         runBtn.textContent = "RUN CORE TEST";
+
     }
+
 }
 
 /*
@@ -804,8 +1208,10 @@ walletBtn.addEventListener("click", async () => {
 
     } catch (error) {
 
-        log(error.message, "error");
+        log("Wallet connection: " + error.message, "error");
+
     }
+
 });
 
 /*
