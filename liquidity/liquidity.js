@@ -1,9 +1,12 @@
 
 /* ========================================
    JOSJIS LIQUIDITY CENTER
-   Direct Polygon RPC - Uniswap V4
+   Centralized Polygon RPC - Uniswap V4
    No DexPaprika API key required
 ======================================== */
+
+import { rpcRequest } from "../assets/js/core/rpc-manager.js";
+
 
 document.addEventListener("DOMContentLoaded", async () => {
 
@@ -12,7 +15,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     // ====================================
 
     const CONFIG = {
-        rpc: "https://polygon-bor-rpc.publicnode.com",
 
         poolManager:
             "0x67366782805870060151383f4bbff9dab53e5cd6",
@@ -23,6 +25,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         refreshInterval: 60000,
 
         poolKey: {
+
             currency0:
                 "0x52C8Ff13ada1431376b3E77E8219b644805122dF",
 
@@ -39,9 +42,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     const ELEMENTS = {
+
         year: document.getElementById("year"),
-        copyButton: document.getElementById("copyPoolId"),
-        poolId: document.getElementById("poolId"),
+
+        copyButton:
+            document.getElementById("copyPoolId"),
+
+        poolId:
+            document.getElementById("poolId"),
 
         totalLiquidity:
             document.getElementById("totalLiquidity"),
@@ -67,8 +75,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const JJS_DECIMALS = 18;
     const USDT_DECIMALS = 6;
 
-    const ZERO_ADDRESS =
-        "0x0000000000000000000000000000000000000000";
+    let ethers;
+
+    let isLoading = false;
 
 
     // ====================================
@@ -76,8 +85,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     // ====================================
 
     if (ELEMENTS.year) {
+
         ELEMENTS.year.textContent =
             new Date().getFullYear();
+
     }
 
 
@@ -128,8 +139,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
 
                 setTimeout(() => {
+
                     ELEMENTS.copyButton.textContent =
                         originalText;
+
                 }, 2000);
 
             }
@@ -145,7 +158,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     function formatNumber(value, decimals = 4) {
 
         return new Intl.NumberFormat("en-US", {
+
             maximumFractionDigits: decimals
+
         }).format(value);
 
     }
@@ -154,8 +169,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     function formatUSD(value) {
 
         return "$" + new Intl.NumberFormat("en-US", {
+
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
+
         }).format(value);
 
     }
@@ -164,7 +181,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     function setStatus(message) {
 
         if (ELEMENTS.lastUpdated) {
+
             ELEMENTS.lastUpdated.textContent = message;
+
         }
 
     }
@@ -173,8 +192,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     // ====================================
     // 6. LOAD ETHERS LIBRARY
     // ====================================
-
-    let ethers;
 
     try {
 
@@ -186,7 +203,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     } catch (error) {
 
-        console.error("Ethers loading error:", error);
+        console.error(
+            "Ethers loading error:",
+            error
+        );
 
         setStatus(
             "Unable to load blockchain library. Check your internet connection."
@@ -198,103 +218,137 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // ====================================
-    // 7. CREATE RPC PROVIDER
-    // ====================================
-
-    const provider =
-        new ethers.JsonRpcProvider(CONFIG.rpc, 137);
-
-
-    // ====================================
-    // 8. RESERVES LENS ABI
+    // 7. RESERVES LENS ABI
     // ====================================
 
     const lensABI = [
+
         "function getPoolTVL(address poolManager, (address currency0,address currency1,uint24 fee,int24 tickSpacing,address hooks) key) view returns ((uint256 coreAmount0,uint256 coreAmount1,uint256 hookReserves0,uint256 hookReserves1,uint256 hookEffective0,uint256 hookEffective1,uint160 sqrtPriceX96,int24 tick,uint128 activeLiquidity,uint256 blockNumber,address statsProvider,uint16 hookPermissions,bool hasCustomAccounting,uint8 statsStatus))"
+
     ];
 
-    const lens = new ethers.Contract(
-        CONFIG.reservesLens,
-        lensABI,
-        provider
-    );
-
 
     // ====================================
-    // 9. VERIFY NETWORK
-    // ====================================
-
-    async function verifyNetwork() {
-
-        const network = await provider.getNetwork();
-
-        if (Number(network.chainId) !== 137) {
-            throw new Error("Wrong network. Polygon required.");
-        }
-
-    }
-
-
-    // ====================================
-    // 10. FETCH POOL RESERVES
+    // 8. FETCH POOL DATA
     // ====================================
 
     async function fetchPoolData() {
 
+        if (isLoading) return;
+
+        isLoading = true;
+
         try {
 
-            setStatus("Connecting to Polygon blockchain...");
-
-            await verifyNetwork();
-
-            const poolKey = CONFIG.poolKey;
-
-            const result = await lens[
-                "getPoolTVL(address,(address,address,uint24,int24,address))"
-            ](
-                CONFIG.poolManager,
-                poolKey
+            setStatus(
+                "Connecting to Polygon through RPC Manager..."
             );
 
 
             // ====================================
-            // 11. READ RAW RESERVES
+            // 9. CENTRALIZED RPC REQUEST
             // ====================================
 
-            const rawJJS = result.coreAmount0;
-            const rawUSDT = result.coreAmount1;
+            const result = await rpcRequest(
+                async (provider) => {
+
+                    // Verify Polygon network
+
+                    const network =
+                        await provider.getNetwork();
+
+                    if (Number(network.chainId) !== 137) {
+
+                        throw new Error(
+                            "Wrong network. Polygon required."
+                        );
+
+                    }
+
+
+                    // Create Lens contract
+
+                    const lens = new ethers.Contract(
+
+                        CONFIG.reservesLens,
+
+                        lensABI,
+
+                        provider
+
+                    );
+
+
+                    // Read pool data
+
+                    const poolKey =
+                        CONFIG.poolKey;
+
+                    return await lens[
+                        "getPoolTVL(address,(address,address,uint24,int24,address))"
+                    ](
+
+                        CONFIG.poolManager,
+
+                        poolKey
+
+                    );
+
+                }
+            );
+
+
+            // ====================================
+            // 10. READ RAW RESERVES
+            // ====================================
+
+            const rawJJS =
+                result.coreAmount0;
+
+            const rawUSDT =
+                result.coreAmount1;
+
 
             const jjsAmount = Number(
+
                 ethers.formatUnits(
                     rawJJS,
                     JJS_DECIMALS
                 )
+
             );
 
+
             const usdtAmount = Number(
+
                 ethers.formatUnits(
                     rawUSDT,
                     USDT_DECIMALS
                 )
+
             );
 
 
             // ====================================
-            // 12. READ CURRENT PRICE
+            // 11. READ CURRENT PRICE
             // ====================================
 
-            const sqrtPriceX96 = result.sqrtPriceX96;
+            const sqrtPriceX96 =
+                result.sqrtPriceX96;
 
             const Q96 = 2n ** 96n;
 
             const priceRaw =
+
                 Number(sqrtPriceX96) ** 2 /
                 Number(Q96 ** 2n);
+
 
             // Token0 = JJS (18 decimals)
             // Token1 = USDT0 (6 decimals)
 
             const jjsPriceUSDT =
+
                 priceRaw * Math.pow(
                     10,
                     JJS_DECIMALS - USDT_DECIMALS
@@ -302,49 +356,56 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 13. CALCULATE TOTAL LIQUIDITY
+            // 12. CALCULATE TOTAL LIQUIDITY
             // ====================================
 
             const jjsValueUSD =
+
                 jjsAmount * jjsPriceUSDT;
 
+
             const totalLiquidity =
+
                 jjsValueUSD + usdtAmount;
 
 
             // ====================================
-            // 14. DISPLAY RESERVES
+            // 13. DISPLAY RESERVES
             // ====================================
 
             if (ELEMENTS.jjsReserve) {
 
                 ELEMENTS.jjsReserve.textContent =
+
                     formatNumber(jjsAmount) + " JJS";
 
             }
 
+
             if (ELEMENTS.usdtReserve) {
 
                 ELEMENTS.usdtReserve.textContent =
+
                     formatNumber(usdtAmount) + " USDT0";
 
             }
 
 
             // ====================================
-            // 15. DISPLAY TOTAL LIQUIDITY
+            // 14. DISPLAY TOTAL LIQUIDITY
             // ====================================
 
             if (ELEMENTS.totalLiquidity) {
 
                 ELEMENTS.totalLiquidity.textContent =
+
                     formatUSD(totalLiquidity);
 
             }
 
 
             // ====================================
-            // 16. VOLUME 24H
+            // 15. VOLUME 24H
             // ====================================
 
             if (ELEMENTS.volume24h) {
@@ -355,28 +416,38 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 17. UPDATE STATUS
+            // 16. UPDATE STATUS
             // ====================================
 
             const blockNumber =
+
                 result.blockNumber.toString();
 
+
             const approximate =
+
                 result.hasCustomAccounting;
 
+
             setStatus(
+
                 "On-chain data updated: " +
+
                 new Date().toLocaleTimeString() +
+
                 " | Block: " + blockNumber +
+
                 (approximate
                     ? " | Custom accounting: approximate reserves"
-                    : "")
-                + " | 24H volume unavailable via RPC-only mode."
+                    : "") +
+
+                " | 24H volume unavailable via RPC-only mode."
+
             );
 
 
             // ====================================
-            // 18. DEBUG INFORMATION
+            // 17. DEBUG INFORMATION
             // ====================================
 
             console.log("JOSJIS POOL DATA", {
@@ -412,9 +483,20 @@ document.addEventListener("DOMContentLoaded", async () => {
             );
 
             setStatus(
+
                 "Blockchain data unavailable: " +
-                (error.shortMessage || error.message)
+
+                (
+                    error.shortMessage ||
+                    error.message ||
+                    "Unknown error"
+                )
+
             );
+
+        } finally {
+
+            isLoading = false;
 
         }
 
@@ -422,14 +504,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // ====================================
-    // 19. INITIALIZE
+    // 18. INITIALIZE
     // ====================================
 
     await fetchPoolData();
 
+
+    // Refresh every 60 seconds
+
     setInterval(
+
         fetchPoolData,
+
         CONFIG.refreshInterval
+
     );
 
 });
