@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -112,10 +113,16 @@
 
 import {
   modal,
-  token,
-  JJS_CONTRACT,
-  formatUnits
+  JJS_CONTRACT
 } from "./web3/web3-config.js";
+
+// =====================================
+// IMPORT TOKEN MANAGER
+// =====================================
+
+import {
+  Token
+} from "./assets/js/core/index.js";
 
 // =====================================
 // HTML ELEMENTS
@@ -129,6 +136,9 @@ const disconnectBtn =
 
 const statusBox =
   document.getElementById("status");
+
+const jjsBalanceElement =
+  document.getElementById("jjsBalance");
 
 // =====================================
 // APPLICATION STATE
@@ -190,7 +200,7 @@ function resetDashboard() {
   document.getElementById("walletAddress").textContent =
     "Not connected";
 
-  document.getElementById("jjsBalance").textContent =
+  jjsBalanceElement.textContent =
     "-- JJS";
 
   document.getElementById("networkName").textContent =
@@ -229,7 +239,7 @@ async function refreshDashboard() {
       document.getElementById("networkName").textContent =
         "Wrong Network";
 
-      document.getElementById("jjsBalance").textContent =
+      jjsBalanceElement.textContent =
         "Polygon required";
 
       setStatus(
@@ -245,10 +255,15 @@ async function refreshDashboard() {
 
     setStatus("Connected successfully", "connected");
 
-    const [balance, decimals] = await Promise.all([
-      token.balanceOf(address),
-      token.decimals()
-    ]);
+    // =====================================
+    // READ JJS BALANCE THROUGH TOKEN MANAGER
+    // Token Manager -> RPC Manager
+    // =====================================
+
+    const balanceResult = await Token.getTokenBalance(
+      "JJS",
+      address
+    );
 
     if (
       requestId !== refreshNumber ||
@@ -257,7 +272,14 @@ async function refreshDashboard() {
       return;
     }
 
-    const formatted = formatUnits(balance, decimals);
+    if (
+      !balanceResult ||
+      balanceResult.formatted === undefined
+    ) {
+      throw new Error("JJS balance data unavailable.");
+    }
+
+    const formatted = balanceResult.formatted;
     const number = Number(formatted);
 
     const display = Number.isFinite(number)
@@ -266,14 +288,14 @@ async function refreshDashboard() {
         })
       : formatted;
 
-    document.getElementById("jjsBalance").textContent =
+    jjsBalanceElement.textContent =
       display + " JJS";
 
   } catch (error) {
 
     console.error("Dashboard error:", error);
 
-    document.getElementById("jjsBalance").textContent =
+    jjsBalanceElement.textContent =
       "Unable to load";
 
     setStatus(
@@ -341,9 +363,6 @@ disconnectBtn.addEventListener("click", async () => {
 
 modal.subscribeState((state) => {
 
-  // Only react to a confirmed connected state.
-  // Ignore temporary disconnected states during restoration.
-
   if (state.isConnected) {
     refreshDashboard();
   }
@@ -405,11 +424,9 @@ async function restoreWalletSession() {
 
   setStatus("Restoring saved wallet session...");
 
-  // Keep Connect Wallet available during restoration.
   connectBtn.disabled = false;
   connectBtn.textContent = "Connect Wallet";
 
-  // Check AppKit session after initialization.
   for (let attempt = 0; attempt < 40; attempt++) {
 
     try {
@@ -431,9 +448,6 @@ async function restoreWalletSession() {
 
     await new Promise(resolve => setTimeout(resolve, 250));
   }
-
-  // Do not force-disconnect or clear the saved session.
-  // AppKit may still restore the session later.
 
   if (!activeAddress) {
 
