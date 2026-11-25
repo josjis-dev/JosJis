@@ -16,7 +16,10 @@ JosJis Ecosystem
 ========================================
 */
 
-// Penyimpanan data sementara
+// =====================================
+// DATA STORE
+// =====================================
+
 const dataStore = {
     wallet: null,
     balances: null,
@@ -25,19 +28,18 @@ const dataStore = {
     lastUpdated: null
 };
 
-// Status proses pengambilan saldo
+// =====================================
+// LOADING STATE
+// =====================================
+
 let loading = false;
 
-// Promise untuk mencegah pembacaan wallet
-// yang sama berjalan berulang secara bersamaan.
 let walletLoadPromise = null;
 let walletLoadAddress = null;
 
-/*
-========================================
-ERROR HELPER
-========================================
-*/
+// =====================================
+// ERROR HELPER
+// =====================================
 
 function getErrorMessage(error) {
 
@@ -48,47 +50,109 @@ function getErrorMessage(error) {
     return String(error || "Unknown error");
 }
 
-/*
-========================================
-WALLET DATA
-========================================
-*/
+// =====================================
+// VALIDATE BALANCES
+// =====================================
 
-export async function loadWalletData(address) {
+function validateBalances(balances) {
+
+    if (!balances || typeof balances !== "object") {
+        throw new Error("Data saldo tidak tersedia.");
+    }
+
+    const keys = ["JJS", "POL", "USDT0"];
+
+    const output = {};
+
+    for (const key of keys) {
+
+        const balance = balances[key];
+
+        if (!balance) {
+
+            output[key] = {
+                error: "Data saldo tidak ditemukan."
+            };
+
+            continue;
+        }
+
+        if (balance.error) {
+
+            output[key] = {
+                error: getErrorMessage(balance.error)
+            };
+
+            continue;
+        }
+
+        output[key] = balance;
+    }
+
+    return output;
+}
+
+// =====================================
+// WALLET DATA
+// =====================================
+
+export async function loadWalletData(
+    address,
+    suppliedBalances = null
+) {
 
     if (!address) {
         throw new Error("Alamat wallet belum tersedia.");
     }
 
-    // Gunakan proses yang sedang berjalan jika
-    // alamat wallet sama.
+    // Gunakan saldo yang diberikan jika tersedia.
+    // Tidak melakukan RPC balance request ulang.
+
+    if (suppliedBalances !== null) {
+
+        const balances = validateBalances(
+            suppliedBalances
+        );
+
+        dataStore.wallet = {
+            ...getWalletInfo(),
+            address
+        };
+
+        dataStore.balances = balances;
+        dataStore.lastUpdated = Date.now();
+
+        return {
+            wallet: dataStore.wallet,
+            balances: dataStore.balances,
+            lastUpdated: dataStore.lastUpdated
+        };
+    }
+
+    // Cegah pembacaan bersamaan untuk wallet yang sama.
+
     if (
         walletLoadPromise &&
-        walletLoadAddress?.toLowerCase() === address.toLowerCase()
+        walletLoadAddress?.toLowerCase() ===
+        address.toLowerCase()
     ) {
         return walletLoadPromise;
     }
 
-    // Jangan mengembalikan cache lama ketika
-    // ada proses untuk alamat berbeda.
-    const currentAddress = address;
-
     loading = true;
-    walletLoadAddress = currentAddress;
+    walletLoadAddress = address;
 
     walletLoadPromise = (async () => {
 
         try {
 
-            const balances = await getAllBalances(currentAddress);
+            const result = await getAllBalances(address);
 
-            if (!balances) {
-                throw new Error("Data saldo tidak tersedia.");
-            }
+            const balances = validateBalances(result);
 
             dataStore.wallet = {
                 ...getWalletInfo(),
-                address: currentAddress
+                address
             };
 
             dataStore.balances = balances;
@@ -113,11 +177,9 @@ export async function loadWalletData(address) {
     return walletLoadPromise;
 }
 
-/*
-========================================
-TOKEN DETAILS
-========================================
-*/
+// =====================================
+// TOKEN DETAILS
+// =====================================
 
 export async function loadTokenDetails(tokenName) {
 
@@ -128,11 +190,9 @@ export async function loadTokenDetails(tokenName) {
     return details;
 }
 
-/*
-========================================
-TOTAL SUPPLY
-========================================
-*/
+// =====================================
+// TOTAL SUPPLY
+// =====================================
 
 export async function loadTotalSupply(tokenName) {
 
@@ -143,11 +203,9 @@ export async function loadTotalSupply(tokenName) {
     return supply;
 }
 
-/*
-========================================
-LOAD ALL TOKEN DETAILS
-========================================
-*/
+// =====================================
+// LOAD ALL TOKEN DETAILS
+// =====================================
 
 export async function loadAllTokenDetails() {
 
@@ -177,11 +235,9 @@ export async function loadAllTokenDetails() {
     );
 }
 
-/*
-========================================
-LOAD ALL TOTAL SUPPLY
-========================================
-*/
+// =====================================
+// LOAD ALL TOTAL SUPPLY
+// =====================================
 
 export async function loadAllTotalSupply() {
 
@@ -211,28 +267,27 @@ export async function loadAllTotalSupply() {
     );
 }
 
-/*
-========================================
-DASHBOARD DATA
-========================================
-*/
+// =====================================
+// DASHBOARD DATA
+// =====================================
 
-export async function loadDashboardData(address) {
+export async function loadDashboardData(
+    address,
+    suppliedBalances = null
+) {
 
     if (!address) {
         throw new Error("Alamat wallet belum tersedia.");
     }
 
-    /*
-    LANGKAH 1
-    Ambil saldo terlebih dahulu.
-    */
-
     let walletResult;
 
     try {
 
-        walletResult = await loadWalletData(address);
+        walletResult = await loadWalletData(
+            address,
+            suppliedBalances
+        );
 
     } catch (error) {
 
@@ -246,28 +301,20 @@ export async function loadDashboardData(address) {
             totalSupply: {},
             lastUpdated: dataStore.lastUpdated
         };
-
     }
 
-    /*
-    LANGKAH 2
-    Setelah pembacaan saldo selesai,
-    ambil informasi token dan supply.
-    */
+    // Ambil informasi token dan supply.
 
-    const [tokenDetails, totalSupply] =
-        await Promise.allSettled([
+    const [
+        tokenDetails,
+        totalSupply
+    ] = await Promise.allSettled([
 
-            loadAllTokenDetails(),
+        loadAllTokenDetails(),
 
-            loadAllTotalSupply()
+        loadAllTotalSupply()
 
-        ]);
-
-    /*
-    LANGKAH 3
-    Gabungkan hasil.
-    */
+    ]);
 
     return {
 
@@ -279,14 +326,18 @@ export async function loadDashboardData(address) {
             tokenDetails.status === "fulfilled"
                 ? tokenDetails.value
                 : {
-                    error: getErrorMessage(tokenDetails.reason)
+                    error: getErrorMessage(
+                        tokenDetails.reason
+                    )
                 },
 
         totalSupply:
             totalSupply.status === "fulfilled"
                 ? totalSupply.value
                 : {
-                    error: getErrorMessage(totalSupply.reason)
+                    error: getErrorMessage(
+                        totalSupply.reason
+                    )
                 },
 
         lastUpdated: dataStore.lastUpdated
@@ -294,31 +345,25 @@ export async function loadDashboardData(address) {
     };
 }
 
-/*
-========================================
-GET CACHED DATA
-========================================
-*/
+// =====================================
+// GET CACHED DATA
+// =====================================
 
 export function getCachedData() {
     return dataStore;
 }
 
-/*
-========================================
-GET CACHED BALANCES
-========================================
-*/
+// =====================================
+// GET CACHED BALANCES
+// =====================================
 
 export function getCachedBalances() {
     return dataStore.balances;
 }
 
-/*
-========================================
-CLEAR CACHE
-========================================
-*/
+// =====================================
+// CLEAR CACHE
+// =====================================
 
 export function clearDataCache() {
 
@@ -330,21 +375,17 @@ export function clearDataCache() {
 
 }
 
-/*
-========================================
-LOADING STATUS
-========================================
-*/
+// =====================================
+// LOADING STATUS
+// =====================================
 
 export function isDataLoading() {
     return loading;
 }
 
-/*
-========================================
-LAST UPDATED
-========================================
-*/
+// =====================================
+// LAST UPDATED
+// =====================================
 
 export function getLastUpdated() {
     return dataStore.lastUpdated;
