@@ -2,12 +2,15 @@
 /* ========================================
    JOSJIS LIQUIDITY CENTER
    Centralized Polygon RPC - Uniswap V4
+   Automatic Pool ID Verification
    No DexPaprika API key required
 ======================================== */
 
 import {
     Contract,
-    formatUnits
+    formatUnits,
+    AbiCoder,
+    keccak256
 } from "https://esm.sh/ethers@6.15.0";
 
 import {
@@ -28,6 +31,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         reservesLens:
             "0x0000001b173C3bbF3984D417d8614E3eed34865B",
+
+        expectedPoolId:
+            "0x7bbe48850b54f72c3356f62ef1f2f9edde13d317649c46d6aa94a45c4b89a6aa",
 
         refreshInterval: 60000,
 
@@ -104,7 +110,75 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // ====================================
-    // 5. COPY POOL ID
+    // 5. POOL ID VERIFICATION
+    // ====================================
+
+    function verifyPoolId() {
+
+        const encodedPoolKey =
+            AbiCoder.defaultAbiCoder().encode(
+
+                [
+                    "address",
+                    "address",
+                    "uint24",
+                    "int24",
+                    "address"
+                ],
+
+                [
+                    CONFIG.poolKey.currency0,
+                    CONFIG.poolKey.currency1,
+                    CONFIG.poolKey.fee,
+                    CONFIG.poolKey.tickSpacing,
+                    CONFIG.poolKey.hooks
+                ]
+
+            );
+
+
+        const calculatedPoolId =
+            keccak256(encodedPoolKey);
+
+
+        const isMatch =
+            calculatedPoolId.toLowerCase() ===
+            CONFIG.expectedPoolId.toLowerCase();
+
+
+        console.log("JOSJIS POOL ID VERIFICATION", {
+
+            expectedPoolId:
+                CONFIG.expectedPoolId,
+
+            calculatedPoolId,
+
+            isMatch
+
+        });
+
+
+        if (!isMatch) {
+
+            throw new Error(
+
+                "Pool ID mismatch! Expected: " +
+                CONFIG.expectedPoolId +
+                " | Calculated: " +
+                calculatedPoolId
+
+            );
+
+        }
+
+
+        return calculatedPoolId;
+
+    }
+
+
+    // ====================================
+    // 6. COPY POOL ID
     // ====================================
 
     if (ELEMENTS.copyButton && ELEMENTS.poolId) {
@@ -176,7 +250,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // ====================================
-    // 6. FORMAT NUMBERS
+    // 7. FORMAT NUMBERS
     // ====================================
 
     function formatNumber(value, decimals = 4) {
@@ -222,7 +296,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // ====================================
-    // 7. RESERVES LENS ABI
+    // 8. RESERVES LENS ABI
     // ====================================
 
     const lensABI = [
@@ -233,7 +307,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // ====================================
-    // 8. FETCH POOL DATA
+    // 9. FETCH POOL DATA
     // ====================================
 
     async function fetchPoolData() {
@@ -245,13 +319,26 @@ document.addEventListener("DOMContentLoaded", async () => {
         try {
 
             setStatus(
-                "Connecting to Polygon through RPC Manager..."
+                "Verifying Uniswap V4 Pool ID..."
             );
 
 
             // ====================================
-            // 9. CENTRALIZED RPC REQUEST
+            // 10. VERIFY POOL ID BEFORE RPC
             // ====================================
+
+            const verifiedPoolId =
+                verifyPoolId();
+
+
+            // ====================================
+            // 11. CENTRALIZED RPC REQUEST
+            // ====================================
+
+            setStatus(
+                "Pool ID verified. Connecting to Polygon..."
+            );
+
 
             const result = await rpcRequest(
                 async (provider) => {
@@ -294,7 +381,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 10. READ POOL RESERVES
+            // 12. READ POOL RESERVES
             // ====================================
 
             const rawJJS =
@@ -325,16 +412,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 11. CALCULATE CURRENT PRICE
+            // 13. CALCULATE CURRENT PRICE
             // ====================================
 
             const sqrtPriceX96 =
                 result.sqrtPriceX96;
-
-            /*
-             * Divide before squaring to avoid
-             * unnecessary precision loss.
-             */
 
             const sqrtRatio =
                 Number(sqrtPriceX96) / Number(Q96);
@@ -347,8 +429,7 @@ document.addEventListener("DOMContentLoaded", async () => {
              * Token0 = JJS (18 decimals)
              * Token1 = USDT0 (6 decimals)
              *
-             * Human price:
-             * USDT0 per 1 JJS
+             * Price = USDT0 per JJS
              */
 
             const jjsPriceUSDT =
@@ -359,7 +440,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 12. CALCULATE TOTAL LIQUIDITY
+            // 14. CALCULATE TOTAL LIQUIDITY
             // ====================================
 
             const jjsValueUSD =
@@ -370,7 +451,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 13. DISPLAY JJS RESERVE
+            // 15. DISPLAY JJS RESERVE
             // ====================================
 
             if (ELEMENTS.jjsReserve) {
@@ -382,7 +463,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 14. DISPLAY USDT RESERVE
+            // 16. DISPLAY USDT RESERVE
             // ====================================
 
             if (ELEMENTS.usdtReserve) {
@@ -394,7 +475,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 15. DISPLAY TOTAL LIQUIDITY
+            // 17. DISPLAY TOTAL LIQUIDITY
             // ====================================
 
             if (ELEMENTS.totalLiquidity) {
@@ -406,7 +487,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 16. VOLUME 24H
+            // 18. VOLUME 24H
             // ====================================
 
             if (ELEMENTS.volume24h) {
@@ -417,7 +498,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 17. UPDATE STATUS
+            // 19. UPDATE STATUS
             // ====================================
 
             const blockNumber =
@@ -434,6 +515,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 " | Block: " + blockNumber +
 
+                " | Pool ID verified" +
+
                 (
                     approximate
                         ? " | Custom accounting: approximate reserves"
@@ -446,10 +529,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 18. DEBUG INFORMATION
+            // 20. DEBUG INFORMATION
             // ====================================
 
             console.log("JOSJIS POOL DATA", {
+
+                verifiedPoolId,
 
                 blockNumber,
 
@@ -505,14 +590,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // ====================================
-    // 19. INITIALIZE
+    // 21. INITIALIZE
     // ====================================
 
     await fetchPoolData();
 
 
     // ====================================
-    // 20. AUTO REFRESH EVERY 60 SECONDS
+    // 22. AUTO REFRESH EVERY 60 SECONDS
     // ====================================
 
     setInterval(
