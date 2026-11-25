@@ -1,12 +1,12 @@
 
 import { modal } from "../../web3/web3-config.js";
-
 import { Token } from "./core/index.js";
-
 
 // =====================================
 // JOSJIS MY ASSETS
 // =====================================
+
+// ELEMENTS
 
 const connectBtn = document.getElementById("connectBtn");
 const copyBtn = document.getElementById("copyBtn");
@@ -22,6 +22,14 @@ const usdt0Balance = document.getElementById("usdt0Balance");
 
 const explorerLink = document.getElementById("explorerLink");
 
+// =====================================
+// CONFIGURATION
+// =====================================
+
+const POLYGON_CHAIN_ID = 137;
+const AUTO_REFRESH_INTERVAL = 15000;
+const RESTORE_ATTEMPTS = 40;
+const RESTORE_DELAY = 250;
 
 // =====================================
 // STATE
@@ -34,14 +42,8 @@ let isRefreshing = false;
 let refreshQueued = false;
 let refreshNumber = 0;
 
-
-// =====================================
-// CONFIGURATION
-// =====================================
-
-const POLYGON_CHAIN_ID = 137;
-const AUTO_REFRESH_INTERVAL = 15000;
-
+let hasWalletSession = false;
+let isInitializing = true;
 
 // =====================================
 // FORMAT BALANCE
@@ -70,9 +72,7 @@ function formatBalance(value, decimals = 4) {
     return decimalPart
         ? `${integerPart}.${decimalPart}`
         : integerPart;
-
 }
-
 
 // =====================================
 // RESET BALANCES
@@ -86,7 +86,6 @@ function resetBalances() {
 
 }
 
-
 // =====================================
 // SHOW CONNECTED WALLET
 // =====================================
@@ -94,6 +93,7 @@ function resetBalances() {
 function showWallet(address) {
 
     currentAddress = address;
+    hasWalletSession = true;
 
     walletAddress.textContent = address;
     walletStatus.textContent = "Connected";
@@ -108,7 +108,6 @@ function showWallet(address) {
     refreshBtn.disabled = false;
 
 }
-
 
 // =====================================
 // STOP AUTO REFRESH
@@ -125,7 +124,6 @@ function stopAutoRefresh() {
 
 }
 
-
 // =====================================
 // START AUTO REFRESH
 // =====================================
@@ -135,13 +133,10 @@ function startAutoRefresh() {
     if (refreshInterval) return;
 
     refreshInterval = setInterval(() => {
-
         syncWallet();
-
     }, AUTO_REFRESH_INTERVAL);
 
 }
-
 
 // =====================================
 // DISCONNECTED
@@ -152,6 +147,7 @@ function showDisconnected() {
     refreshNumber++;
 
     currentAddress = null;
+    hasWalletSession = false;
     refreshQueued = false;
 
     walletAddress.textContent = "Not connected";
@@ -171,7 +167,6 @@ function showDisconnected() {
     stopAutoRefresh();
 
 }
-
 
 // =====================================
 // WRONG NETWORK
@@ -202,14 +197,22 @@ function showWrongNetwork(address) {
 
 }
 
-
 // =====================================
-// CHECK BALANCE RESULT
+// DISPLAY ASSET BALANCE
 // =====================================
 
-function displayAssetBalance(element, result, symbol, failedAssets) {
+function displayAssetBalance(
+    element,
+    result,
+    symbol,
+    failedAssets
+) {
 
-    if (result && !result.error && result.formatted !== undefined) {
+    if (
+        result &&
+        !result.error &&
+        result.formatted !== undefined
+    ) {
 
         element.textContent = formatBalance(
             result.formatted
@@ -220,7 +223,6 @@ function displayAssetBalance(element, result, symbol, failedAssets) {
     }
 
     element.textContent = "--";
-
     failedAssets.push(symbol);
 
     console.error(
@@ -230,9 +232,8 @@ function displayAssetBalance(element, result, symbol, failedAssets) {
 
 }
 
-
 // =====================================
-// READ ASSET BALANCES USING JOSJIS CORE
+// READ ASSET BALANCES USING CORE
 // =====================================
 
 async function refreshAssets() {
@@ -240,10 +241,8 @@ async function refreshAssets() {
     if (!currentAddress) return;
 
     if (isRefreshing) {
-
         refreshQueued = true;
         return;
-
     }
 
     const address = currentAddress;
@@ -257,9 +256,8 @@ async function refreshAssets() {
 
     try {
 
-        // Read all assets through JosJis Core.
-
-        const balances = await Token.getAllBalances(address);
+        const balances =
+            await Token.getAllBalances(address);
 
         // Ignore outdated requests.
 
@@ -268,52 +266,31 @@ async function refreshAssets() {
             currentAddress.toLowerCase() !== address.toLowerCase() ||
             requestId !== refreshNumber
         ) {
-
             return;
-
         }
 
         const failedAssets = [];
 
-        // ---------------------------------
-        // JJS
-        // ---------------------------------
-
         displayAssetBalance(
             jjsBalance,
-            balances.JJS,
+            balances?.JJS,
             "JJS",
             failedAssets
         );
 
-
-        // ---------------------------------
-        // POL
-        // ---------------------------------
-
         displayAssetBalance(
             polBalance,
-            balances.POL,
+            balances?.POL,
             "POL",
             failedAssets
         );
 
-
-        // ---------------------------------
-        // USDT0
-        // ---------------------------------
-
         displayAssetBalance(
             usdt0Balance,
-            balances.USDT0,
+            balances?.USDT0,
             "USDT0",
             failedAssets
         );
-
-
-        // ---------------------------------
-        // UPDATE MESSAGE
-        // ---------------------------------
 
         if (failedAssets.length === 0) {
 
@@ -355,12 +332,8 @@ async function refreshAssets() {
         isRefreshing = false;
 
         if (currentAddress) {
-
             refreshBtn.disabled = false;
-
         }
-
-        // Process queued refresh.
 
         if (refreshQueued) {
 
@@ -375,7 +348,6 @@ async function refreshAssets() {
     }
 
 }
-
 
 // =====================================
 // SYNC WALLET
@@ -404,8 +376,6 @@ function syncWallet(accountAddress = null) {
 
     if (!address) return;
 
-    // Wait until AppKit provides the network.
-
     if (chainId === undefined || chainId === null) {
 
         walletStatus.textContent = "Checking Network";
@@ -416,8 +386,6 @@ function syncWallet(accountAddress = null) {
         return;
 
     }
-
-    // Polygon Mainnet only.
 
     if (Number(chainId) !== POLYGON_CHAIN_ID) {
 
@@ -433,10 +401,7 @@ function syncWallet(accountAddress = null) {
     if (addressChanged) {
 
         refreshNumber++;
-
         refreshQueued = false;
-
-        // Prevent old wallet balances from appearing.
 
         resetBalances();
 
@@ -445,14 +410,16 @@ function syncWallet(accountAddress = null) {
         assetsMessage.textContent =
             "Wallet connected. Loading assets...";
 
+    } else {
+
+        hasWalletSession = true;
+
     }
 
     startAutoRefresh();
-
     refreshAssets();
 
 }
-
 
 // =====================================
 // CONNECT WALLET
@@ -479,7 +446,6 @@ connectBtn.addEventListener("click", async () => {
     }
 
 });
-
 
 // =====================================
 // COPY WALLET ADDRESS
@@ -512,17 +478,13 @@ copyBtn.addEventListener("click", async () => {
 
 });
 
-
 // =====================================
 // MANUAL REFRESH
 // =====================================
 
 refreshBtn.addEventListener("click", () => {
-
     refreshAssets();
-
 });
-
 
 // =====================================
 // APPKIT STATE LISTENER
@@ -533,13 +495,10 @@ modal.subscribeState(() => {
     const address = modal.getAddress();
 
     if (address) {
-
         syncWallet(address);
-
     }
 
 });
-
 
 // =====================================
 // ACCOUNT LISTENER
@@ -551,7 +510,11 @@ modal.subscribeAccount(account => {
 
         syncWallet(account.address);
 
-    } else if (account?.isConnected === false) {
+    } else if (
+        !isInitializing &&
+        hasWalletSession &&
+        account?.isConnected === false
+    ) {
 
         showDisconnected();
 
@@ -559,17 +522,19 @@ modal.subscribeAccount(account => {
 
 });
 
-
 // =====================================
 // NETWORK LISTENER
 // =====================================
 
 modal.subscribeNetwork(() => {
 
-    syncWallet();
+    const address = modal.getAddress();
+
+    if (address) {
+        syncWallet(address);
+    }
 
 });
-
 
 // =====================================
 // RESTORE WALLET SESSION
@@ -582,7 +547,11 @@ async function restoreWalletSession() {
     assetsMessage.textContent =
         "Restoring wallet session...";
 
-    for (let attempt = 0; attempt < 40; attempt++) {
+    for (
+        let attempt = 0;
+        attempt < RESTORE_ATTEMPTS;
+        attempt++
+    ) {
 
         try {
 
@@ -591,6 +560,9 @@ async function restoreWalletSession() {
             if (address) {
 
                 syncWallet(address);
+
+                isInitializing = false;
+
                 return;
 
             }
@@ -604,11 +576,13 @@ async function restoreWalletSession() {
 
         }
 
-        await new Promise(resolve =>
-            setTimeout(resolve, 250)
-        );
+        await new Promise(resolve => {
+            setTimeout(resolve, RESTORE_DELAY);
+        });
 
     }
+
+    isInitializing = false;
 
     if (!currentAddress) {
 
@@ -621,7 +595,6 @@ async function restoreWalletSession() {
     }
 
 }
-
 
 // =====================================
 // INITIALIZE
