@@ -78,13 +78,13 @@
         .donation-card {
             margin-top: 22px;
             padding: 22px;
-            border: 1px solid rgba(168, 85, 247, 0.25);
+            border: 1px solid rgba(168, 85, 247, 0.3);
             border-radius: 14px;
-            background: rgba(139, 92, 246, 0.07);
-        }
-
-        .donation-card[hidden] {
-            display: none !important;
+            background: linear-gradient(
+                145deg,
+                rgba(139, 92, 246, 0.13),
+                rgba(0, 0, 0, 0.15)
+            );
         }
 
         .donation-card h3 {
@@ -96,93 +96,6 @@
             font-size: 14px;
             margin-bottom: 15px;
         }
-
-        .donation-address {
-            padding: 13px;
-            background: rgba(0, 0, 0, 0.25);
-            border: 1px solid rgba(168, 85, 247, 0.2);
-            border-radius: 9px;
-            color: #d7c4ff;
-            font-size: 13px;
-            line-height: 1.7;
-            overflow-wrap: anywhere;
-            margin-bottom: 14px;
-        }
-
-        .donation-button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 12px 18px;
-            border-radius: 9px;
-            background: #a855f7;
-            border: 1px solid #a855f7;
-            color: #ffffff;
-            font-family: inherit;
-            font-size: 14px;
-            font-weight: bold;
-            text-decoration: none;
-            cursor: pointer;
-            transition: 0.25s;
-        }
-
-        .donation-button:hover {
-            background: #9333ea;
-            transform: translateY(-2px);
-        }
-
-        .donation-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .donation-link {
-            display: inline-block;
-            margin-top: 13px;
-            color: #c4a1ff;
-            font-size: 13px;
-            text-decoration: none;
-        }
-
-        .donation-link:hover {
-            text-decoration: underline;
-        }
-
-        .donation-note {
-            margin-top: 15px;
-            font-size: 13px;
-            color: #a69bb8;
-            line-height: 1.7;
-        }
-
-        .donation-thanks {
-            text-align: center;
-            margin-top: 35px;
-            padding: 25px;
-        }
-
-        .donation-thanks h2 {
-            color: #c4a1ff;
-            margin-bottom: 10px;
-        }
-
-        .donation-thanks p {
-            color: #c5bfd2;
-            line-height: 1.8;
-        }
-
-        .jjs-card {
-            border-color: rgba(168, 85, 247, 0.45);
-            background: linear-gradient(
-                145deg,
-                rgba(139, 92, 246, 0.13),
-                rgba(0, 0, 0, 0.15)
-            );
-        }
-
-        /* TOKEN DROPDOWN */
 
         .donation-selector {
             margin-top: 25px;
@@ -210,11 +123,6 @@
             color: #ffffff;
             font-size: 16px;
             outline: none;
-            cursor: pointer;
-        }
-
-        .donation-select:focus {
-            border-color: #a855f7;
         }
 
         .donation-select option {
@@ -258,12 +166,48 @@
             outline: none;
         }
 
-        .donation-input:focus {
+        .donation-input:focus,
+        .donation-select:focus {
             border-color: #a855f7;
         }
 
         .donation-input::placeholder {
             color: #82758f;
+        }
+
+        .donation-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 13px 18px;
+            border-radius: 9px;
+            background: #a855f7;
+            border: 1px solid #a855f7;
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.25s;
+        }
+
+        .donation-button:hover {
+            background: #9333ea;
+        }
+
+        .donation-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .donation-note {
+            margin-top: 15px;
+            font-size: 13px;
+            color: #a69bb8;
+            line-height: 1.7;
         }
 
         .donation-status {
@@ -297,6 +241,34 @@
             color: #fca5a5;
         }
 
+        .donation-link {
+            display: inline-block;
+            margin-top: 13px;
+            color: #c4a1ff;
+            font-size: 13px;
+            text-decoration: none;
+        }
+
+        .donation-link:hover {
+            text-decoration: underline;
+        }
+
+        .donation-thanks {
+            text-align: center;
+            margin-top: 35px;
+            padding: 25px;
+        }
+
+        .donation-thanks h2 {
+            color: #c4a1ff;
+            margin-bottom: 10px;
+        }
+
+        .donation-thanks p {
+            color: #c5bfd2;
+            line-height: 1.8;
+        }
+
         @media (max-width: 600px) {
             .donation-page {
                 padding: 30px 15px 55px;
@@ -308,10 +280,6 @@
 
             .donation-section {
                 padding: 22px;
-            }
-
-            .donation-button {
-                width: 100%;
             }
         }
     </style>
@@ -354,7 +322,7 @@
         </p>
 
 
-        <!-- DONATION TOKEN SELECTOR -->
+        <!-- TOKEN SELECTOR -->
 
         <div class="donation-selector">
 
@@ -374,18 +342,16 @@
         </div>
 
 
-        <!-- JJS DONATION -->
+        <!-- WALLET INFORMATION -->
 
-        <div
-            class="donation-card jjs-card"
-            id="jjsDonationCard"
-        >
+        <div class="donation-card">
 
-            <h3>💜 JJS Donation</h3>
+            <h3 id="selectedTokenTitle">
+                💜 JJS Donation
+            </h3>
 
-            <p>
-                Support the JosJis ecosystem directly
-                using JosJis ($JJS) on Polygon.
+            <p id="selectedTokenDescription">
+                Support the JosJis ecosystem directly using JJS on Polygon.
             </p>
 
             <div class="wallet-info">
@@ -405,8 +371,8 @@
                 </p>
 
                 <p>
-                    <span class="wallet-label">Your JJS Balance:</span>
-                    <span class="wallet-value" id="jjsBalance">
+                    <span class="wallet-label">Your Balance:</span>
+                    <span class="wallet-value" id="tokenBalance">
                         --
                     </span>
                 </p>
@@ -421,17 +387,23 @@
                 Connect Wallet
             </button>
 
-            <div id="jjsDonationForm" style="display:none; margin-top:20px;">
 
-                <label for="jjsAmount" style="color:#d7c4ff; font-size:14px;">
-                    Donation Amount (JJS)
+            <!-- DONATION FORM -->
+
+            <div id="donationForm" style="display:none; margin-top:20px;">
+
+                <label
+                    for="donationAmount"
+                    style="color:#d7c4ff; font-size:14px;"
+                >
+                    Donation Amount
                 </label>
 
                 <input
                     type="number"
-                    id="jjsAmount"
+                    id="donationAmount"
                     class="donation-input"
-                    placeholder="Enter JJS amount"
+                    placeholder="Enter donation amount"
                     min="0"
                     step="any"
                     inputmode="decimal"
@@ -440,113 +412,32 @@
                 <button
                     type="button"
                     class="donation-button"
-                    id="donateJJSButton"
+                    id="donateButton"
                 >
                     Donate JJS
                 </button>
 
                 <p class="donation-note">
-                    Your wallet will ask you to confirm the transaction.
+                    Confirm the transaction in your wallet.
                     Make sure you have enough POL for network gas fees.
                 </p>
 
             </div>
 
             <div
-                id="jjsDonationStatus"
+                id="donationStatus"
                 class="donation-status"
                 role="status"
                 aria-live="polite"
             ></div>
 
-            <div style="margin-top:15px;">
-                <a
-                    href="https://polygonscan.com/token/0x52C8Ff13ada1431376b3E77E8219b644805122dF"
-                    class="donation-link"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    View JJS Contract on PolygonScan ↗
-                </a>
-            </div>
-
-        </div>
-
-
-        <!-- POL DONATION -->
-
-        <div
-            class="donation-card"
-            id="polDonationCard"
-            hidden
-        >
-
-            <h3>🟣 POL Donation</h3>
-
-            <p>
-                Support JosJis using POL on the Polygon network.
-            </p>
-
-            <div class="donation-address">
-                0xc9F21B3e48C92dA0FBC31c782836F2b75ac9761C
-            </div>
-
-            <button
-                type="button"
-                class="donation-button"
-                onclick="copyDonationAddress('POL')"
-            >
-                Copy POL Address
-            </button>
-
-            <p class="donation-note">
-                Send POL through the Polygon network.
-                POL is also required for network transaction fees.
-            </p>
-
-        </div>
-
-
-        <!-- USDT DONATION -->
-
-        <div
-            class="donation-card"
-            id="usdtDonationCard"
-            hidden
-        >
-
-            <h3>💵 USDT Donation</h3>
-
-            <p>
-                Support JosJis using USDT on the Polygon network.
-            </p>
-
-            <div class="donation-address">
-                0xc9F21B3e48C92dA0FBC31c782836F2b75ac9761C
-            </div>
-
-            <button
-                type="button"
-                class="donation-button"
-                onclick="copyDonationAddress('USDT')"
-            >
-                Copy USDT Address
-            </button>
-
-            <p class="donation-note">
-                Make sure you send USDT on Polygon,
-                not USDT on another network.
-                You also need POL for network gas fees.
-            </p>
-
         </div>
 
 
         <p class="donation-note">
-            Important: Always verify the selected token
-            and Polygon network before sending your donation.
-            Sending assets through the wrong network may
-            result in permanent loss.
+            Network: Polygon.
+            All three donation options use the same receiving wallet.
+            Always verify the network and token before confirming.
         </p>
 
         <a
@@ -556,6 +447,26 @@
             rel="noopener noreferrer"
         >
             View Donation Wallet on PolygonScan ↗
+        </a>
+
+        <a
+            href="https://polygonscan.com/token/0x52C8Ff13ada1431376b3E77E8219b644805122dF"
+            class="donation-link"
+            target="_blank"
+            rel="noopener noreferrer"
+            style="display:block;"
+        >
+            View JJS Contract on PolygonScan ↗
+        </a>
+
+        <a
+            href="https://polygonscan.com/token/0xc2132D05D31c914a87C6611C10748AEb04B58e8F"
+            class="donation-link"
+            target="_blank"
+            rel="noopener noreferrer"
+            style="display:block;"
+        >
+            View USDT Contract on PolygonScan ↗
         </a>
 
     </section>
@@ -613,102 +524,6 @@
 </main>
 
 
-<!-- DONATION MENU AND ADDRESS COPY -->
-
-<script>
-
-    const DONATION_WALLET =
-        "0xc9F21B3e48C92dA0FBC31c782836F2b75ac9761C";
-
-    const donationToken =
-        document.getElementById("donationToken");
-
-    const jjsDonationCard =
-        document.getElementById("jjsDonationCard");
-
-    const polDonationCard =
-        document.getElementById("polDonationCard");
-
-    const usdtDonationCard =
-        document.getElementById("usdtDonationCard");
-
-
-    // SWITCH DONATION TOKEN
-
-    function updateDonationMenu() {
-
-        const selectedToken = donationToken.value;
-
-        jjsDonationCard.hidden = selectedToken !== "JJS";
-        polDonationCard.hidden = selectedToken !== "POL";
-        usdtDonationCard.hidden = selectedToken !== "USDT";
-
-    }
-
-    donationToken.addEventListener(
-        "change",
-        updateDonationMenu
-    );
-
-    // INITIAL MENU
-
-    updateDonationMenu();
-
-
-    // COPY DONATION ADDRESS
-
-    async function copyDonationAddress(asset) {
-
-        try {
-
-            await navigator.clipboard.writeText(DONATION_WALLET);
-
-            if (typeof showJJSAlert === "function") {
-
-                showJJSAlert(
-                    asset + " donation address copied successfully!",
-                    "success"
-                );
-
-            } else {
-
-                alert(
-                    asset + " donation address copied successfully!"
-                );
-
-            }
-
-        } catch (error) {
-
-            console.error(
-                "Copy donation address error:",
-                error
-            );
-
-            if (typeof showJJSAlert === "function") {
-
-                showJJSAlert(
-                    "Copy failed. Please copy the wallet address manually.",
-                    "error"
-                );
-
-            } else {
-
-                alert(
-                    "Copy failed. Please copy the wallet address manually."
-                );
-
-            }
-
-        }
-
-    }
-
-</script>
-
-
-<!-- JJS WEB3 DONATION -->
-
 <script type="module">
 
     import {
@@ -720,6 +535,9 @@
         BrowserProvider,
         Contract,
         parseUnits,
+        parseEther,
+        formatUnits,
+        formatEther,
         isAddress
     } from "https://esm.sh/ethers@6.15.0";
 
@@ -736,10 +554,15 @@
     const DONATION_WALLET =
         "0xc9F21B3e48C92dA0FBC31c782836F2b75ac9761C";
 
+    const USDT_CONTRACT =
+        "0xc2132D05D31c914a87C6611C10748AEb04B58e8F";
+
     const POLYGON_CHAIN_ID = 137;
 
-    const JJS_ABI = [
-        "function transfer(address to, uint256 amount) returns (bool)"
+    const ERC20_ABI = [
+        "function transfer(address to, uint256 amount) returns (bool)",
+        "function balanceOf(address account) view returns (uint256)",
+        "function decimals() view returns (uint8)"
     ];
 
 
@@ -747,29 +570,38 @@
     // ELEMENTS
     // =====================================
 
+    const tokenSelector =
+        document.getElementById("donationToken");
+
+    const tokenTitle =
+        document.getElementById("selectedTokenTitle");
+
+    const tokenDescription =
+        document.getElementById("selectedTokenDescription");
+
     const walletStatus =
         document.getElementById("walletStatus");
 
     const walletAddress =
         document.getElementById("walletAddress");
 
-    const jjsBalance =
-        document.getElementById("jjsBalance");
+    const tokenBalance =
+        document.getElementById("tokenBalance");
 
     const connectButton =
         document.getElementById("connectWalletButton");
 
     const donationForm =
-        document.getElementById("jjsDonationForm");
+        document.getElementById("donationForm");
 
     const amountInput =
-        document.getElementById("jjsAmount");
+        document.getElementById("donationAmount");
 
     const donateButton =
-        document.getElementById("donateJJSButton");
+        document.getElementById("donateButton");
 
     const statusBox =
-        document.getElementById("jjsDonationStatus");
+        document.getElementById("donationStatus");
 
 
     // =====================================
@@ -778,13 +610,44 @@
 
     let connectedAddress = null;
     let isSending = false;
+    let balanceRequestId = 0;
+
+
+    // =====================================
+    // TOKEN CONFIGURATION
+    // =====================================
+
+    const TOKEN_CONFIG = {
+
+        JJS: {
+            title: "💜 JJS Donation",
+            description:
+                "Support the JosJis ecosystem directly using JJS on Polygon.",
+            button: "Donate JJS"
+        },
+
+        POL: {
+            title: "🟣 POL Donation",
+            description:
+                "Support JosJis using native POL on the Polygon network.",
+            button: "Donate POL"
+        },
+
+        USDT: {
+            title: "💵 USDT Donation",
+            description:
+                "Support JosJis using USDT on the Polygon network.",
+            button: "Donate USDT"
+        }
+
+    };
 
 
     // =====================================
     // STATUS MESSAGE
     // =====================================
 
-    function showDonationStatus(message, type = "info") {
+    function showStatus(message, type = "info") {
 
         statusBox.className = "donation-status " + type;
         statusBox.textContent = message;
@@ -792,7 +655,7 @@
     }
 
 
-    function clearDonationStatus() {
+    function clearStatus() {
 
         statusBox.className = "donation-status";
         statusBox.textContent = "";
@@ -816,7 +679,7 @@
 
 
     // =====================================
-    // GET CURRENT ACCOUNT
+    // CURRENT ACCOUNT
     // =====================================
 
     function getCurrentAccount() {
@@ -854,56 +717,165 @@
 
 
     // =====================================
-    // READ JJS BALANCE
+    // GET WALLET PROVIDER
     // =====================================
 
-    async function refreshJJSBalance() {
+    async function getWalletContext() {
+
+        const walletProvider =
+            await modal.getWalletProvider();
+
+        if (!walletProvider) {
+
+            throw new Error(
+                "Wallet provider is unavailable. Please reconnect your wallet."
+            );
+
+        }
+
+        const provider =
+            new BrowserProvider(walletProvider);
+
+        const network =
+            await provider.getNetwork();
+
+        if (Number(network.chainId) !== POLYGON_CHAIN_ID) {
+
+            throw new Error(
+                "Please switch your wallet to Polygon network."
+            );
+
+        }
+
+        const signer =
+            await provider.getSigner();
+
+        const signerAddress =
+            await signer.getAddress();
+
+        const currentAddress =
+            getCurrentAccount();
+
+        if (
+            !currentAddress ||
+            signerAddress.toLowerCase() !==
+            currentAddress.toLowerCase()
+        ) {
+
+            throw new Error(
+                "Wallet account changed. Please reconnect your wallet."
+            );
+
+        }
+
+        return {
+            provider,
+            signer,
+            address: signerAddress
+        };
+
+    }
+
+
+    // =====================================
+    // READ TOKEN BALANCE
+    // =====================================
+
+    async function refreshBalance() {
 
         if (!connectedAddress) return;
 
-        const addressToRead = connectedAddress;
+        const requestId = ++balanceRequestId;
+        const address = connectedAddress;
+        const selectedToken = tokenSelector.value;
 
-        jjsBalance.textContent = "Loading...";
+        tokenBalance.textContent = "Loading...";
 
         try {
 
-            const result = await getTokenBalance(
-                "JJS",
-                addressToRead
-            );
+            let formattedBalance;
 
-            if (connectedAddress !== addressToRead) return;
+            if (selectedToken === "POL") {
 
-            if (!result || result.formatted === undefined) {
+                const { provider } =
+                    await getWalletContext();
 
-                throw new Error(
-                    "Token Manager returned an invalid balance."
+                const balance =
+                    await provider.getBalance(address);
+
+                formattedBalance =
+                    formatEther(balance);
+
+            } else if (selectedToken === "JJS") {
+
+                const result =
+                    await getTokenBalance("JJS", address);
+
+                if (
+                    !result ||
+                    result.formatted === undefined
+                ) {
+
+                    throw new Error(
+                        "Unable to read JJS balance."
+                    );
+
+                }
+
+                formattedBalance = result.formatted;
+
+            } else if (selectedToken === "USDT") {
+
+                const { provider } =
+                    await getWalletContext();
+
+                const contract = new Contract(
+                    USDT_CONTRACT,
+                    ERC20_ABI,
+                    provider
                 );
+
+                const [balance, decimals] =
+                    await Promise.all([
+                        contract.balanceOf(address),
+                        contract.decimals()
+                    ]);
+
+                formattedBalance =
+                    formatUnits(balance, decimals);
 
             }
 
-            jjsBalance.textContent =
-                Number(result.formatted).toLocaleString(
+            if (
+                requestId !== balanceRequestId ||
+                address !== connectedAddress ||
+                selectedToken !== tokenSelector.value
+            ) {
+
+                return;
+
+            }
+
+            tokenBalance.textContent =
+                Number(formattedBalance).toLocaleString(
                     "en-US",
                     {
                         maximumFractionDigits: 6
                     }
-                ) + " " + (result.symbol || "JJS");
+                ) + " " + selectedToken;
 
         } catch (error) {
 
             console.error(
-                "JJS balance error:",
+                "Balance error:",
                 error
             );
 
-            jjsBalance.textContent = "Unable to load";
+            if (requestId === balanceRequestId) {
 
-            showDonationStatus(
-                "Unable to read JJS balance: " +
-                (error.message || "RPC error."),
-                "error"
-            );
+                tokenBalance.textContent = "Unable to load";
+
+            }
 
         }
 
@@ -922,7 +894,7 @@
 
             walletStatus.textContent = "Not Connected";
             walletAddress.textContent = "Not Connected";
-            jjsBalance.textContent = "--";
+            tokenBalance.textContent = "--";
 
             donationForm.style.display = "none";
             connectButton.textContent = "Connect Wallet";
@@ -940,9 +912,44 @@
 
         connectButton.textContent = "Wallet Connected";
 
-        await refreshJJSBalance();
+        await refreshBalance();
 
     }
+
+
+    // =====================================
+    // TOKEN SELECTION
+    // =====================================
+
+    function updateSelectedToken() {
+
+        const selectedToken = tokenSelector.value;
+        const config = TOKEN_CONFIG[selectedToken];
+
+        tokenTitle.textContent = config.title;
+
+        tokenDescription.textContent =
+            config.description;
+
+        donateButton.textContent =
+            config.button;
+
+        amountInput.value = "";
+
+        clearStatus();
+
+        if (connectedAddress) {
+
+            refreshBalance();
+
+        }
+
+    }
+
+    tokenSelector.addEventListener(
+        "change",
+        updateSelectedToken
+    );
 
 
     // =====================================
@@ -953,7 +960,7 @@
 
         try {
 
-            clearDonationStatus();
+            clearStatus();
 
             await modal.open();
 
@@ -964,7 +971,7 @@
                 error
             );
 
-            showDonationStatus(
+            showStatus(
                 "Unable to open wallet connection. Please try again.",
                 "error"
             );
@@ -1005,59 +1012,76 @@
     // INITIAL ACCOUNT CHECK
     // =====================================
 
-    const initialAddress = getCurrentAccount();
+    const initialAccount = getCurrentAccount();
 
-    if (initialAddress) {
+    if (initialAccount) {
 
-        await updateWallet(initialAddress);
+        await updateWallet(initialAccount);
 
     }
 
 
     // =====================================
-    // DONATE JJS
+    // VALIDATE AMOUNT
+    // =====================================
+
+    function validateAmount(value) {
+
+        if (
+            !value ||
+            !/^\d+(\.\d+)?$/.test(value)
+        ) {
+
+            throw new Error(
+                "Please enter a valid donation amount."
+            );
+
+        }
+
+        if (!/[1-9]/.test(value)) {
+
+            throw new Error(
+                "Donation amount must be greater than zero."
+            );
+
+        }
+
+    }
+
+
+    // =====================================
+    // DONATE
     // =====================================
 
     donateButton.addEventListener("click", async () => {
 
         if (isSending) return;
 
+        const selectedToken = tokenSelector.value;
+
         try {
 
-            clearDonationStatus();
+            clearStatus();
 
-            const amountText = amountInput.value.trim();
+            const amountText =
+                amountInput.value.trim();
 
-            if (
-                !amountText ||
-                !/^\d+(\.\d+)?$/.test(amountText)
-            ) {
+            validateAmount(amountText);
 
-                showDonationStatus(
-                    "Please enter a valid JJS donation amount.",
-                    "error"
+            if (!isAddress(DONATION_WALLET)) {
+
+                throw new Error(
+                    "Donation wallet address is invalid."
                 );
-
-                return;
 
             }
 
-            if (Number(amountText) <= 0) {
+            const currentAddress =
+                getCurrentAccount();
 
-                showDonationStatus(
-                    "Donation amount must be greater than zero.",
-                    "error"
-                );
+            if (!currentAddress) {
 
-                return;
-
-            }
-
-            const address = getCurrentAccount();
-
-            if (!address) {
-
-                showDonationStatus(
+                showStatus(
                     "Please connect your wallet first.",
                     "error"
                 );
@@ -1075,222 +1099,253 @@
                 "Preparing Transaction...";
 
 
-            // CHECK DONATION ADDRESS
+            // GET WALLET
 
-            if (!isAddress(DONATION_WALLET)) {
+            const {
+                provider,
+                signer,
+                address
+            } = await getWalletContext();
 
-                throw new Error(
-                    "Donation wallet address is invalid."
+
+            // POL DONATION
+
+            if (selectedToken === "POL") {
+
+                const donationAmount =
+                    parseEther(amountText);
+
+                const balance =
+                    await provider.getBalance(address);
+
+                if (balance < donationAmount) {
+
+                    throw new Error(
+                        "Insufficient POL balance for this donation and network gas fees."
+                    );
+
+                }
+
+                donateButton.textContent =
+                    "Waiting for Confirmation...";
+
+                showStatus(
+                    "Please confirm the POL donation in your wallet.",
+                    "info"
+                );
+
+                const transaction =
+                    await signer.sendTransaction({
+                        to: DONATION_WALLET,
+                        value: donationAmount
+                    });
+
+                donateButton.textContent =
+                    "Processing Transaction...";
+
+                showStatus(
+                    "POL transaction submitted. Waiting for Polygon confirmation...",
+                    "info"
+                );
+
+                const receipt =
+                    await transaction.wait();
+
+                if (!receipt || receipt.status !== 1) {
+
+                    throw new Error(
+                        "POL transaction failed on the blockchain."
+                    );
+
+                }
+
+                showSuccess(
+                    transaction.hash,
+                    "POL"
                 );
 
             }
 
 
-            // GET WALLET PROVIDER
+            // JJS DONATION
 
-            const walletProvider =
-                await modal.getWalletProvider();
+            else if (selectedToken === "JJS") {
 
-            if (!walletProvider) {
+                const tokenDetails =
+                    await getTokenDetails("JJS");
 
-                throw new Error(
-                    "Wallet provider is unavailable."
-                );
+                const decimals =
+                    Number(tokenDetails.decimals);
 
-            }
+                const donationAmount =
+                    parseUnits(amountText, decimals);
 
+                const balanceResult =
+                    await getTokenBalance(
+                        "JJS",
+                        address
+                    );
 
-            // CREATE WALLET PROVIDER
+                if (
+                    !balanceResult ||
+                    balanceResult.raw === undefined
+                ) {
 
-            const browserProvider =
-                new BrowserProvider(walletProvider);
+                    throw new Error(
+                        "Unable to verify your JJS balance."
+                    );
 
-            const network =
-                await browserProvider.getNetwork();
+                }
 
-            if (
-                Number(network.chainId) !==
-                POLYGON_CHAIN_ID
-            ) {
-
-                throw new Error(
-                    "Please switch your wallet to Polygon network before donating."
-                );
-
-            }
-
-
-            // GET SIGNER
-
-            const signer =
-                await browserProvider.getSigner();
-
-            const signerAddress =
-                await signer.getAddress();
-
-
-            // VERIFY SIGNER ACCOUNT
-
-            if (
-                signerAddress.toLowerCase() !==
-                address.toLowerCase()
-            ) {
-
-                throw new Error(
-                    "Wallet account changed. Please reconnect your wallet."
-                );
-
-            }
-
-
-            // GET TOKEN DETAILS
-
-            const tokenDetails =
-                await getTokenDetails("JJS");
-
-            const decimals =
-                tokenDetails.decimals;
-
-
-            // PARSE DONATION AMOUNT
-
-            const donationAmount =
-                parseUnits(amountText, decimals);
-
-
-            // READ BALANCE
-
-            const balanceResult =
-                await getTokenBalance(
-                    "JJS",
-                    signerAddress
-                );
-
-            if (
-                !balanceResult ||
-                balanceResult.raw === undefined
-            ) {
-
-                throw new Error(
-                    "Unable to verify your JJS balance."
-                );
-
-            }
-
-            const currentBalance =
-                BigInt(balanceResult.raw);
-
-            if (currentBalance < donationAmount) {
-
-                throw new Error(
-                    "Insufficient JJS balance for this donation."
-                );
-
-            }
-
-
-            // CREATE SIGNING CONTRACT
-
-            const jjsContract = new Contract(
-                JJS_CONTRACT,
-                JJS_ABI,
-                signer
-            );
-
-
-            // SEND TRANSACTION
-
-            donateButton.textContent =
-                "Waiting for Confirmation...";
-
-            showDonationStatus(
-                "Please confirm the JJS donation in your wallet.",
-                "info"
-            );
-
-            const transaction =
-                await jjsContract.transfer(
-                    DONATION_WALLET,
+                if (
+                    BigInt(balanceResult.raw) <
                     donationAmount
+                ) {
+
+                    throw new Error(
+                        "Insufficient JJS balance."
+                    );
+
+                }
+
+                const contract = new Contract(
+                    JJS_CONTRACT,
+                    ERC20_ABI,
+                    signer
                 );
 
+                donateButton.textContent =
+                    "Waiting for Confirmation...";
 
-            // WAIT FOR BLOCKCHAIN CONFIRMATION
+                showStatus(
+                    "Please confirm the JJS donation in your wallet.",
+                    "info"
+                );
 
-            donateButton.textContent =
-                "Processing Transaction...";
+                const transaction =
+                    await contract.transfer(
+                        DONATION_WALLET,
+                        donationAmount
+                    );
 
-            showDonationStatus(
-                "Transaction submitted. Waiting for Polygon confirmation...",
-                "info"
-            );
+                donateButton.textContent =
+                    "Processing Transaction...";
 
-            const receipt =
-                await transaction.wait();
+                showStatus(
+                    "JJS transaction submitted. Waiting for Polygon confirmation...",
+                    "info"
+                );
 
-            if (!receipt || receipt.status !== 1) {
+                const receipt =
+                    await transaction.wait();
 
-                throw new Error(
-                    "Transaction was not successful on the blockchain."
+                if (!receipt || receipt.status !== 1) {
+
+                    throw new Error(
+                        "JJS transaction failed on the blockchain."
+                    );
+
+                }
+
+                showSuccess(
+                    transaction.hash,
+                    "JJS"
                 );
 
             }
 
 
-            // SUCCESS
+            // USDT DONATION
 
-            const txLink =
-                "https://polygonscan.com/tx/" +
-                transaction.hash;
+            else if (selectedToken === "USDT") {
 
-            showDonationStatus(
-                "Thank you! Your JJS donation was successful. Transaction: " +
-                transaction.hash,
-                "success"
-            );
+                const contract = new Contract(
+                    USDT_CONTRACT,
+                    ERC20_ABI,
+                    signer
+                );
 
-            const txAnchor =
-                document.createElement("a");
+                const [decimals, balance] =
+                    await Promise.all([
+                        contract.decimals(),
+                        contract.balanceOf(address)
+                    ]);
 
-            txAnchor.href = txLink;
-            txAnchor.target = "_blank";
-            txAnchor.rel = "noopener noreferrer";
-            txAnchor.className = "donation-link";
+                const donationAmount =
+                    parseUnits(
+                        amountText,
+                        Number(decimals)
+                    );
 
-            txAnchor.textContent =
-                "View Transaction on PolygonScan ↗";
+                if (balance < donationAmount) {
 
-            statusBox.appendChild(
-                document.createElement("br")
-            );
+                    throw new Error(
+                        "Insufficient USDT balance."
+                    );
 
-            statusBox.appendChild(txAnchor);
+                }
+
+                donateButton.textContent =
+                    "Waiting for Confirmation...";
+
+                showStatus(
+                    "Please confirm the USDT donation in your wallet.",
+                    "info"
+                );
+
+                const transaction =
+                    await contract.transfer(
+                        DONATION_WALLET,
+                        donationAmount
+                    );
+
+                donateButton.textContent =
+                    "Processing Transaction...";
+
+                showStatus(
+                    "USDT transaction submitted. Waiting for Polygon confirmation...",
+                    "info"
+                );
+
+                const receipt =
+                    await transaction.wait();
+
+                if (!receipt || receipt.status !== 1) {
+
+                    throw new Error(
+                        "USDT transaction failed on the blockchain."
+                    );
+
+                }
+
+                showSuccess(
+                    transaction.hash,
+                    "USDT"
+                );
+
+            }
 
 
             // CLEAR INPUT
 
             amountInput.value = "";
 
-
-            // REFRESH BALANCE
-
-            await refreshJJSBalance();
+            await refreshBalance();
 
 
             if (typeof showJJSAlert === "function") {
 
                 showJJSAlert(
-                    "JJS donation completed successfully!",
+                    selectedToken + " donation completed successfully!",
                     "success"
                 );
 
             }
 
-
         } catch (error) {
 
             console.error(
-                "JJS donation error:",
+                selectedToken + " donation error:",
                 error
             );
 
@@ -1317,21 +1372,55 @@
 
             }
 
-            showDonationStatus(
-                message,
-                "error"
-            );
+            showStatus(message, "error");
 
         } finally {
 
             isSending = false;
 
             donateButton.disabled = false;
-            donateButton.textContent = "Donate JJS";
+
+            donateButton.textContent =
+                TOKEN_CONFIG[selectedToken].button;
 
         }
 
     });
+
+
+    // =====================================
+    // SUCCESS MESSAGE
+    // =====================================
+
+    function showSuccess(hash, token) {
+
+        const txLink =
+            "https://polygonscan.com/tx/" + hash;
+
+        showStatus(
+            "Thank you! Your " +
+            token +
+            " donation was successful. Transaction: " +
+            hash,
+            "success"
+        );
+
+        const link = document.createElement("a");
+
+        link.href = txLink;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.className = "donation-link";
+        link.textContent =
+            "View Transaction on PolygonScan ↗";
+
+        statusBox.appendChild(
+            document.createElement("br")
+        );
+
+        statusBox.appendChild(link);
+
+    }
 
 
     // =====================================
@@ -1358,11 +1447,16 @@
 
         } else if (address) {
 
-            await refreshJJSBalance();
+            await refreshBalance();
 
         }
 
     });
+
+
+    // INITIAL TOKEN UI
+
+    updateSelectedToken();
 
 </script>
 
