@@ -5,7 +5,14 @@
    No DexPaprika API key required
 ======================================== */
 
-import { rpcRequest } from "../assets/js/core/rpc-manager.js";
+import {
+    Contract,
+    formatUnits
+} from "https://esm.sh/ethers@6.15.0";
+
+import {
+    rpcRequest
+} from "../assets/js/core/rpc-manager.js";
 
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -74,8 +81,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const JJS_DECIMALS = 18;
     const USDT_DECIMALS = 6;
-
-    let ethers;
 
     let isLoading = false;
 
@@ -190,35 +195,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // ====================================
-    // 6. LOAD ETHERS LIBRARY
-    // ====================================
-
-    try {
-
-        const library = await import(
-            "https://cdn.jsdelivr.net/npm/ethers@6.13.5/+esm"
-        );
-
-        ethers = library;
-
-    } catch (error) {
-
-        console.error(
-            "Ethers loading error:",
-            error
-        );
-
-        setStatus(
-            "Unable to load blockchain library. Check your internet connection."
-        );
-
-        return;
-
-    }
-
-
-    // ====================================
-    // 7. RESERVES LENS ABI
+    // 6. RESERVES LENS ABI
     // ====================================
 
     const lensABI = [
@@ -229,7 +206,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // ====================================
-    // 8. FETCH POOL DATA
+    // 7. FETCH POOL DATA
     // ====================================
 
     async function fetchPoolData() {
@@ -246,7 +223,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 9. CENTRALIZED RPC REQUEST
+            // 8. CENTRALIZED RPC REQUEST
             // ====================================
 
             const result = await rpcRequest(
@@ -268,7 +245,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                     // Create Lens contract
 
-                    const lens = new ethers.Contract(
+                    const lens = new Contract(
 
                         CONFIG.reservesLens,
 
@@ -281,16 +258,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                     // Read pool data
 
-                    const poolKey =
-                        CONFIG.poolKey;
-
                     return await lens[
                         "getPoolTVL(address,(address,address,uint24,int24,address))"
                     ](
 
                         CONFIG.poolManager,
 
-                        poolKey
+                        CONFIG.poolKey
 
                     );
 
@@ -299,7 +273,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 10. READ RAW RESERVES
+            // 9. READ RAW RESERVES
             // ====================================
 
             const rawJJS =
@@ -311,7 +285,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             const jjsAmount = Number(
 
-                ethers.formatUnits(
+                formatUnits(
                     rawJJS,
                     JJS_DECIMALS
                 )
@@ -321,7 +295,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             const usdtAmount = Number(
 
-                ethers.formatUnits(
+                formatUnits(
                     rawUSDT,
                     USDT_DECIMALS
                 )
@@ -330,7 +304,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 11. READ CURRENT PRICE
+            // 10. READ CURRENT PRICE
             // ====================================
 
             const sqrtPriceX96 =
@@ -356,7 +330,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 12. CALCULATE TOTAL LIQUIDITY
+            // 11. CALCULATE TOTAL LIQUIDITY
             // ====================================
 
             const jjsValueUSD =
@@ -370,7 +344,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 13. DISPLAY RESERVES
+            // 12. DISPLAY RESERVES
             // ====================================
 
             if (ELEMENTS.jjsReserve) {
@@ -392,7 +366,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 14. DISPLAY TOTAL LIQUIDITY
+            // 13. DISPLAY TOTAL LIQUIDITY
             // ====================================
 
             if (ELEMENTS.totalLiquidity) {
@@ -405,7 +379,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 15. VOLUME 24H
+            // 14. VOLUME 24H
             // ====================================
 
             if (ELEMENTS.volume24h) {
@@ -416,7 +390,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 16. UPDATE STATUS
+            // 15. UPDATE STATUS
             // ====================================
 
             const blockNumber =
@@ -447,7 +421,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 17. DEBUG INFORMATION
+            // 16. DEBUG INFORMATION
             // ====================================
 
             console.log("JOSJIS POOL DATA", {
@@ -504,7 +478,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // ====================================
-    // 18. INITIALIZE
+    // 17. INITIALIZE
     // ====================================
 
     await fetchPoolData();
