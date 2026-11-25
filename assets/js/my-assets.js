@@ -1,15 +1,7 @@
 
-import {
-    modal,
-    token,
-    formatUnits,
-    rpcProvider
-} from "../../web3/web3-config.js";
+import { modal } from "../../web3/web3-config.js";
 
-import {
-    Contract,
-    JsonRpcProvider
-} from "https://esm.sh/ethers@6.15.0";
+import { Token } from "./core/index.js";
 
 
 // =====================================
@@ -30,132 +22,25 @@ const usdt0Balance = document.getElementById("usdt0Balance");
 
 const explorerLink = document.getElementById("explorerLink");
 
+
+// =====================================
+// STATE
+// =====================================
+
 let currentAddress = null;
 let refreshInterval = null;
+
 let isRefreshing = false;
 let refreshQueued = false;
 let refreshNumber = 0;
 
 
 // =====================================
-// RPC CONFIGURATION
+// CONFIGURATION
 // =====================================
 
-// Primary RPC:
-// Diambil dari web3-config.js
-
-// Backup RPC:
-// Digunakan jika primary RPC gagal.
-
-const backupRPCs = [
-    "https://polygon.drpc.org",
-    "https://polygon-rpc.com"
-];
-
-const rpcProviders = [
-    rpcProvider,
-    ...backupRPCs.map(url =>
-        new JsonRpcProvider(
-            url,
-            137,
-            { staticNetwork: true }
-        )
-    )
-];
-
-
-// =====================================
-// CONTRACT CONFIGURATION
-// =====================================
-
-const USDT0_CONTRACT =
-    "0xc2132D05D31c914a87C6611C10748AEb04B58e8F";
-
-const USDT0_ABI = [
-    "function balanceOf(address account) view returns (uint256)"
-];
-
-const usdt0Token = new Contract(
-    USDT0_CONTRACT,
-    USDT0_ABI,
-    rpcProvider
-);
-
-
-// =====================================
-// RPC TIMEOUT
-// =====================================
-
-const RPC_TIMEOUT = 8000;
-
-function withTimeout(promise, milliseconds) {
-
-    return new Promise((resolve, reject) => {
-
-        const timer = setTimeout(() => {
-
-            reject(new Error("RPC request timeout"));
-
-        }, milliseconds);
-
-        Promise.resolve(promise).then(
-
-            result => {
-                clearTimeout(timer);
-                resolve(result);
-            },
-
-            error => {
-                clearTimeout(timer);
-                reject(error);
-            }
-
-        );
-
-    });
-
-}
-
-
-// =====================================
-// RPC FALLBACK READER
-// =====================================
-
-async function readWithFallback(readFunction) {
-
-    let lastError = null;
-
-    for (let i = 0; i < rpcProviders.length; i++) {
-
-        const provider = rpcProviders[i];
-
-        try {
-
-            const result = await withTimeout(
-                Promise.resolve().then(() =>
-                    readFunction(provider)
-                ),
-                RPC_TIMEOUT
-            );
-
-            return result;
-
-        } catch (error) {
-
-            lastError = error;
-
-            console.warn(
-                `Polygon RPC ${i + 1} failed:`,
-                error
-            );
-
-        }
-
-    }
-
-    throw lastError || new Error("All RPC endpoints failed");
-
-}
+const POLYGON_CHAIN_ID = 137;
+const AUTO_REFRESH_INTERVAL = 15000;
 
 
 // =====================================
@@ -164,7 +49,11 @@ async function readWithFallback(readFunction) {
 
 function formatBalance(value, decimals = 4) {
 
-    const parts = value.split(".");
+    if (value === null || value === undefined) {
+        return "--";
+    }
+
+    const parts = String(value).split(".");
 
     let integerPart = parts[0] || "0";
     let decimalPart = parts[1] || "";
@@ -222,6 +111,39 @@ function showWallet(address) {
 
 
 // =====================================
+// STOP AUTO REFRESH
+// =====================================
+
+function stopAutoRefresh() {
+
+    if (refreshInterval) {
+
+        clearInterval(refreshInterval);
+        refreshInterval = null;
+
+    }
+
+}
+
+
+// =====================================
+// START AUTO REFRESH
+// =====================================
+
+function startAutoRefresh() {
+
+    if (refreshInterval) return;
+
+    refreshInterval = setInterval(() => {
+
+        syncWallet();
+
+    }, AUTO_REFRESH_INTERVAL);
+
+}
+
+
+// =====================================
 // DISCONNECTED
 // =====================================
 
@@ -246,12 +168,7 @@ function showDisconnected() {
     assetsMessage.textContent =
         "Connect your wallet to view your assets.";
 
-    if (refreshInterval) {
-
-        clearInterval(refreshInterval);
-        refreshInterval = null;
-
-    }
+    stopAutoRefresh();
 
 }
 
@@ -281,76 +198,46 @@ function showWrongNetwork(address) {
     assetsMessage.textContent =
         "Please switch to Polygon Mainnet.";
 
-    if (refreshInterval) {
+    stopAutoRefresh();
 
-        clearInterval(refreshInterval);
-        refreshInterval = null;
+}
+
+
+// =====================================
+// CHECK BALANCE RESULT
+// =====================================
+
+function displayAssetBalance(element, result, symbol, failedAssets) {
+
+    if (result && !result.error && result.formatted !== undefined) {
+
+        element.textContent = formatBalance(
+            result.formatted
+        );
+
+        return;
 
     }
 
-}
+    element.textContent = "--";
 
+    failedAssets.push(symbol);
 
-// =====================================
-// READ JJS BALANCE
-// =====================================
-
-async function readJJS(address) {
-
-    return readWithFallback(provider => {
-
-        const contract = token.connect(provider);
-
-        return contract.balanceOf(address);
-
-    });
+    console.error(
+        `${symbol} Balance Error:`,
+        result?.error || "Balance data unavailable"
+    );
 
 }
 
 
 // =====================================
-// READ POL BALANCE
-// =====================================
-
-async function readPOL(address) {
-
-    return readWithFallback(provider => {
-
-        return provider.getBalance(address);
-
-    });
-
-}
-
-
-// =====================================
-// READ USDT0 BALANCE
-// =====================================
-
-async function readUSDT0(address) {
-
-    return readWithFallback(provider => {
-
-        const contract = usdt0Token.connect(provider);
-
-        return contract.balanceOf(address);
-
-    });
-
-}
-
-
-// =====================================
-// READ ASSET BALANCES
+// READ ASSET BALANCES USING JOSJIS CORE
 // =====================================
 
 async function refreshAssets() {
 
-    if (!currentAddress) {
-        return;
-    }
-
-    // Queue refresh if another request is running.
+    if (!currentAddress) return;
 
     if (isRefreshing) {
 
@@ -370,23 +257,20 @@ async function refreshAssets() {
 
     try {
 
-        // Each asset is loaded independently.
+        // Read all assets through JosJis Core.
 
-        const results = await Promise.allSettled([
-
-            readJJS(address),
-            readPOL(address),
-            readUSDT0(address)
-
-        ]);
+        const balances = await Token.getAllBalances(address);
 
         // Ignore outdated requests.
 
         if (
-            currentAddress !== address ||
+            !currentAddress ||
+            currentAddress.toLowerCase() !== address.toLowerCase() ||
             requestId !== refreshNumber
         ) {
+
             return;
+
         }
 
         const failedAssets = [];
@@ -395,78 +279,36 @@ async function refreshAssets() {
         // JJS
         // ---------------------------------
 
-        if (results[0].status === "fulfilled") {
-
-            const formatted = formatUnits(
-                results[0].value,
-                18
-            );
-
-            jjsBalance.textContent =
-                formatBalance(formatted);
-
-        } else {
-
-            failedAssets.push("JJS");
-
-            console.error(
-                "JJS Balance Error:",
-                results[0].reason
-            );
-
-        }
+        displayAssetBalance(
+            jjsBalance,
+            balances.JJS,
+            "JJS",
+            failedAssets
+        );
 
 
         // ---------------------------------
         // POL
         // ---------------------------------
 
-        if (results[1].status === "fulfilled") {
-
-            const formatted = formatUnits(
-                results[1].value,
-                18
-            );
-
-            polBalance.textContent =
-                formatBalance(formatted);
-
-        } else {
-
-            failedAssets.push("POL");
-
-            console.error(
-                "POL Balance Error:",
-                results[1].reason
-            );
-
-        }
+        displayAssetBalance(
+            polBalance,
+            balances.POL,
+            "POL",
+            failedAssets
+        );
 
 
         // ---------------------------------
         // USDT0
         // ---------------------------------
 
-        if (results[2].status === "fulfilled") {
-
-            const formatted = formatUnits(
-                results[2].value,
-                6
-            );
-
-            usdt0Balance.textContent =
-                formatBalance(formatted);
-
-        } else {
-
-            failedAssets.push("USDT0");
-
-            console.error(
-                "USDT0 Balance Error:",
-                results[2].reason
-            );
-
-        }
+        displayAssetBalance(
+            usdt0Balance,
+            balances.USDT0,
+            "USDT0",
+            failedAssets
+        );
 
 
         // ---------------------------------
@@ -481,24 +323,25 @@ async function refreshAssets() {
         } else if (failedAssets.length === 3) {
 
             assetsMessage.textContent =
-                "Unable to refresh balances. Showing last available values.";
+                "Unable to retrieve balances. Please try again.";
 
         } else {
 
             assetsMessage.textContent =
-                `Some balances could not be updated (${failedAssets.join(", ")}). Showing last available values.`;
+                `Some balances could not be updated: ${failedAssets.join(", ")}.`;
 
         }
 
     } catch (error) {
 
         console.error(
-            "My Assets Error:",
+            "My Assets Core Error:",
             error
         );
 
         if (
-            currentAddress === address &&
+            currentAddress &&
+            currentAddress.toLowerCase() === address.toLowerCase() &&
             requestId === refreshNumber
         ) {
 
@@ -512,10 +355,12 @@ async function refreshAssets() {
         isRefreshing = false;
 
         if (currentAddress) {
+
             refreshBtn.disabled = false;
+
         }
 
-        // Run queued refresh after current request.
+        // Process queued refresh.
 
         if (refreshQueued) {
 
@@ -538,16 +383,43 @@ async function refreshAssets() {
 
 function syncWallet(accountAddress = null) {
 
-    const address =
-        modal.getAddress() || accountAddress;
+    let address = null;
+    let chainId = null;
 
-    if (!address) {
+    try {
+
+        address = modal.getAddress() || accountAddress;
+        chainId = modal.getChainId();
+
+    } catch (error) {
+
+        console.error(
+            "Wallet State Error:",
+            error
+        );
+
         return;
+
     }
 
-    const chainId = modal.getChainId();
+    if (!address) return;
 
-    if (Number(chainId) !== 137) {
+    // Wait until AppKit provides the network.
+
+    if (chainId === undefined || chainId === null) {
+
+        walletStatus.textContent = "Checking Network";
+
+        assetsMessage.textContent =
+            "Checking wallet network...";
+
+        return;
+
+    }
+
+    // Polygon Mainnet only.
+
+    if (Number(chainId) !== POLYGON_CHAIN_ID) {
 
         showWrongNetwork(address);
         return;
@@ -556,14 +428,15 @@ function syncWallet(accountAddress = null) {
 
     const addressChanged =
         !currentAddress ||
-        currentAddress.toLowerCase() !==
-        address.toLowerCase();
+        currentAddress.toLowerCase() !== address.toLowerCase();
 
     if (addressChanged) {
 
         refreshNumber++;
 
-        // Do not display another wallet's old balance.
+        refreshQueued = false;
+
+        // Prevent old wallet balances from appearing.
 
         resetBalances();
 
@@ -574,15 +447,7 @@ function syncWallet(accountAddress = null) {
 
     }
 
-    if (!refreshInterval) {
-
-        refreshInterval = setInterval(() => {
-
-            syncWallet();
-
-        }, 15000);
-
-    }
+    startAutoRefresh();
 
     refreshAssets();
 
@@ -663,15 +528,13 @@ refreshBtn.addEventListener("click", () => {
 // APPKIT STATE LISTENER
 // =====================================
 
-modal.subscribeState(state => {
+modal.subscribeState(() => {
 
-    if (state.isConnected) {
+    const address = modal.getAddress();
 
-        syncWallet();
+    if (address) {
 
-    } else {
-
-        showDisconnected();
+        syncWallet(address);
 
     }
 
@@ -684,9 +547,13 @@ modal.subscribeState(state => {
 
 modal.subscribeAccount(account => {
 
-    if (account.address) {
+    if (account?.address) {
 
         syncWallet(account.address);
+
+    } else if (account?.isConnected === false) {
+
+        showDisconnected();
 
     }
 
