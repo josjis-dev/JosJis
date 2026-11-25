@@ -134,12 +134,6 @@
             transform: none;
         }
 
-        .donation-button.secondary {
-            background: transparent;
-            border-color: rgba(168, 85, 247, 0.5);
-            color: #d7c4ff;
-        }
-
         .donation-link {
             display: inline-block;
             margin-top: 13px;
@@ -577,15 +571,16 @@
 
     import {
         modal,
-        JJS_CONTRACT,
-        token
+        JJS_CONTRACT
     } from "./web3/web3-config.js";
 
     import {
         BrowserProvider,
+        JsonRpcProvider,
         Contract,
         parseUnits,
-        formatUnits
+        formatUnits,
+        isAddress
     } from "https://esm.sh/ethers@6.15.0";
 
 
@@ -598,9 +593,30 @@
 
     const POLYGON_CHAIN_ID = 137;
 
+    const READ_RPC =
+        "https://polygon-bor-rpc.publicnode.com";
+
     const JJS_ABI = [
+        "function balanceOf(address account) view returns (uint256)",
+        "function decimals() view returns (uint8)",
         "function transfer(address to, uint256 amount) returns (bool)"
     ];
+
+
+    // =====================================
+    // READ-ONLY RPC PROVIDER
+    // =====================================
+
+    const readProvider = new JsonRpcProvider(
+        READ_RPC,
+        POLYGON_CHAIN_ID
+    );
+
+    const jjsReadContract = new Contract(
+        JJS_CONTRACT,
+        JJS_ABI,
+        readProvider
+    );
 
 
     // =====================================
@@ -684,15 +700,26 @@
         try {
 
             if (typeof modal.getAccount === "function") {
+
                 const account = modal.getAccount();
 
-                if (account && account.isConnected && account.address) {
+                if (
+                    account &&
+                    account.isConnected &&
+                    account.address
+                ) {
                     return account.address;
                 }
+
             }
 
         } catch (error) {
-            console.warn("Unable to read AppKit account:", error);
+
+            console.warn(
+                "Unable to read AppKit account:",
+                error
+            );
+
         }
 
         return connectedAddress;
@@ -722,7 +749,8 @@
         }
 
         walletStatus.textContent = "Connected";
-        walletAddress.textContent = shortAddress(connectedAddress);
+        walletAddress.textContent =
+            shortAddress(connectedAddress);
 
         donationForm.style.display = "block";
         connectButton.textContent = "Wallet Connected";
@@ -734,29 +762,51 @@
 
     // =====================================
     // READ JJS BALANCE
-    // RPC MANAGER - READ ONLY
+    // DIRECT POLYGON RPC - READ ONLY
     // =====================================
 
     async function refreshJJSBalance() {
 
         if (!connectedAddress) return;
 
+        jjsBalance.textContent = "Loading...";
+
         try {
 
-            const balance = await token.balanceOf(connectedAddress);
-            const decimals = await token.decimals();
+            if (!isAddress(connectedAddress)) {
+                throw new Error("Invalid wallet address.");
+            }
+
+            const [balance, decimals] = await Promise.all([
+
+                jjsReadContract.balanceOf(
+                    connectedAddress
+                ),
+
+                jjsReadContract.decimals()
+
+            ]);
 
             jjsBalance.textContent =
-                Number(formatUnits(balance, decimals))
-                    .toLocaleString("en-US", {
-                        maximumFractionDigits: 6
-                    }) + " JJS";
+                Number(
+                    formatUnits(balance, decimals)
+                ).toLocaleString("en-US", {
+                    maximumFractionDigits: 6
+                }) + " JJS";
 
         } catch (error) {
 
-            console.error("JJS balance error:", error);
+            console.error(
+                "JJS balance error:",
+                error
+            );
 
             jjsBalance.textContent = "Unable to load";
+
+            showDonationStatus(
+                "Unable to read JJS balance. Check Polygon RPC connection.",
+                "error"
+            );
 
         }
 
@@ -777,7 +827,10 @@
 
         } catch (error) {
 
-            console.error("Wallet connection error:", error);
+            console.error(
+                "Wallet connection error:",
+                error
+            );
 
             showDonationStatus(
                 "Unable to open wallet connection. Please try again.",
@@ -797,7 +850,11 @@
 
         modal.subscribeAccount(async (account) => {
 
-            if (account && account.isConnected && account.address) {
+            if (
+                account &&
+                account.isConnected &&
+                account.address
+            ) {
 
                 await updateWallet(account.address);
 
@@ -819,7 +876,9 @@
     const initialAddress = getCurrentAccount();
 
     if (initialAddress) {
+
         await updateWallet(initialAddress);
+
     }
 
 
@@ -837,7 +896,10 @@
 
             const amountText = amountInput.value.trim();
 
-            if (!amountText || !/^\d+(\.\d+)?$/.test(amountText)) {
+            if (
+                !amountText ||
+                !/^\d+(\.\d+)?$/.test(amountText)
+            ) {
 
                 showDonationStatus(
                     "Please enter a valid JJS donation amount.",
@@ -875,27 +937,47 @@
             }
 
             isSending = true;
+
             donateButton.disabled = true;
-            donateButton.textContent = "Preparing Transaction...";
+            donateButton.textContent =
+                "Preparing Transaction...";
+
+
+            // CHECK RECIPIENT ADDRESS
+
+            if (!isAddress(DONATION_WALLET)) {
+                throw new Error(
+                    "Donation wallet address is invalid."
+                );
+            }
 
 
             // GET WALLET PROVIDER
 
-            const walletProvider = await modal.getWalletProvider();
+            const walletProvider =
+                await modal.getWalletProvider();
 
             if (!walletProvider) {
-                throw new Error("Wallet provider is unavailable.");
+
+                throw new Error(
+                    "Wallet provider is unavailable."
+                );
+
             }
 
 
-            // CREATE SIGNER PROVIDER
+            // CREATE WALLET PROVIDER
 
             const browserProvider =
                 new BrowserProvider(walletProvider);
 
-            const network = await browserProvider.getNetwork();
+            const network =
+                await browserProvider.getNetwork();
 
-            if (Number(network.chainId) !== POLYGON_CHAIN_ID) {
+            if (
+                Number(network.chainId) !==
+                POLYGON_CHAIN_ID
+            ) {
 
                 throw new Error(
                     "Please switch your wallet to Polygon network before donating."
@@ -906,14 +988,20 @@
 
             // GET SIGNER
 
-            const signer = await browserProvider.getSigner();
+            const signer =
+                await browserProvider.getSigner();
 
-            const signerAddress = await signer.getAddress();
+            const signerAddress =
+                await signer.getAddress();
 
 
-            // CHECK JJS DECIMALS
+            // CHECK TOKEN DECIMALS
 
-            const decimals = await token.decimals();
+            const decimals =
+                await jjsReadContract.decimals();
+
+
+            // PARSE DONATION AMOUNT
 
             const donationAmount =
                 parseUnits(amountText, decimals);
@@ -922,7 +1010,9 @@
             // CHECK BALANCE
 
             const currentBalance =
-                await token.balanceOf(signerAddress);
+                await jjsReadContract.balanceOf(
+                    signerAddress
+                );
 
             if (currentBalance < donationAmount) {
 
@@ -934,7 +1024,7 @@
 
 
             // CREATE SIGNING CONTRACT
-            // TRANSACTION GOES THROUGH USER WALLET
+            // TRANSACTION THROUGH USER WALLET
 
             const jjsContract = new Contract(
                 JJS_CONTRACT,
@@ -945,29 +1035,33 @@
 
             // SEND TRANSACTION
 
-            donateButton.textContent = "Waiting for Confirmation...";
+            donateButton.textContent =
+                "Waiting for Confirmation...";
 
             showDonationStatus(
                 "Please confirm the JJS donation in your wallet.",
                 "info"
             );
 
-            const transaction = await jjsContract.transfer(
-                DONATION_WALLET,
-                donationAmount
-            );
+            const transaction =
+                await jjsContract.transfer(
+                    DONATION_WALLET,
+                    donationAmount
+                );
 
 
             // WAIT FOR BLOCKCHAIN CONFIRMATION
 
-            donateButton.textContent = "Processing Transaction...";
+            donateButton.textContent =
+                "Processing Transaction...";
 
             showDonationStatus(
                 "Transaction submitted. Waiting for Polygon confirmation...",
                 "info"
             );
 
-            const receipt = await transaction.wait();
+            const receipt =
+                await transaction.wait();
 
 
             if (!receipt || receipt.status !== 1) {
@@ -982,7 +1076,8 @@
             // SUCCESS
 
             const txLink =
-                "https://polygonscan.com/tx/" + transaction.hash;
+                "https://polygonscan.com/tx/" +
+                transaction.hash;
 
             showDonationStatus(
                 "Thank you! Your JJS donation was successful. Transaction: " +
@@ -990,52 +1085,78 @@
                 "success"
             );
 
-            const txAnchor = document.createElement("a");
+            const txAnchor =
+                document.createElement("a");
 
             txAnchor.href = txLink;
             txAnchor.target = "_blank";
             txAnchor.rel = "noopener noreferrer";
             txAnchor.className = "donation-link";
-            txAnchor.textContent = "View Transaction on PolygonScan ↗";
 
-            statusBox.appendChild(document.createElement("br"));
+            txAnchor.textContent =
+                "View Transaction on PolygonScan ↗";
+
+            statusBox.appendChild(
+                document.createElement("br")
+            );
+
             statusBox.appendChild(txAnchor);
 
 
-            // CLEAR INPUT AND REFRESH BALANCE
+            // CLEAR INPUT
 
             amountInput.value = "";
 
+
+            // REFRESH BALANCE
+
             await refreshJJSBalance();
 
+
             if (typeof showJJSAlert === "function") {
+
                 showJJSAlert(
                     "JJS donation completed successfully!",
                     "success"
                 );
+
             }
 
 
         } catch (error) {
 
-            console.error("JJS donation error:", error);
+            console.error(
+                "JJS donation error:",
+                error
+            );
 
-            let message = error.message || "Donation failed.";
+            let message =
+                error.shortMessage ||
+                error.reason ||
+                error.message ||
+                "Donation failed.";
 
             if (
                 error.code === 4001 ||
                 error.code === "ACTION_REJECTED"
             ) {
 
-                message = "Transaction was rejected in your wallet.";
+                message =
+                    "Transaction was rejected in your wallet.";
 
-            } else if (error.code === "INSUFFICIENT_FUNDS") {
+            } else if (
+                error.code === "INSUFFICIENT_FUNDS"
+            ) {
 
-                message = "Insufficient POL for network gas fees.";
+                message =
+                    "Insufficient POL for network gas fees.";
 
             }
 
-            showDonationStatus(message, "error");
+            showDonationStatus(
+                message,
+                "error"
+            );
 
         } finally {
 
@@ -1050,18 +1171,24 @@
 
 
     // =====================================
-    // CLEANUP / WALLET STATE
+    // REFRESH WALLET STATE
     // =====================================
 
     window.addEventListener("focus", async () => {
 
         const address = getCurrentAccount();
 
-        if (address && address !== connectedAddress) {
+        if (
+            address &&
+            address !== connectedAddress
+        ) {
 
             await updateWallet(address);
 
-        } else if (!address && connectedAddress) {
+        } else if (
+            !address &&
+            connectedAddress
+        ) {
 
             await updateWallet(null);
 
