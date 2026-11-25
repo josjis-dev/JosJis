@@ -133,7 +133,9 @@ function startAutoRefresh() {
     if (refreshInterval) return;
 
     refreshInterval = setInterval(() => {
+
         syncWallet();
+
     }, AUTO_REFRESH_INTERVAL);
 
 }
@@ -234,6 +236,7 @@ function displayAssetBalance(
 
 // =====================================
 // READ ASSET BALANCES USING CORE
+// Core -> Token Manager -> RPC Manager
 // =====================================
 
 async function refreshAssets() {
@@ -483,7 +486,9 @@ copyBtn.addEventListener("click", async () => {
 // =====================================
 
 refreshBtn.addEventListener("click", () => {
+
     refreshAssets();
+
 });
 
 // =====================================
