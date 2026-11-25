@@ -48,6 +48,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     };
 
 
+    // ====================================
+    // 2. HTML ELEMENTS
+    // ====================================
+
     const ELEMENTS = {
 
         year: document.getElementById("year"),
@@ -76,17 +80,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // ====================================
-    // 2. CONSTANTS
+    // 3. CONSTANTS
     // ====================================
 
     const JJS_DECIMALS = 18;
     const USDT_DECIMALS = 6;
 
+    const Q96 = 2n ** 96n;
+
     let isLoading = false;
 
 
     // ====================================
-    // 3. FOOTER YEAR
+    // 4. FOOTER YEAR
     // ====================================
 
     if (ELEMENTS.year) {
@@ -98,7 +104,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // ====================================
-    // 4. COPY POOL ID
+    // 5. COPY POOL ID
     // ====================================
 
     if (ELEMENTS.copyButton && ELEMENTS.poolId) {
@@ -115,9 +121,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 try {
 
-                    await navigator.clipboard.writeText(
-                        poolId
-                    );
+                    if (navigator.clipboard?.writeText) {
+
+                        await navigator.clipboard.writeText(
+                            poolId
+                        );
+
+                    } else {
+
+                        throw new Error(
+                            "Clipboard API unavailable"
+                        );
+
+                    }
 
                     ELEMENTS.copyButton.textContent =
                         "Copied!";
@@ -128,6 +144,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                         document.createElement("textarea");
 
                     textarea.value = poolId;
+
+                    textarea.style.position = "fixed";
+                    textarea.style.opacity = "0";
 
                     document.body.appendChild(textarea);
 
@@ -157,10 +176,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // ====================================
-    // 5. FORMAT NUMBERS
+    // 6. FORMAT NUMBERS
     // ====================================
 
     function formatNumber(value, decimals = 4) {
+
+        if (!Number.isFinite(value)) {
+            return "—";
+        }
 
         return new Intl.NumberFormat("en-US", {
 
@@ -172,6 +195,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     function formatUSD(value) {
+
+        if (!Number.isFinite(value)) {
+            return "—";
+        }
 
         return "$" + new Intl.NumberFormat("en-US", {
 
@@ -195,7 +222,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // ====================================
-    // 6. RESERVES LENS ABI
+    // 7. RESERVES LENS ABI
     // ====================================
 
     const lensABI = [
@@ -206,7 +233,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // ====================================
-    // 7. FETCH POOL DATA
+    // 8. FETCH POOL DATA
     // ====================================
 
     async function fetchPoolData() {
@@ -223,13 +250,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 8. CENTRALIZED RPC REQUEST
+            // 9. CENTRALIZED RPC REQUEST
             // ====================================
 
             const result = await rpcRequest(
                 async (provider) => {
-
-                    // Verify Polygon network
 
                     const network =
                         await provider.getNetwork();
@@ -243,8 +268,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                     }
 
 
-                    // Create Lens contract
-
                     const lens = new Contract(
 
                         CONFIG.reservesLens,
@@ -255,8 +278,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                     );
 
-
-                    // Read pool data
 
                     return await lens[
                         "getPoolTVL(address,(address,address,uint24,int24,address))"
@@ -273,7 +294,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 9. READ RAW RESERVES
+            // 10. READ POOL RESERVES
             // ====================================
 
             const rawJJS =
@@ -304,25 +325,33 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 10. READ CURRENT PRICE
+            // 11. CALCULATE CURRENT PRICE
             // ====================================
 
             const sqrtPriceX96 =
                 result.sqrtPriceX96;
 
-            const Q96 = 2n ** 96n;
+            /*
+             * Divide before squaring to avoid
+             * unnecessary precision loss.
+             */
+
+            const sqrtRatio =
+                Number(sqrtPriceX96) / Number(Q96);
 
             const priceRaw =
-
-                Number(sqrtPriceX96) ** 2 /
-                Number(Q96 ** 2n);
+                sqrtRatio * sqrtRatio;
 
 
-            // Token0 = JJS (18 decimals)
-            // Token1 = USDT0 (6 decimals)
+            /*
+             * Token0 = JJS (18 decimals)
+             * Token1 = USDT0 (6 decimals)
+             *
+             * Human price:
+             * USDT0 per 1 JJS
+             */
 
             const jjsPriceUSDT =
-
                 priceRaw * Math.pow(
                     10,
                     JJS_DECIMALS - USDT_DECIMALS
@@ -330,56 +359,54 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 11. CALCULATE TOTAL LIQUIDITY
+            // 12. CALCULATE TOTAL LIQUIDITY
             // ====================================
 
             const jjsValueUSD =
-
                 jjsAmount * jjsPriceUSDT;
 
-
             const totalLiquidity =
-
                 jjsValueUSD + usdtAmount;
 
 
             // ====================================
-            // 12. DISPLAY RESERVES
+            // 13. DISPLAY JJS RESERVE
             // ====================================
 
             if (ELEMENTS.jjsReserve) {
 
                 ELEMENTS.jjsReserve.textContent =
-
                     formatNumber(jjsAmount) + " JJS";
 
             }
 
 
+            // ====================================
+            // 14. DISPLAY USDT RESERVE
+            // ====================================
+
             if (ELEMENTS.usdtReserve) {
 
                 ELEMENTS.usdtReserve.textContent =
-
                     formatNumber(usdtAmount) + " USDT0";
 
             }
 
 
             // ====================================
-            // 13. DISPLAY TOTAL LIQUIDITY
+            // 15. DISPLAY TOTAL LIQUIDITY
             // ====================================
 
             if (ELEMENTS.totalLiquidity) {
 
                 ELEMENTS.totalLiquidity.textContent =
-
                     formatUSD(totalLiquidity);
 
             }
 
 
             // ====================================
-            // 14. VOLUME 24H
+            // 16. VOLUME 24H
             // ====================================
 
             if (ELEMENTS.volume24h) {
@@ -390,18 +417,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 15. UPDATE STATUS
+            // 17. UPDATE STATUS
             // ====================================
 
             const blockNumber =
-
                 result.blockNumber.toString();
 
-
             const approximate =
-
                 result.hasCustomAccounting;
-
 
             setStatus(
 
@@ -411,9 +434,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 " | Block: " + blockNumber +
 
-                (approximate
-                    ? " | Custom accounting: approximate reserves"
-                    : "") +
+                (
+                    approximate
+                        ? " | Custom accounting: approximate reserves"
+                        : ""
+                ) +
 
                 " | 24H volume unavailable via RPC-only mode."
 
@@ -421,7 +446,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 16. DEBUG INFORMATION
+            // 18. DEBUG INFORMATION
             // ====================================
 
             console.log("JOSJIS POOL DATA", {
@@ -444,7 +469,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                 activeLiquidity:
                     result.activeLiquidity.toString(),
 
-                hasCustomAccounting: approximate
+                hasCustomAccounting: approximate,
+
+                statsStatus: result.statsStatus
 
             });
 
@@ -478,13 +505,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // ====================================
-    // 17. INITIALIZE
+    // 19. INITIALIZE
     // ====================================
 
     await fetchPoolData();
 
 
-    // Refresh every 60 seconds
+    // ====================================
+    // 20. AUTO REFRESH EVERY 60 SECONDS
+    // ====================================
 
     setInterval(
 
