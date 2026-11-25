@@ -1,3 +1,4 @@
+
 // =====================================
 // JOSJIS WEB3 CONFIGURATION
 // =====================================
@@ -13,9 +14,16 @@ import { polygon } from
 
 import {
   Contract,
-  JsonRpcProvider,
   formatUnits
 } from "https://esm.sh/ethers@6.15.0";
+
+// =====================================
+// RPC MANAGER
+// =====================================
+
+import {
+  getProvider
+} from "../assets/js/core/rpc-manager.js";
 
 // =====================================
 // PROJECT CONFIGURATION
@@ -27,6 +35,10 @@ export const PROJECT_ID =
 export const JJS_CONTRACT =
   "0x52C8Ff13ada1431376b3E77E8219b644805122dF";
 
+// =====================================
+// JJS TOKEN ABI
+// =====================================
+
 const JJS_ABI = [
   "function balanceOf(address account) view returns (uint256)",
   "function decimals() view returns (uint8)",
@@ -35,11 +47,10 @@ const JJS_ABI = [
 
 // =====================================
 // POLYGON RPC PROVIDER
+// Managed by RPC Manager
 // =====================================
 
-export const rpcProvider = new JsonRpcProvider(
-  "https://polygon-bor-rpc.publicnode.com"
-);
+export const rpcProvider = getProvider();
 
 // =====================================
 // JJS TOKEN CONTRACT
