@@ -4,7 +4,7 @@
    Centralized Polygon RPC - Uniswap V4
    Automatic Pool ID Verification
    Visible Reserve Audit Diagnostics
-   Precision-Safe JJS Reserve Display
+   Full Precision JJS Reserve Display
    No DexPaprika API key required
 ======================================== */
 
@@ -375,7 +375,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // 10. PRECISION-SAFE TOKEN FORMAT
     // ====================================
 
-    function formatTokenAmount(rawValue, maxFraction = 6) {
+    function formatTokenAmount(rawValue, maxFraction = 18) {
 
         const parts = String(rawValue).split(".");
 
@@ -525,8 +525,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 result.coreAmount1;
 
 
-            // Exact decimal strings from blockchain
-
             const jjsAmountRaw =
                 formatUnits(
                     rawJJS,
@@ -540,7 +538,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 );
 
 
-            // Numeric values retained for calculations
+            // Numeric values retained for USD calculation
 
             const jjsAmount =
                 Number(jjsAmountRaw);
@@ -590,7 +588,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 ELEMENTS.jjsReserve.textContent =
                     formatTokenAmount(
                         jjsAmountRaw,
-                        6
+                        JJS_DECIMALS
                     ) + " JJS";
 
             }
@@ -605,7 +603,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 ELEMENTS.usdtReserve.textContent =
                     formatTokenAmount(
                         usdtAmountRaw,
-                        6
+                        USDT_DECIMALS
                     ) + " USDT0";
 
             }
