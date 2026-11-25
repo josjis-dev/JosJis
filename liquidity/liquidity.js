@@ -3,6 +3,7 @@
    JOSJIS LIQUIDITY CENTER
    Centralized Polygon RPC - Uniswap V4
    Automatic Pool ID Verification
+   Reserve Audit Diagnostics
    No DexPaprika API key required
 ======================================== */
 
@@ -324,7 +325,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 10. VERIFY POOL ID BEFORE RPC
+            // 10. VERIFY POOL ID
             // ====================================
 
             const verifiedPoolId =
@@ -381,7 +382,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 12. READ POOL RESERVES
+            // 12. READ CORE RESERVES
             // ====================================
 
             const rawJJS =
@@ -424,13 +425,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             const priceRaw =
                 sqrtRatio * sqrtRatio;
 
-
-            /*
-             * Token0 = JJS (18 decimals)
-             * Token1 = USDT0 (6 decimals)
-             *
-             * Price = USDT0 per JJS
-             */
 
             const jjsPriceUSDT =
                 priceRaw * Math.pow(
@@ -519,7 +513,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 (
                     approximate
-                        ? " | Custom accounting: approximate reserves"
+                        ? " | Custom accounting: inspect reserve audit"
                         : ""
                 ) +
 
@@ -529,8 +523,88 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 20. DEBUG INFORMATION
+            // 20. RESERVE AUDIT DATA
             // ====================================
+
+            const reserveAudit = {
+
+                verifiedPoolId,
+
+                blockNumber,
+
+                coreAmount0:
+                    formatUnits(
+                        result.coreAmount0,
+                        JJS_DECIMALS
+                    ),
+
+                coreAmount1:
+                    formatUnits(
+                        result.coreAmount1,
+                        USDT_DECIMALS
+                    ),
+
+                hookReserves0:
+                    formatUnits(
+                        result.hookReserves0,
+                        JJS_DECIMALS
+                    ),
+
+                hookReserves1:
+                    formatUnits(
+                        result.hookReserves1,
+                        USDT_DECIMALS
+                    ),
+
+                hookEffective0:
+                    formatUnits(
+                        result.hookEffective0,
+                        JJS_DECIMALS
+                    ),
+
+                hookEffective1:
+                    formatUnits(
+                        result.hookEffective1,
+                        USDT_DECIMALS
+                    ),
+
+                hasCustomAccounting:
+                    result.hasCustomAccounting,
+
+                hookPermissions:
+                    result.hookPermissions.toString(),
+
+                statsProvider:
+                    result.statsProvider,
+
+                statsStatus:
+                    result.statsStatus.toString(),
+
+                sqrtPriceX96:
+                    sqrtPriceX96.toString(),
+
+                tick:
+                    result.tick.toString(),
+
+                activeLiquidity:
+                    result.activeLiquidity.toString(),
+
+                jjsReserve: jjsAmount,
+
+                usdtReserve: usdtAmount,
+
+                jjsPriceUSDT,
+
+                totalLiquidityUSD: totalLiquidity
+
+            };
+
+
+            console.log(
+                "JOSJIS RESERVE AUDIT",
+                reserveAudit
+            );
+
 
             console.log("JOSJIS POOL DATA", {
 
@@ -546,17 +620,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 totalLiquidityUSD: totalLiquidity,
 
-                sqrtPriceX96:
-                    sqrtPriceX96.toString(),
-
-                tick: result.tick,
-
-                activeLiquidity:
-                    result.activeLiquidity.toString(),
-
-                hasCustomAccounting: approximate,
-
-                statsStatus: result.statsStatus
+                hasCustomAccounting: approximate
 
             });
 
