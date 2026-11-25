@@ -4,6 +4,7 @@
    Centralized Polygon RPC - Uniswap V4
    Automatic Pool ID Verification
    Visible Reserve Audit Diagnostics
+   Precision-Safe JJS Reserve Display
    No DexPaprika API key required
 ======================================== */
 
@@ -370,6 +371,33 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
 
+    // ====================================
+    // 10. PRECISION-SAFE TOKEN FORMAT
+    // ====================================
+
+    function formatTokenAmount(rawValue, maxFraction = 6) {
+
+        const parts = String(rawValue).split(".");
+
+        const integerPart = parts[0] || "0";
+
+        const fractionPart = parts[1] || "";
+
+        const formattedInteger =
+            BigInt(integerPart).toLocaleString("en-US");
+
+        const formattedFraction =
+            fractionPart
+                .slice(0, maxFraction)
+                .replace(/0+$/, "");
+
+        return formattedFraction
+            ? formattedInteger + "." + formattedFraction
+            : formattedInteger;
+
+    }
+
+
     function formatUSD(value) {
 
         if (!Number.isFinite(value)) {
@@ -398,7 +426,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // ====================================
-    // 10. RESERVES LENS ABI
+    // 11. RESERVES LENS ABI
     // ====================================
 
     const lensABI = [
@@ -409,7 +437,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // ====================================
-    // 11. FETCH POOL DATA
+    // 12. FETCH POOL DATA
     // ====================================
 
     async function fetchPoolData() {
@@ -430,7 +458,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 12. VERIFY POOL ID
+            // 13. VERIFY POOL ID
             // ====================================
 
             const verifiedPoolId =
@@ -438,7 +466,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 13. CENTRALIZED RPC REQUEST
+            // 14. CENTRALIZED RPC REQUEST
             // ====================================
 
             setStatus(
@@ -487,7 +515,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 14. READ CORE RESERVES
+            // 15. READ CORE RESERVES
             // ====================================
 
             const rawJJS =
@@ -497,28 +525,32 @@ document.addEventListener("DOMContentLoaded", async () => {
                 result.coreAmount1;
 
 
-            const jjsAmount = Number(
+            // Exact decimal strings from blockchain
 
+            const jjsAmountRaw =
                 formatUnits(
                     rawJJS,
                     JJS_DECIMALS
-                )
+                );
 
-            );
-
-
-            const usdtAmount = Number(
-
+            const usdtAmountRaw =
                 formatUnits(
                     rawUSDT,
                     USDT_DECIMALS
-                )
+                );
 
-            );
+
+            // Numeric values retained for calculations
+
+            const jjsAmount =
+                Number(jjsAmountRaw);
+
+            const usdtAmount =
+                Number(usdtAmountRaw);
 
 
             // ====================================
-            // 15. CALCULATE CURRENT PRICE
+            // 16. CALCULATE CURRENT PRICE
             // ====================================
 
             const sqrtPriceX96 =
@@ -539,7 +571,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 16. CALCULATE TOTAL LIQUIDITY
+            // 17. CALCULATE TOTAL LIQUIDITY
             // ====================================
 
             const jjsValueUSD =
@@ -550,31 +582,37 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 17. DISPLAY JJS RESERVE
+            // 18. DISPLAY JJS RESERVE
             // ====================================
 
             if (ELEMENTS.jjsReserve) {
 
                 ELEMENTS.jjsReserve.textContent =
-                    formatNumber(jjsAmount) + " JJS";
+                    formatTokenAmount(
+                        jjsAmountRaw,
+                        6
+                    ) + " JJS";
 
             }
 
 
             // ====================================
-            // 18. DISPLAY USDT RESERVE
+            // 19. DISPLAY USDT RESERVE
             // ====================================
 
             if (ELEMENTS.usdtReserve) {
 
                 ELEMENTS.usdtReserve.textContent =
-                    formatNumber(usdtAmount) + " USDT0";
+                    formatTokenAmount(
+                        usdtAmountRaw,
+                        6
+                    ) + " USDT0";
 
             }
 
 
             // ====================================
-            // 19. DISPLAY TOTAL LIQUIDITY
+            // 20. DISPLAY TOTAL LIQUIDITY
             // ====================================
 
             if (ELEMENTS.totalLiquidity) {
@@ -586,7 +624,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 20. VOLUME 24H
+            // 21. VOLUME 24H
             // ====================================
 
             if (ELEMENTS.volume24h) {
@@ -597,7 +635,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 21. UPDATE STATUS
+            // 22. UPDATE STATUS
             // ====================================
 
             const blockNumber =
@@ -628,7 +666,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 22. VISIBLE RESERVE AUDIT
+            // 23. VISIBLE RESERVE AUDIT
             // ====================================
 
             const reserveAudit = {
@@ -638,16 +676,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                 blockNumber,
 
                 coreAmount0_JJS:
-                    formatUnits(
-                        result.coreAmount0,
-                        JJS_DECIMALS
-                    ),
+                    jjsAmountRaw,
 
                 coreAmount1_USDT0:
-                    formatUnits(
-                        result.coreAmount1,
-                        USDT_DECIMALS
-                    ),
+                    usdtAmountRaw,
 
                 hookReserves0_JJS:
                     formatUnits(
@@ -695,10 +727,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                     result.activeLiquidity.toString(),
 
                 jjsReserve:
-                    jjsAmount,
+                    jjsAmountRaw,
 
                 usdtReserve:
-                    usdtAmount,
+                    usdtAmountRaw,
 
                 jjsPriceUSDT:
                     jjsPriceUSDT,
@@ -724,9 +756,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 blockNumber,
 
-                jjsReserve: jjsAmount,
+                jjsReserve: jjsAmountRaw,
 
-                usdtReserve: usdtAmount,
+                usdtReserve: usdtAmountRaw,
 
                 jjsPriceUSDT,
 
@@ -774,14 +806,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // ====================================
-    // 23. INITIALIZE
+    // 24. INITIALIZE
     // ====================================
 
     await fetchPoolData();
 
 
     // ====================================
-    // 24. AUTO REFRESH EVERY 60 SECONDS
+    // 25. AUTO REFRESH EVERY 60 SECONDS
     // ====================================
 
     setInterval(
