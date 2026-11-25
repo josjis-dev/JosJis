@@ -578,11 +578,6 @@ async function testRPC() {
 
     try {
 
-        /*
-        rpcRequest() handles endpoint failover.
-        We use its returned result directly.
-        */
-
         const result = await RPC.rpcRequest(async provider => {
 
             const [network, block] = await Promise.all([
@@ -593,9 +588,7 @@ async function testRPC() {
             const chainId = Number(network.chainId);
 
             if (chainId !== 137) {
-                throw new Error(
-                    `Wrong chain ID: ${chainId}`
-                );
+                throw new Error(`Wrong chain ID: ${chainId}`);
             }
 
             return {
@@ -613,10 +606,7 @@ async function testRPC() {
 
         setStatus("rpcStatus", "Connected");
 
-        setStatus(
-            "chainStatus",
-            String(result.chainId)
-        );
+        setStatus("chainStatus", String(result.chainId));
 
         setStatus(
             "blockStatus",
@@ -633,16 +623,11 @@ async function testRPC() {
         setValue(
             "rpcList",
             rpcList.map(rpc =>
-                `${rpc.name}: ${
-                    rpc.active ? "Active" : "Standby"
-                }`
+                `${rpc.name}: ${rpc.active ? "Active" : "Standby"}`
             ).join(" | ")
         );
 
-        setStatus(
-            "networkStatus",
-            "Polygon Mainnet"
-        );
+        setStatus("networkStatus", "Polygon Mainnet");
 
         log(
             `RPC connected: ${active?.name || "Endpoint available"}`,
@@ -661,13 +646,10 @@ async function testRPC() {
     } catch (error) {
 
         setStatus("rpcStatus", "Failed", "failed");
-
         setStatus("chainStatus", "Failed", "failed");
-
         setStatus("blockStatus", "Failed", "failed");
 
         setValue("activeRPC", "-");
-
         setValue("rpcList", "No responding endpoint");
 
         log("RPC: " + error.message, "error");
@@ -691,7 +673,6 @@ function testRegistry() {
     try {
 
         const jjs = Registry.CONTRACTS.JJS;
-
         const usdt = Registry.CONTRACTS.USDT0;
 
         if (!jjs || !usdt) {
@@ -712,10 +693,7 @@ function testRegistry() {
             usdt.address.slice(0, 8) + "..."
         );
 
-        log(
-            "Contract Registry successful.",
-            "success"
-        );
+        log("Contract Registry successful.", "success");
 
         recordTest("Contract Registry", true);
 
@@ -724,7 +702,6 @@ function testRegistry() {
     } catch (error) {
 
         setStatus("jjsContract", "Failed", "failed");
-
         setStatus("usdtContract", "Failed", "failed");
 
         log("Registry: " + error.message, "error");
@@ -751,16 +728,10 @@ function testWallet() {
 
         if (!wallet || !wallet.connected) {
 
-            setStatus(
-                "walletStatus",
-                "Not Connected",
-                "pending"
-            );
+            setStatus("walletStatus", "Not Connected", "pending");
 
             setValue("walletAddress", "-");
-
             setValue("walletChain", "-");
-
             setValue("walletNetwork", "-");
 
             log("Wallet is not connected.", "info");
@@ -777,10 +748,7 @@ function testWallet() {
             wallet.shortAddress || wallet.address
         );
 
-        setValue(
-            "walletChain",
-            String(wallet.chainId)
-        );
+        setValue("walletChain", String(wallet.chainId));
 
         const isPolygon = Number(wallet.chainId) === 137;
 
@@ -798,7 +766,7 @@ function testWallet() {
 
         recordTest("Wallet Manager", isPolygon);
 
-        return wallet.address;
+        return isPolygon ? wallet.address : null;
 
     } catch (error) {
 
@@ -828,10 +796,7 @@ async function testTokens() {
 
         const jjs = await Token.getTokenDetails("JJS");
 
-        setStatus(
-            "jjsInfo",
-            `${jjs.name} (${jjs.symbol})`
-        );
+        setStatus("jjsInfo", `${jjs.name} (${jjs.symbol})`);
 
         log("JJS information loaded.", "success");
 
@@ -848,10 +813,7 @@ async function testTokens() {
 
         const usdt = await Token.getTokenDetails("USDT0");
 
-        setStatus(
-            "usdtInfo",
-            `${usdt.name} (${usdt.symbol})`
-        );
+        setStatus("usdtInfo", `${usdt.name} (${usdt.symbol})`);
 
         log("USDT information loaded.", "success");
 
@@ -899,27 +861,13 @@ async function testBalances(address) {
 
     if (!address) {
 
-        setStatus(
-            "jjsBalance",
-            "Connect wallet first",
-            "pending"
-        );
-
-        setStatus(
-            "polBalance",
-            "Connect wallet first",
-            "pending"
-        );
-
-        setStatus(
-            "usdtBalance",
-            "Connect wallet first",
-            "pending"
-        );
+        setStatus("jjsBalance", "Connect wallet first", "pending");
+        setStatus("polBalance", "Connect wallet first", "pending");
+        setStatus("usdtBalance", "Connect wallet first", "pending");
 
         recordTest("Wallet Balances", false);
 
-        return false;
+        return null;
     }
 
     log("Testing wallet balances...");
@@ -954,36 +902,27 @@ async function testBalances(address) {
 
             if (!balance || balance.error) {
 
+                const message = balance?.error || "No data";
+
                 setStatus(
                     asset.element,
-                    "Failed: " + (
-                        balance?.error || "No data"
-                    ),
+                    "Failed: " + message,
                     "failed"
                 );
 
-                log(
-                    `${asset.symbol}: ${
-                        balance?.error || "No data"
-                    }`,
-                    "error"
-                );
+                log(`${asset.symbol}: ${message}`, "error");
 
                 continue;
             }
 
             setStatus(
                 asset.element,
-                formatBalance(balance.formatted) +
-                " " + asset.symbol
+                formatBalance(balance.formatted) + " " + asset.symbol
             );
 
             successCount++;
 
-            log(
-                `${asset.symbol} balance loaded.`,
-                "success"
-            );
+            log(`${asset.symbol} balance loaded.`, "success");
         }
 
         const success = successCount === 3;
@@ -995,21 +934,20 @@ async function testBalances(address) {
 
         recordTest("Wallet Balances", success);
 
-        return success;
+        // Kembalikan saldo agar bisa dipakai Data Manager.
+        return balances;
 
     } catch (error) {
 
         setStatus("jjsBalance", "Failed", "failed");
-
         setStatus("polBalance", "Failed", "failed");
-
         setStatus("usdtBalance", "Failed", "failed");
 
         log("Balance: " + error.message, "error");
 
         recordTest("Wallet Balances", false);
 
-        return false;
+        return null;
     }
 }
 
@@ -1019,19 +957,28 @@ async function testBalances(address) {
 ========================================
 */
 
-async function testData(address) {
+async function testData(address, suppliedBalances) {
 
     if (!address) {
 
-        setStatus(
-            "dataStatus",
-            "Wallet required",
-            "pending"
-        );
+        setStatus("dataStatus", "Wallet required", "pending");
 
-        setValue(
-            "dataBalanceStatus",
-            "Not tested"
+        setValue("dataBalanceStatus", "Not tested");
+
+        recordTest("Data Manager", false);
+
+        return false;
+    }
+
+    if (!suppliedBalances) {
+
+        setStatus("dataStatus", "Balance unavailable", "failed");
+
+        setValue("dataBalanceStatus", "Not tested");
+
+        log(
+            "Data Manager skipped: balance data unavailable.",
+            "error"
         );
 
         recordTest("Data Manager", false);
@@ -1043,7 +990,13 @@ async function testData(address) {
 
     try {
 
-        const data = await Data.loadDashboardData(address);
+        // Gunakan saldo yang sudah dibaca sebelumnya.
+        // Tidak mengulang pembacaan saldo RPC.
+
+        const data = await Data.loadDashboardData(
+            address,
+            suppliedBalances
+        );
 
         if (!data || !data.balances) {
             throw new Error("Dashboard data unavailable.");
@@ -1057,7 +1010,8 @@ async function testData(address) {
             !balances[key] || balances[key].error
         );
 
-        const successCount = keys.length - failedAssets.length;
+        const successCount =
+            keys.length - failedAssets.length;
 
         setValue(
             "dataBalanceStatus",
@@ -1068,7 +1022,7 @@ async function testData(address) {
             "updateStatus",
             data.lastUpdated
                 ? new Date(data.lastUpdated).toLocaleTimeString()
-                : new Date().toLocaleTimeString()
+                : "-"
         );
 
         if (failedAssets.length > 0) {
@@ -1079,9 +1033,19 @@ async function testData(address) {
                 "failed"
             );
 
+            failedAssets.forEach(key => {
+
+                log(
+                    `Data Manager ${key}: ${
+                        balances[key]?.error || "No data"
+                    }`,
+                    "error"
+                );
+
+            });
+
             log(
-                "Data Manager partial failure: " +
-                failedAssets.join(", "),
+                `Data Manager partial failure: ${failedAssets.join(", ")}`,
                 "error"
             );
 
@@ -1107,15 +1071,9 @@ async function testData(address) {
 
         setStatus("dataStatus", "Failed", "failed");
 
-        setValue(
-            "dataBalanceStatus",
-            "Validation failed"
-        );
+        setValue("dataBalanceStatus", "Validation failed");
 
-        log(
-            "Data Manager: " + error.message,
-            "error"
-        );
+        log("Data Manager: " + error.message, "error");
 
         recordTest("Data Manager", false);
 
@@ -1146,17 +1104,12 @@ function testErrorManager() {
         );
 
         if (!result || !result.type) {
-            throw new Error(
-                "Error classification unavailable."
-            );
+            throw new Error("Error classification unavailable.");
         }
 
         setStatus("errorStatus", "Loaded");
 
-        setValue(
-            "errorClassification",
-            result.type
-        );
+        setValue("errorClassification", result.type);
 
         log(
             "Error classification: " + result.type,
@@ -1192,7 +1145,6 @@ async function runTests() {
     }
 
     runBtn.disabled = true;
-
     runBtn.textContent = "TESTING...";
 
     $("logs").textContent = "Starting tests...";
@@ -1211,32 +1163,27 @@ async function runTests() {
 
         await testTokens();
 
-        await testBalances(address);
+        // Baca saldo hanya satu kali.
+        const balances = await testBalances(address);
 
-        await testData(address);
+        // Gunakan hasil yang sama di Data Manager.
+        await testData(address, balances);
 
         testErrorManager();
 
         updateSummary();
 
-        log(
-            "Core test completed.",
-            "success"
-        );
+        log("Core test completed.", "success");
 
     } catch (error) {
 
-        log(
-            "Unexpected error: " + error.message,
-            "error"
-        );
+        log("Unexpected error: " + error.message, "error");
 
         updateSummary();
 
     } finally {
 
         runBtn.disabled = false;
-
         runBtn.textContent = "RUN CORE TEST";
     }
 }
@@ -1255,10 +1202,7 @@ walletBtn.addEventListener("click", async () => {
 
     } catch (error) {
 
-        log(
-            "Wallet connection: " + error.message,
-            "error"
-        );
+        log("Wallet connection: " + error.message, "error");
     }
 });
 
