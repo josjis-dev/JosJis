@@ -3,7 +3,7 @@
    JOSJIS LIQUIDITY CENTER
    Centralized Polygon RPC - Uniswap V4
    Automatic Pool ID Verification
-   Reserve Audit Diagnostics
+   Visible Reserve Audit Diagnostics
    No DexPaprika API key required
 ======================================== */
 
@@ -111,7 +111,108 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // ====================================
-    // 5. POOL ID VERIFICATION
+    // 5. CREATE VISIBLE RESERVE AUDIT
+    // ====================================
+
+    const auditPanel = document.createElement("section");
+
+    auditPanel.id = "josjisReserveAudit";
+
+    auditPanel.style.cssText = `
+        margin: 24px 0;
+        padding: 18px;
+        background: #111827;
+        color: #e5e7eb;
+        border: 1px solid #374151;
+        border-radius: 12px;
+        width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
+    `;
+
+    const auditTitle = document.createElement("h3");
+
+    auditTitle.textContent = "JOSJIS RESERVE AUDIT";
+
+    auditTitle.style.cssText = `
+        margin: 0 0 8px;
+        font-size: 17px;
+        color: #facc15;
+    `;
+
+    const auditDescription = document.createElement("p");
+
+    auditDescription.textContent =
+        "Detailed on-chain reserve diagnostics. Values are read-only.";
+
+    auditDescription.style.cssText = `
+        margin: 0 0 14px;
+        font-size: 12px;
+        color: #9ca3af;
+    `;
+
+    const auditContent = document.createElement("pre");
+
+    auditContent.id = "josjisAuditContent";
+
+    auditContent.textContent =
+        "Waiting for blockchain data...";
+
+    auditContent.style.cssText = `
+        margin: 0;
+        padding: 14px;
+        background: #030712;
+        border-radius: 8px;
+        color: #d1d5db;
+        font-size: 12px;
+        line-height: 1.7;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        font-family: monospace;
+        overflow-x: auto;
+    `;
+
+    auditPanel.appendChild(auditTitle);
+    auditPanel.appendChild(auditDescription);
+    auditPanel.appendChild(auditContent);
+
+    if (ELEMENTS.lastUpdated?.parentElement) {
+
+        ELEMENTS.lastUpdated.parentElement.insertAdjacentElement(
+            "afterend",
+            auditPanel
+        );
+
+    } else {
+
+        document.body.appendChild(auditPanel);
+
+    }
+
+
+    // ====================================
+    // 6. UPDATE AUDIT PANEL
+    // ====================================
+
+    function displayReserveAudit(data) {
+
+        auditContent.textContent =
+            Object.entries(data)
+
+                .map(([key, value]) => {
+
+                    return key + ": " + String(value);
+
+                })
+
+                .join("\n");
+
+    }
+
+
+    // ====================================
+    // 7. POOL ID VERIFICATION
     // ====================================
 
     function verifyPoolId() {
@@ -179,7 +280,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // ====================================
-    // 6. COPY POOL ID
+    // 8. COPY POOL ID
     // ====================================
 
     if (ELEMENTS.copyButton && ELEMENTS.poolId) {
@@ -251,7 +352,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // ====================================
-    // 7. FORMAT NUMBERS
+    // 9. FORMAT NUMBERS
     // ====================================
 
     function formatNumber(value, decimals = 4) {
@@ -297,7 +398,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // ====================================
-    // 8. RESERVES LENS ABI
+    // 10. RESERVES LENS ABI
     // ====================================
 
     const lensABI = [
@@ -308,7 +409,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // ====================================
-    // 9. FETCH POOL DATA
+    // 11. FETCH POOL DATA
     // ====================================
 
     async function fetchPoolData() {
@@ -324,8 +425,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             );
 
 
+            auditContent.textContent =
+                "Fetching on-chain reserve data...";
+
+
             // ====================================
-            // 10. VERIFY POOL ID
+            // 12. VERIFY POOL ID
             // ====================================
 
             const verifiedPoolId =
@@ -333,7 +438,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 11. CENTRALIZED RPC REQUEST
+            // 13. CENTRALIZED RPC REQUEST
             // ====================================
 
             setStatus(
@@ -382,7 +487,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 12. READ CORE RESERVES
+            // 14. READ CORE RESERVES
             // ====================================
 
             const rawJJS =
@@ -413,7 +518,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 13. CALCULATE CURRENT PRICE
+            // 15. CALCULATE CURRENT PRICE
             // ====================================
 
             const sqrtPriceX96 =
@@ -434,7 +539,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 14. CALCULATE TOTAL LIQUIDITY
+            // 16. CALCULATE TOTAL LIQUIDITY
             // ====================================
 
             const jjsValueUSD =
@@ -445,7 +550,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 15. DISPLAY JJS RESERVE
+            // 17. DISPLAY JJS RESERVE
             // ====================================
 
             if (ELEMENTS.jjsReserve) {
@@ -457,7 +562,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 16. DISPLAY USDT RESERVE
+            // 18. DISPLAY USDT RESERVE
             // ====================================
 
             if (ELEMENTS.usdtReserve) {
@@ -469,7 +574,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 17. DISPLAY TOTAL LIQUIDITY
+            // 19. DISPLAY TOTAL LIQUIDITY
             // ====================================
 
             if (ELEMENTS.totalLiquidity) {
@@ -481,7 +586,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 18. VOLUME 24H
+            // 20. VOLUME 24H
             // ====================================
 
             if (ELEMENTS.volume24h) {
@@ -492,7 +597,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 19. UPDATE STATUS
+            // 21. UPDATE STATUS
             // ====================================
 
             const blockNumber =
@@ -523,7 +628,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             // ====================================
-            // 20. RESERVE AUDIT DATA
+            // 22. VISIBLE RESERVE AUDIT
             // ====================================
 
             const reserveAudit = {
@@ -532,37 +637,37 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 blockNumber,
 
-                coreAmount0:
+                coreAmount0_JJS:
                     formatUnits(
                         result.coreAmount0,
                         JJS_DECIMALS
                     ),
 
-                coreAmount1:
+                coreAmount1_USDT0:
                     formatUnits(
                         result.coreAmount1,
                         USDT_DECIMALS
                     ),
 
-                hookReserves0:
+                hookReserves0_JJS:
                     formatUnits(
                         result.hookReserves0,
                         JJS_DECIMALS
                     ),
 
-                hookReserves1:
+                hookReserves1_USDT0:
                     formatUnits(
                         result.hookReserves1,
                         USDT_DECIMALS
                     ),
 
-                hookEffective0:
+                hookEffective0_JJS:
                     formatUnits(
                         result.hookEffective0,
                         JJS_DECIMALS
                     ),
 
-                hookEffective1:
+                hookEffective1_USDT0:
                     formatUnits(
                         result.hookEffective1,
                         USDT_DECIMALS
@@ -589,15 +694,22 @@ document.addEventListener("DOMContentLoaded", async () => {
                 activeLiquidity:
                     result.activeLiquidity.toString(),
 
-                jjsReserve: jjsAmount,
+                jjsReserve:
+                    jjsAmount,
 
-                usdtReserve: usdtAmount,
+                usdtReserve:
+                    usdtAmount,
 
-                jjsPriceUSDT,
+                jjsPriceUSDT:
+                    jjsPriceUSDT,
 
-                totalLiquidityUSD: totalLiquidity
+                totalLiquidityUSD:
+                    totalLiquidity
 
             };
+
+
+            displayReserveAudit(reserveAudit);
 
 
             console.log(
@@ -644,6 +756,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             );
 
+            auditContent.textContent =
+                "AUDIT ERROR\n\n" +
+                (
+                    error.shortMessage ||
+                    error.message ||
+                    "Unknown error"
+                );
+
         } finally {
 
             isLoading = false;
@@ -654,14 +774,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // ====================================
-    // 21. INITIALIZE
+    // 23. INITIALIZE
     // ====================================
 
     await fetchPoolData();
 
 
     // ====================================
-    // 22. AUTO REFRESH EVERY 60 SECONDS
+    // 24. AUTO REFRESH EVERY 60 SECONDS
     // ====================================
 
     setInterval(
