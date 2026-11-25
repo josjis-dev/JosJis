@@ -169,8 +169,6 @@
             line-height: 1.8;
         }
 
-        /* JJS DONATION */
-
         .jjs-card {
             border-color: rgba(168, 85, 247, 0.45);
             background: linear-gradient(
@@ -576,12 +574,15 @@
 
     import {
         BrowserProvider,
-        JsonRpcProvider,
         Contract,
         parseUnits,
-        formatUnits,
         isAddress
     } from "https://esm.sh/ethers@6.15.0";
+
+    import {
+        getTokenBalance,
+        getTokenDetails
+    } from "./assets/js/core/token-manager.js";
 
 
     // =====================================
@@ -593,30 +594,9 @@
 
     const POLYGON_CHAIN_ID = 137;
 
-    const READ_RPC =
-        "https://polygon-bor-rpc.publicnode.com";
-
     const JJS_ABI = [
-        "function balanceOf(address account) view returns (uint256)",
-        "function decimals() view returns (uint8)",
         "function transfer(address to, uint256 amount) returns (bool)"
     ];
-
-
-    // =====================================
-    // READ-ONLY RPC PROVIDER
-    // =====================================
-
-    const readProvider = new JsonRpcProvider(
-        READ_RPC,
-        POLYGON_CHAIN_ID
-    );
-
-    const jjsReadContract = new Contract(
-        JJS_CONTRACT,
-        JJS_ABI,
-        readProvider
-    );
 
 
     // =====================================
@@ -728,6 +708,63 @@
 
 
     // =====================================
+    // READ JJS BALANCE
+    // USING TOKEN MANAGER
+    // =====================================
+
+    async function refreshJJSBalance() {
+
+        if (!connectedAddress) return;
+
+        const addressToRead = connectedAddress;
+
+        jjsBalance.textContent = "Loading...";
+
+        try {
+
+            const result = await getTokenBalance(
+                "JJS",
+                addressToRead
+            );
+
+            // Ignore stale result if account changed
+            if (connectedAddress !== addressToRead) return;
+
+            if (!result || result.formatted === undefined) {
+                throw new Error(
+                    "Token Manager returned an invalid balance."
+                );
+            }
+
+            jjsBalance.textContent =
+                Number(result.formatted).toLocaleString(
+                    "en-US",
+                    {
+                        maximumFractionDigits: 6
+                    }
+                ) + " " + (result.symbol || "JJS");
+
+        } catch (error) {
+
+            console.error(
+                "JJS balance error:",
+                error
+            );
+
+            jjsBalance.textContent = "Unable to load";
+
+            showDonationStatus(
+                "Unable to read JJS balance: " +
+                (error.message || "RPC error."),
+                "error"
+            );
+
+        }
+
+    }
+
+
+    // =====================================
     // UPDATE WALLET UI
     // =====================================
 
@@ -749,66 +786,15 @@
         }
 
         walletStatus.textContent = "Connected";
+
         walletAddress.textContent =
             shortAddress(connectedAddress);
 
         donationForm.style.display = "block";
+
         connectButton.textContent = "Wallet Connected";
 
         await refreshJJSBalance();
-
-    }
-
-
-    // =====================================
-    // READ JJS BALANCE
-    // DIRECT POLYGON RPC - READ ONLY
-    // =====================================
-
-    async function refreshJJSBalance() {
-
-        if (!connectedAddress) return;
-
-        jjsBalance.textContent = "Loading...";
-
-        try {
-
-            if (!isAddress(connectedAddress)) {
-                throw new Error("Invalid wallet address.");
-            }
-
-            const [balance, decimals] = await Promise.all([
-
-                jjsReadContract.balanceOf(
-                    connectedAddress
-                ),
-
-                jjsReadContract.decimals()
-
-            ]);
-
-            jjsBalance.textContent =
-                Number(
-                    formatUnits(balance, decimals)
-                ).toLocaleString("en-US", {
-                    maximumFractionDigits: 6
-                }) + " JJS";
-
-        } catch (error) {
-
-            console.error(
-                "JJS balance error:",
-                error
-            );
-
-            jjsBalance.textContent = "Unable to load";
-
-            showDonationStatus(
-                "Unable to read JJS balance. Check Polygon RPC connection.",
-                "error"
-            );
-
-        }
 
     }
 
@@ -943,12 +929,14 @@
                 "Preparing Transaction...";
 
 
-            // CHECK RECIPIENT ADDRESS
+            // CHECK DONATION ADDRESS
 
             if (!isAddress(DONATION_WALLET)) {
+
                 throw new Error(
                     "Donation wallet address is invalid."
                 );
+
             }
 
 
@@ -995,10 +983,27 @@
                 await signer.getAddress();
 
 
-            // CHECK TOKEN DECIMALS
+            // VERIFY SIGNER ACCOUNT
+
+            if (
+                signerAddress.toLowerCase() !==
+                address.toLowerCase()
+            ) {
+
+                throw new Error(
+                    "Wallet account changed. Please reconnect your wallet."
+                );
+
+            }
+
+
+            // GET TOKEN DETAILS FROM TOKEN MANAGER
+
+            const tokenDetails =
+                await getTokenDetails("JJS");
 
             const decimals =
-                await jjsReadContract.decimals();
+                tokenDetails.decimals;
 
 
             // PARSE DONATION AMOUNT
@@ -1007,12 +1012,24 @@
                 parseUnits(amountText, decimals);
 
 
-            // CHECK BALANCE
+            // READ BALANCE USING TOKEN MANAGER
 
-            const currentBalance =
-                await jjsReadContract.balanceOf(
+            const balanceResult =
+                await getTokenBalance(
+                    "JJS",
                     signerAddress
                 );
+
+            if (!balanceResult || balanceResult.raw === undefined) {
+
+                throw new Error(
+                    "Unable to verify your JJS balance."
+                );
+
+            }
+
+            const currentBalance =
+                BigInt(balanceResult.raw);
 
             if (currentBalance < donationAmount) {
 
@@ -1062,7 +1079,6 @@
 
             const receipt =
                 await transaction.wait();
-
 
             if (!receipt || receipt.status !== 1) {
 
