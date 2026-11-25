@@ -121,8 +121,8 @@ import {
 // =====================================
 
 import {
-  Token
-} from "./assets/js/core/index.js";
+  getTokenBalance
+} from "./assets/js/core/token-manager.js";
 
 // =====================================
 // HTML ELEMENTS
@@ -146,7 +146,7 @@ const jjsBalanceElement =
 
 let activeAddress = null;
 let refreshNumber = 0;
-let isManualDisconnect = false;
+let refreshInProgress = false;
 
 // =====================================
 // STATUS FUNCTION
@@ -183,7 +183,6 @@ function showConnectedWallet(address) {
 
 // =====================================
 // RESET DASHBOARD
-// Only called after manual disconnect
 // =====================================
 
 function resetDashboard() {
@@ -221,18 +220,26 @@ function resetDashboard() {
 
 async function refreshDashboard() {
 
+  const address = modal.getAddress();
+
+  if (!address) {
+    return;
+  }
+
+  // Prevent overlapping balance requests
+  if (refreshInProgress) {
+    return;
+  }
+
+  const requestId = ++refreshNumber;
+
   try {
 
-    const address = modal.getAddress();
-
-    if (!address) {
-      return;
-    }
-
-    const requestId = ++refreshNumber;
-    const chainId = modal.getChainId();
+    refreshInProgress = true;
 
     showConnectedWallet(address);
+
+    const chainId = modal.getChainId();
 
     if (Number(chainId) !== 137) {
 
@@ -253,21 +260,23 @@ async function refreshDashboard() {
     document.getElementById("networkName").textContent =
       "Polygon Mainnet";
 
-    setStatus("Connected successfully", "connected");
+    setStatus("Loading JJS balance...", "connected");
 
     // =====================================
-    // READ JJS BALANCE THROUGH TOKEN MANAGER
+    // READ BALANCE THROUGH TOKEN MANAGER
     // Token Manager -> RPC Manager
     // =====================================
 
-    const balanceResult = await Token.getTokenBalance(
+    const balanceResult = await getTokenBalance(
       "JJS",
       address
     );
 
+    // Ignore stale results
     if (
       requestId !== refreshNumber ||
-      activeAddress !== address
+      activeAddress !== address ||
+      modal.getAddress() !== address
     ) {
       return;
     }
@@ -291,17 +300,30 @@ async function refreshDashboard() {
     jjsBalanceElement.textContent =
       display + " JJS";
 
+    setStatus("Connected successfully", "connected");
+
   } catch (error) {
 
     console.error("Dashboard error:", error);
 
-    jjsBalanceElement.textContent =
-      "Unable to load";
+    if (
+      requestId === refreshNumber &&
+      activeAddress === address
+    ) {
 
-    setStatus(
-      "Wallet connected, but balance could not be loaded.",
-      "error"
-    );
+      jjsBalanceElement.textContent =
+        "Unable to load";
+
+      setStatus(
+        "Wallet connected, but balance could not be loaded.",
+        "error"
+      );
+    }
+
+  } finally {
+
+    refreshInProgress = false;
+
   }
 }
 
@@ -336,17 +358,11 @@ disconnectBtn.addEventListener("click", async () => {
 
   try {
 
-    isManualDisconnect = true;
-
     await modal.disconnect();
 
     resetDashboard();
 
-    isManualDisconnect = false;
-
   } catch (error) {
-
-    isManualDisconnect = false;
 
     console.error("Disconnect error:", error);
 
