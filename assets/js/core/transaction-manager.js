@@ -1,12 +1,14 @@
 
 import {
     Contract,
-    parseUnits
+    parseUnits,
+    formatUnits
 } from "https://esm.sh/ethers@6.15.0";
 
 import {
     CONTRACTS,
-    ABIS
+    ABIS,
+    NETWORK
 } from "./contract-registry.js";
 
 import {
@@ -15,8 +17,8 @@ import {
 } from "./wallet-manager.js";
 
 import {
-    NETWORK
-} from "./contract-registry.js";
+    rpcRequest
+} from "./rpc-manager.js";
 
 /*
 ========================================
@@ -191,7 +193,7 @@ export async function approveUnlimited(
     };
 }
 
-// Periksa allowance
+// Periksa allowance melalui RPC Manager
 export async function checkAllowance(
     tokenName,
     owner,
@@ -206,22 +208,26 @@ export async function checkAllowance(
     validateAddress(owner);
     validateAddress(spender);
 
-    const { Contract, formatUnits } = await import(
-        "https://esm.sh/ethers@6.15.0"
-    );
+    return await rpcRequest(async (provider) => {
+        const contract = new Contract(
+            token.address,
+            ABIS.ERC20,
+            provider
+        );
 
-    const contract = new Contract(
-        token.address,
-        ABIS.ERC20,
-        (await import("./rpc-manager.js")).getProvider()
-    );
+        const allowance = await contract.allowance(
+            owner,
+            spender
+        );
 
-    const allowance = await contract.allowance(owner, spender);
-
-    return {
-        raw: allowance,
-        formatted: formatUnits(allowance, token.decimals)
-    };
+        return {
+            raw: allowance,
+            formatted: formatUnits(
+                allowance,
+                token.decimals
+            )
+        };
+    });
 }
 
 // Tunggu transaksi selesai
