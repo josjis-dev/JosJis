@@ -10,7 +10,9 @@ import {
     NATIVE_TOKEN
 } from "./contract-registry.js";
 
-import { getProvider } from "./rpc-manager.js";
+import {
+    rpcRequest
+} from "./rpc-manager.js";
 
 /*
 ========================================
@@ -19,8 +21,11 @@ import { getProvider } from "./rpc-manager.js";
 ========================================
 */
 
-// Membuat instance kontrak ERC20
-export function getTokenContract(tokenName) {
+// =====================================
+// MEMBUAT KONTRAK ERC20
+// =====================================
+
+export function getTokenContract(tokenName, provider) {
     const token = CONTRACTS[tokenName];
 
     if (!token) {
@@ -31,14 +36,21 @@ export function getTokenContract(tokenName) {
         throw new Error(`${tokenName} bukan token ERC20.`);
     }
 
+    if (!provider) {
+        throw new Error("RPC provider belum tersedia.");
+    }
+
     return new Contract(
         token.address,
         ABIS.ERC20,
-        getProvider()
+        provider
     );
 }
 
-// Mengambil informasi token
+// =====================================
+// INFORMASI TOKEN
+// =====================================
+
 export async function getTokenDetails(tokenName) {
     const token = CONTRACTS[tokenName];
 
@@ -56,40 +68,56 @@ export async function getTokenDetails(tokenName) {
         };
     }
 
-    const contract = getTokenContract(tokenName);
+    return rpcRequest(async provider => {
+        const contract = getTokenContract(
+            tokenName,
+            provider
+        );
 
-    const [name, symbol, decimals] = await Promise.all([
-        contract.name(),
-        contract.symbol(),
-        contract.decimals()
-    ]);
+        const [name, symbol, decimals] =
+            await Promise.all([
+                contract.name(),
+                contract.symbol(),
+                contract.decimals()
+            ]);
 
-    return {
-        name,
-        symbol,
-        decimals: Number(decimals),
-        address: token.address,
-        type: "ERC20"
-    };
+        return {
+            name,
+            symbol,
+            decimals: Number(decimals),
+            address: token.address,
+            type: "ERC20"
+        };
+    });
 }
 
-// Mengambil saldo POL
+// =====================================
+// SALDO POL
+// =====================================
+
 export async function getNativeBalance(address) {
     if (!address) {
         throw new Error("Alamat wallet belum tersedia.");
     }
 
-    const provider = getProvider();
-    const balance = await provider.getBalance(address);
+    return rpcRequest(async provider => {
+        const balance = await provider.getBalance(address);
 
-    return {
-        raw: balance,
-        formatted: formatUnits(balance, NATIVE_TOKEN.decimals),
-        symbol: NATIVE_TOKEN.symbol
-    };
+        return {
+            raw: balance,
+            formatted: formatUnits(
+                balance,
+                NATIVE_TOKEN.decimals
+            ),
+            symbol: NATIVE_TOKEN.symbol
+        };
+    });
 }
 
-// Mengambil saldo token ERC20
+// =====================================
+// SALDO TOKEN ERC20
+// =====================================
+
 export async function getTokenBalance(tokenName, address) {
     if (!address) {
         throw new Error("Alamat wallet belum tersedia.");
@@ -101,22 +129,31 @@ export async function getTokenBalance(tokenName, address) {
         throw new Error(`Token ${tokenName} tidak terdaftar.`);
     }
 
-    const contract = getTokenContract(tokenName);
+    return rpcRequest(async provider => {
+        const contract = getTokenContract(
+            tokenName,
+            provider
+        );
 
-    const [balance, decimals] = await Promise.all([
-        contract.balanceOf(address),
-        contract.decimals()
-    ]);
+        const [balance, decimals] =
+            await Promise.all([
+                contract.balanceOf(address),
+                contract.decimals()
+            ]);
 
-    return {
-        raw: balance,
-        formatted: formatUnits(balance, decimals),
-        symbol: token.symbol,
-        address: token.address
-    };
+        return {
+            raw: balance,
+            formatted: formatUnits(balance, decimals),
+            symbol: token.symbol,
+            address: token.address
+        };
+    });
 }
 
-// Mengambil saldo seluruh aset JosJis
+// =====================================
+// SEMUA SALDO ASET
+// =====================================
+
 export async function getAllBalances(address) {
     if (!address) {
         throw new Error("Alamat wallet belum tersedia.");
@@ -128,58 +165,93 @@ export async function getAllBalances(address) {
         getTokenBalance("USDT0", address)
     ]);
 
-    return {
-        JJS: results[0].status === "fulfilled"
-            ? results[0].value
-            : { error: results[0].reason.message },
-
-        POL: results[1].status === "fulfilled"
-            ? results[1].value
-            : { error: results[1].reason.message },
-
-        USDT0: results[2].status === "fulfilled"
-            ? results[2].value
-            : { error: results[2].reason.message }
+    const output = {
+        JJS: null,
+        POL: null,
+        USDT0: null
     };
+
+    const keys = ["JJS", "POL", "USDT0"];
+
+    results.forEach((result, index) => {
+        const key = keys[index];
+
+        if (result.status === "fulfilled") {
+            output[key] = result.value;
+        } else {
+            output[key] = {
+                error: result.reason?.message ||
+                    "Gagal mengambil saldo."
+            };
+        }
+    });
+
+    return output;
 }
 
-// Mengambil total supply token
+// =====================================
+// TOTAL SUPPLY
+// =====================================
+
 export async function getTotalSupply(tokenName) {
-    const token = getTokenContract(tokenName);
+    return rpcRequest(async provider => {
+        const contract = getTokenContract(
+            tokenName,
+            provider
+        );
 
-    const [supply, decimals] = await Promise.all([
-        token.totalSupply(),
-        token.decimals()
-    ]);
+        const [supply, decimals] =
+            await Promise.all([
+                contract.totalSupply(),
+                contract.decimals()
+            ]);
 
-    return {
-        raw: supply,
-        formatted: formatUnits(supply, decimals)
-    };
+        return {
+            raw: supply,
+            formatted: formatUnits(supply, decimals)
+        };
+    });
 }
 
-// Memeriksa allowance
+// =====================================
+// ALLOWANCE
+// =====================================
+
 export async function getAllowance(
     tokenName,
     owner,
     spender
 ) {
     if (!owner || !spender) {
-        throw new Error("Alamat owner atau spender belum tersedia.");
+        throw new Error(
+            "Alamat owner atau spender belum tersedia."
+        );
     }
 
-    const contract = getTokenContract(tokenName);
+    return rpcRequest(async provider => {
+        const contract = getTokenContract(
+            tokenName,
+            provider
+        );
 
-    const [allowance, decimals] = await Promise.all([
-        contract.allowance(owner, spender),
-        contract.decimals()
-    ]);
+        const [allowance, decimals] =
+            await Promise.all([
+                contract.allowance(owner, spender),
+                contract.decimals()
+            ]);
 
-    return {
-        raw: allowance,
-        formatted: formatUnits(allowance, decimals)
-    };
+        return {
+            raw: allowance,
+            formatted: formatUnits(allowance, decimals)
+        };
+    });
 }
 
-// Mengekspor konfigurasi token
-export { CONTRACTS, NATIVE_TOKEN };
+// =====================================
+// EKSPOR KONFIGURASI TOKEN
+// =====================================
+
+export {
+    CONTRACTS,
+    NATIVE_TOKEN
+};
