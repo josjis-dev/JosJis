@@ -3,7 +3,6 @@
 <html lang="en">
 
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#17130a">
@@ -11,7 +10,6 @@
 <title>JosJis Core Test</title>
 
 <style>
-
 * {
     box-sizing: border-box;
 }
@@ -160,9 +158,7 @@ button:disabled {
 .summary strong {
     color: #f5bd42;
 }
-
 </style>
-
 </head>
 
 <body>
@@ -170,7 +166,6 @@ button:disabled {
 <div class="container">
 
 <header>
-
     <img
         src="./assets/images/josjis-logo-circle.png"
         class="logo"
@@ -182,13 +177,11 @@ button:disabled {
     <div class="subtitle">
         Core Module Diagnostic Dashboard
     </div>
-
 </header>
 
 <!-- TEST CONTROLS -->
 
 <div class="card">
-
     <h2>Test Controls</h2>
 
     <button id="runBtn">
@@ -198,13 +191,11 @@ button:disabled {
     <button id="walletBtn" class="secondary">
         CONNECT WALLET
     </button>
-
 </div>
 
 <!-- RPC MANAGER -->
 
 <div class="card">
-
     <h2>1. RPC Manager</h2>
 
     <div class="test-item">
@@ -231,13 +222,11 @@ button:disabled {
         <span>Available RPC</span>
         <span id="rpcList" class="test-value">-</span>
     </div>
-
 </div>
 
 <!-- CONTRACT REGISTRY -->
 
 <div class="card">
-
     <h2>2. Contract Registry</h2>
 
     <div class="test-item">
@@ -254,13 +243,11 @@ button:disabled {
         <span>Network</span>
         <span id="networkStatus" class="test-value">-</span>
     </div>
-
 </div>
 
 <!-- WALLET MANAGER -->
 
 <div class="card">
-
     <h2>3. Wallet Manager</h2>
 
     <div class="test-item">
@@ -282,13 +269,11 @@ button:disabled {
         <span>Polygon Network</span>
         <span id="walletNetwork" class="test-value">-</span>
     </div>
-
 </div>
 
 <!-- TOKEN MANAGER -->
 
 <div class="card">
-
     <h2>4. Token Manager</h2>
 
     <div class="test-item">
@@ -305,13 +290,11 @@ button:disabled {
         <span>JJS Total Supply</span>
         <span id="supplyStatus" class="test-value pending">Waiting</span>
     </div>
-
 </div>
 
 <!-- WALLET BALANCES -->
 
 <div class="card">
-
     <h2>5. Wallet Balances</h2>
 
     <div class="test-item">
@@ -328,13 +311,11 @@ button:disabled {
         <span>USDT Balance</span>
         <span id="usdtBalance" class="test-value">-</span>
     </div>
-
 </div>
 
 <!-- DATA MANAGER -->
 
 <div class="card">
-
     <h2>6. Data Manager</h2>
 
     <div class="test-item">
@@ -351,13 +332,11 @@ button:disabled {
         <span>Last Updated</span>
         <span id="updateStatus" class="test-value">-</span>
     </div>
-
 </div>
 
 <!-- ERROR MANAGER -->
 
 <div class="card">
-
     <h2>7. Error Manager</h2>
 
     <div class="test-item">
@@ -369,40 +348,33 @@ button:disabled {
         <span>Test Classification</span>
         <span id="errorClassification" class="test-value">-</span>
     </div>
-
 </div>
 
 <!-- TEST SUMMARY -->
 
 <div class="card">
-
     <h2>Test Summary</h2>
 
     <div class="summary" id="summary">
         Waiting for test...
     </div>
-
 </div>
 
 <!-- TEST LOG -->
 
 <div class="card">
-
     <h2>Test Log</h2>
 
     <div id="logs" class="log-box">
         Waiting for test...
     </div>
-
 </div>
 
 <p class="note">
-
     Read-only diagnostic page.
 
     No token transfers, approvals, or blockchain
     transactions will be performed.
-
 </p>
 
 <div class="footer">
@@ -424,7 +396,7 @@ import {
 
 /*
 ========================================
- ELEMENTS
+ELEMENTS
 ========================================
 */
 
@@ -437,7 +409,7 @@ let testResults = [];
 
 /*
 ========================================
- LOG SYSTEM
+LOG SYSTEM
 ========================================
 */
 
@@ -463,12 +435,11 @@ function log(message, type = "info") {
     $("logs").appendChild(line);
 
     $("logs").scrollTop = $("logs").scrollHeight;
-
 }
 
 /*
 ========================================
- TEST RESULT TRACKER
+TEST RESULT TRACKER
 ========================================
 */
 
@@ -489,19 +460,22 @@ function updateSummary() {
 
     const failed = testResults.length - passed;
 
+    const total = testResults.length;
+
     $("summary").innerHTML = `
-        <strong>Total Tests:</strong> ${testResults.length}<br>
+        <strong>Total Tests:</strong> ${total}<br>
         <strong>Passed:</strong> ${passed}<br>
         <strong>Failed:</strong> ${failed}<br>
         <strong>Result:</strong>
-        ${failed === 0 ? "All tests passed" : "Some tests failed"}
+        ${failed === 0 && total > 0
+            ? "All tests passed"
+            : "Some tests failed"}
     `;
-
 }
 
 /*
 ========================================
- STATUS SYSTEM
+STATUS SYSTEM
 ========================================
 */
 
@@ -512,18 +486,16 @@ function setStatus(id, message, status = "success") {
     element.textContent = message;
 
     element.className = `test-value ${status}`;
-
 }
 
 function setValue(id, value) {
 
     $(id).textContent = value;
-
 }
 
 /*
 ========================================
- FORMAT
+FORMAT
 ========================================
 */
 
@@ -542,12 +514,11 @@ function formatBalance(value, digits = 6) {
     return number.toLocaleString("en-US", {
         maximumFractionDigits: digits
     });
-
 }
 
 /*
 ========================================
- RESET TEST STATUS
+RESET TEST STATUS
 ========================================
 */
 
@@ -593,12 +564,11 @@ function resetTests() {
     });
 
     $("summary").textContent = "Testing...";
-
 }
 
 /*
 ========================================
- 1. RPC TEST
+1. RPC TEST
 ========================================
 */
 
@@ -608,41 +578,81 @@ async function testRPC() {
 
     try {
 
-        const provider = await RPC.getHealthyProvider();
+        /*
+        rpcRequest() handles endpoint failover.
+        We use its returned result directly.
+        */
 
-        const [network, block] = await Promise.all([
-            provider.getNetwork(),
-            provider.getBlockNumber()
-        ]);
+        const result = await RPC.rpcRequest(async provider => {
 
-        const chainId = Number(network.chainId);
+            const [network, block] = await Promise.all([
+                provider.getNetwork(),
+                provider.getBlockNumber()
+            ]);
 
-        if (chainId !== 137) {
-            throw new Error(`Wrong chain ID: ${chainId}`);
-        }
+            const chainId = Number(network.chainId);
+
+            if (chainId !== 137) {
+                throw new Error(
+                    `Wrong chain ID: ${chainId}`
+                );
+            }
+
+            return {
+                chainId,
+                blockNumber: Number(block)
+            };
+
+        });
 
         const active = RPC.getActiveRPC();
 
+        if (!result) {
+            throw new Error("RPC returned no data.");
+        }
+
         setStatus("rpcStatus", "Connected");
 
-        setStatus("chainStatus", String(chainId));
+        setStatus(
+            "chainStatus",
+            String(result.chainId)
+        );
 
-        setStatus("blockStatus", String(block));
+        setStatus(
+            "blockStatus",
+            result.blockNumber.toLocaleString("en-US")
+        );
 
-        setValue("activeRPC", active.name);
+        setValue(
+            "activeRPC",
+            active?.name || "Active endpoint"
+        );
 
         const rpcList = RPC.getRPCList();
 
         setValue(
             "rpcList",
             rpcList.map(rpc =>
-                `${rpc.name}: ${rpc.active ? "Active" : "Standby"}`
+                `${rpc.name}: ${
+                    rpc.active ? "Active" : "Standby"
+                }`
             ).join(" | ")
         );
 
-        setStatus("networkStatus", "Polygon Mainnet");
+        setStatus(
+            "networkStatus",
+            "Polygon Mainnet"
+        );
 
-        log(`RPC connected: ${active.name}`, "success");
+        log(
+            `RPC connected: ${active?.name || "Endpoint available"}`,
+            "success"
+        );
+
+        log(
+            `Chain ID: ${result.chainId}, Block: ${result.blockNumber}`,
+            "success"
+        );
 
         recordTest("RPC Manager", true);
 
@@ -656,19 +666,21 @@ async function testRPC() {
 
         setStatus("blockStatus", "Failed", "failed");
 
+        setValue("activeRPC", "-");
+
+        setValue("rpcList", "No responding endpoint");
+
         log("RPC: " + error.message, "error");
 
         recordTest("RPC Manager", false);
 
         return false;
-
     }
-
 }
 
 /*
 ========================================
- 2. CONTRACT REGISTRY TEST
+2. CONTRACT REGISTRY TEST
 ========================================
 */
 
@@ -686,6 +698,10 @@ function testRegistry() {
             throw new Error("Token registry missing.");
         }
 
+        if (!jjs.address || !usdt.address) {
+            throw new Error("Contract address missing.");
+        }
+
         setStatus(
             "jjsContract",
             jjs.address.slice(0, 8) + "..."
@@ -696,7 +712,10 @@ function testRegistry() {
             usdt.address.slice(0, 8) + "..."
         );
 
-        log("Contract Registry successful.", "success");
+        log(
+            "Contract Registry successful.",
+            "success"
+        );
 
         recordTest("Contract Registry", true);
 
@@ -713,14 +732,12 @@ function testRegistry() {
         recordTest("Contract Registry", false);
 
         return false;
-
     }
-
 }
 
 /*
 ========================================
- 3. WALLET TEST
+3. WALLET TEST
 ========================================
 */
 
@@ -732,7 +749,7 @@ function testWallet() {
 
         const wallet = Wallet.getWalletInfo();
 
-        if (!wallet.connected) {
+        if (!wallet || !wallet.connected) {
 
             setStatus(
                 "walletStatus",
@@ -751,7 +768,6 @@ function testWallet() {
             recordTest("Wallet Manager", false);
 
             return null;
-
         }
 
         setStatus("walletStatus", "Connected");
@@ -774,9 +790,13 @@ function testWallet() {
             isPolygon ? "success" : "failed"
         );
 
-        log("Wallet detected.", "success");
+        if (!isPolygon) {
+            log("Wallet is connected to the wrong network.", "error");
+        } else {
+            log("Wallet detected on Polygon.", "success");
+        }
 
-        recordTest("Wallet Manager", true);
+        recordTest("Wallet Manager", isPolygon);
 
         return wallet.address;
 
@@ -789,14 +809,12 @@ function testWallet() {
         recordTest("Wallet Manager", false);
 
         return null;
-
     }
-
 }
 
 /*
 ========================================
- 4. TOKEN TEST
+4. TOKEN TEST
 ========================================
 */
 
@@ -824,7 +842,6 @@ async function testTokens() {
         setStatus("jjsInfo", "Failed", "failed");
 
         log("JJS: " + error.message, "error");
-
     }
 
     try {
@@ -845,7 +862,6 @@ async function testTokens() {
         setStatus("usdtInfo", "Failed", "failed");
 
         log("USDT: " + error.message, "error");
-
     }
 
     try {
@@ -866,18 +882,16 @@ async function testTokens() {
         setStatus("supplyStatus", "Failed", "failed");
 
         log("Supply: " + error.message, "error");
-
     }
 
     recordTest("Token Manager", allSuccess);
 
     return allSuccess;
-
 }
 
 /*
 ========================================
- 5. BALANCE TEST
+5. BALANCE TEST
 ========================================
 */
 
@@ -885,16 +899,27 @@ async function testBalances(address) {
 
     if (!address) {
 
-        setValue("jjsBalance", "Connect wallet first");
+        setStatus(
+            "jjsBalance",
+            "Connect wallet first",
+            "pending"
+        );
 
-        setValue("polBalance", "Connect wallet first");
+        setStatus(
+            "polBalance",
+            "Connect wallet first",
+            "pending"
+        );
 
-        setValue("usdtBalance", "Connect wallet first");
+        setStatus(
+            "usdtBalance",
+            "Connect wallet first",
+            "pending"
+        );
 
         recordTest("Wallet Balances", false);
 
         return false;
-
     }
 
     log("Testing wallet balances...");
@@ -925,23 +950,26 @@ async function testBalances(address) {
 
         for (const asset of assets) {
 
-            const balance = balances[asset.key];
+            const balance = balances?.[asset.key];
 
             if (!balance || balance.error) {
 
                 setStatus(
                     asset.element,
-                    "Failed: " + (balance?.error || "No data"),
+                    "Failed: " + (
+                        balance?.error || "No data"
+                    ),
                     "failed"
                 );
 
                 log(
-                    `${asset.symbol}: ${balance?.error || "No data"}`,
+                    `${asset.symbol}: ${
+                        balance?.error || "No data"
+                    }`,
                     "error"
                 );
 
                 continue;
-
             }
 
             setStatus(
@@ -956,7 +984,6 @@ async function testBalances(address) {
                 `${asset.symbol} balance loaded.`,
                 "success"
             );
-
         }
 
         const success = successCount === 3;
@@ -983,14 +1010,12 @@ async function testBalances(address) {
         recordTest("Wallet Balances", false);
 
         return false;
-
     }
-
 }
 
 /*
 ========================================
- 6. DATA MANAGER TEST
+6. DATA MANAGER TEST
 ========================================
 */
 
@@ -1012,7 +1037,6 @@ async function testData(address) {
         recordTest("Data Manager", false);
 
         return false;
-
     }
 
     log("Testing Data Manager...");
@@ -1033,6 +1057,20 @@ async function testData(address) {
             !balances[key] || balances[key].error
         );
 
+        const successCount = keys.length - failedAssets.length;
+
+        setValue(
+            "dataBalanceStatus",
+            `${successCount}/3 successful`
+        );
+
+        setValue(
+            "updateStatus",
+            data.lastUpdated
+                ? new Date(data.lastUpdated).toLocaleTimeString()
+                : new Date().toLocaleTimeString()
+        );
+
         if (failedAssets.length > 0) {
 
             setStatus(
@@ -1041,15 +1079,15 @@ async function testData(address) {
                 "failed"
             );
 
-            setValue(
-                "dataBalanceStatus",
-                `${3 - failedAssets.length}/3 successful`
+            log(
+                "Data Manager partial failure: " +
+                failedAssets.join(", "),
+                "error"
             );
 
-            throw new Error(
-                "Failed assets: " + failedAssets.join(", ")
-            );
+            recordTest("Data Manager", false);
 
+            return false;
         }
 
         setStatus("dataStatus", "Loaded");
@@ -1057,13 +1095,6 @@ async function testData(address) {
         setStatus(
             "dataBalanceStatus",
             "3/3 successful"
-        );
-
-        setValue(
-            "updateStatus",
-            data.lastUpdated
-                ? new Date(data.lastUpdated).toLocaleTimeString()
-                : new Date().toLocaleTimeString()
         );
 
         log("Data Manager successful.", "success");
@@ -1076,19 +1107,25 @@ async function testData(address) {
 
         setStatus("dataStatus", "Failed", "failed");
 
-        log("Data Manager: " + error.message, "error");
+        setValue(
+            "dataBalanceStatus",
+            "Validation failed"
+        );
+
+        log(
+            "Data Manager: " + error.message,
+            "error"
+        );
 
         recordTest("Data Manager", false);
 
         return false;
-
     }
-
 }
 
 /*
 ========================================
- 7. ERROR MANAGER TEST
+7. ERROR MANAGER TEST
 ========================================
 */
 
@@ -1107,6 +1144,12 @@ function testErrorManager() {
             testError,
             "Core Test"
         );
+
+        if (!result || !result.type) {
+            throw new Error(
+                "Error classification unavailable."
+            );
+        }
 
         setStatus("errorStatus", "Loaded");
 
@@ -1133,14 +1176,12 @@ function testErrorManager() {
         recordTest("Error Manager", false);
 
         return false;
-
     }
-
 }
 
 /*
 ========================================
- RUN ALL TESTS
+RUN ALL TESTS
 ========================================
 */
 
@@ -1178,25 +1219,31 @@ async function runTests() {
 
         updateSummary();
 
-        log("Core test completed.", "success");
+        log(
+            "Core test completed.",
+            "success"
+        );
 
     } catch (error) {
 
-        log("Unexpected error: " + error.message, "error");
+        log(
+            "Unexpected error: " + error.message,
+            "error"
+        );
+
+        updateSummary();
 
     } finally {
 
         runBtn.disabled = false;
 
         runBtn.textContent = "RUN CORE TEST";
-
     }
-
 }
 
 /*
 ========================================
- CONNECT WALLET
+CONNECT WALLET
 ========================================
 */
 
@@ -1208,15 +1255,16 @@ walletBtn.addEventListener("click", async () => {
 
     } catch (error) {
 
-        log("Wallet connection: " + error.message, "error");
-
+        log(
+            "Wallet connection: " + error.message,
+            "error"
+        );
     }
-
 });
 
 /*
 ========================================
- BUTTON
+BUTTON
 ========================================
 */
 
@@ -1224,7 +1272,7 @@ runBtn.addEventListener("click", runTests);
 
 /*
 ========================================
- INITIALIZATION
+INITIALIZATION
 ========================================
 */
 
