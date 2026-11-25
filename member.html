@@ -431,6 +431,7 @@
 
 </main>
 
+
 <!-- SHARED WEBSITE SCRIPTS -->
 
 <script src="assets/js/header.js" defer></script>
@@ -442,12 +443,13 @@
 
 <script type="module">
 
-import {
-    modal,
-    token,
-    formatUnits
-} from "./web3/web3-config.js";
+import { modal } from "./web3/web3-config.js";
+import { Token } from "./assets/js/core/index.js";
 
+
+// =====================================
+// ELEMENTS
+// =====================================
 
 const connectBtn =
     document.getElementById("memberConnectBtn");
@@ -474,15 +476,156 @@ const membershipNote =
     document.getElementById("memberMembershipNote");
 
 
+// =====================================
+// CONFIGURATION
+// =====================================
+
+const POLYGON_CHAIN_ID = 137;
+const AUTO_REFRESH_INTERVAL = 15000;
+
+
+// =====================================
+// STATE
+// =====================================
+
 let activeAddress = null;
 let refreshNumber = 0;
+let isRefreshing = false;
+let refreshQueued = false;
+let refreshInterval = null;
 
+
+// =====================================
+// STATUS
+// =====================================
+
+function setMemberStatus(message, type = "") {
+
+    walletStatusElement.textContent = message;
+
+    walletStatusElement.className =
+        "member-status " + type;
+
+}
+
+
+// =====================================
+// SHOW CONNECTED WALLET
+// =====================================
+
+function showConnectedWallet(address) {
+
+    activeAddress = address;
+
+    walletAddressElement.textContent = address;
+
+    setMemberStatus("Connected", "connected");
+
+    connectBtn.style.display = "none";
+
+    memberContent.hidden = false;
+
+}
+
+
+// =====================================
+// DISCONNECTED
+// =====================================
+
+function showDisconnected() {
+
+    refreshNumber++;
+
+    activeAddress = null;
+    refreshQueued = false;
+
+    walletAddressElement.textContent =
+        "Not connected";
+
+    setMemberStatus("Disconnected");
+
+    memberMessage.textContent =
+        "Connect your wallet to enter your Member Area.";
+
+    balanceElement.textContent = "--";
+
+    membershipElement.textContent =
+        "Wallet Connected";
+
+    membershipNote.textContent =
+        "Connect your wallet to continue";
+
+    connectBtn.style.display = "inline-block";
+
+    memberContent.hidden = true;
+
+    if (refreshInterval) {
+
+        clearInterval(refreshInterval);
+        refreshInterval = null;
+
+    }
+
+}
+
+
+// =====================================
+// WRONG NETWORK
+// =====================================
+
+function showWrongNetwork(address) {
+
+    refreshNumber++;
+
+    activeAddress = null;
+    refreshQueued = false;
+
+    walletAddressElement.textContent = address;
+
+    setMemberStatus(
+        "Wrong Network",
+        "warning"
+    );
+
+    memberMessage.textContent =
+        "Please switch your wallet to Polygon Mainnet.";
+
+    balanceElement.textContent =
+        "Polygon required";
+
+    membershipElement.textContent =
+        "Network Required";
+
+    membershipNote.textContent =
+        "Please select Polygon Mainnet";
+
+    connectBtn.style.display = "none";
+
+    memberContent.hidden = false;
+
+    if (refreshInterval) {
+
+        clearInterval(refreshInterval);
+        refreshInterval = null;
+
+    }
+
+}
+
+
+// =====================================
+// FORMAT BALANCE
+// =====================================
 
 function formatTokenAmount(value) {
 
-    const parts = value.split(".");
+    if (value === null || value === undefined) {
+        return "--";
+    }
 
-    const integerPart = parts[0].replace(
+    const parts = String(value).split(".");
+
+    const integerPart = (parts[0] || "0").replace(
         /\B(?=(\d{3})+(?!\d))/g,
         ","
     );
@@ -498,114 +641,80 @@ function formatTokenAmount(value) {
 }
 
 
-function setMemberStatus(message, type = "") {
-
-    walletStatusElement.textContent = message;
-
-    walletStatusElement.className =
-        "member-status " + type;
-
-}
-
-
-function showConnectedWallet(address) {
-
-    activeAddress = address;
-
-    walletAddressElement.textContent = address;
-
-    walletStatusElement.textContent = "Connected";
-
-    walletStatusElement.className =
-        "member-status connected";
-
-    memberMessage.textContent =
-        "Your wallet is connected to JosJis.";
-
-    connectBtn.style.display = "none";
-
-    memberContent.hidden = false;
-
-}
-
+// =====================================
+// REFRESH MEMBER BALANCE
+// =====================================
 
 async function refreshMemberArea() {
 
+    if (!activeAddress) return;
+
+    if (isRefreshing) {
+
+        refreshQueued = true;
+        return;
+
+    }
+
+    const address = activeAddress;
+    const requestId = refreshNumber;
+
+    isRefreshing = true;
+
     try {
 
-        const address = modal.getAddress();
+        const balances =
+            await Token.getAllBalances(address);
 
-        if (!address) {
-            return;
-        }
-
-        const requestId = ++refreshNumber;
-
-        const chainId = modal.getChainId();
-
-        showConnectedWallet(address);
-
-
-        if (Number(chainId) !== 137) {
-
-            balanceElement.textContent = "Polygon required";
-
-            membershipElement.textContent =
-                "Network Required";
-
-            membershipNote.textContent =
-                "Please select Polygon Mainnet";
-
-            setMemberStatus(
-                "Wrong Network",
-                "warning"
-            );
-
-            memberMessage.textContent =
-                "Please switch your wallet to Polygon Mainnet.";
-
-            return;
-        }
-
-
-        setMemberStatus(
-            "Connected",
-            "connected"
-        );
-
-        memberMessage.textContent =
-            "Your wallet is connected to Polygon. Welcome to JosJis!";
-
-
-        balanceElement.textContent = "Loading...";
-
-        const [balance, decimals] = await Promise.all([
-
-            token.balanceOf(address),
-
-            token.decimals()
-
-        ]);
-
+        // Ignore outdated requests.
 
         if (
-            requestId !== refreshNumber ||
-            activeAddress !== address
+            !activeAddress ||
+            activeAddress.toLowerCase() !== address.toLowerCase() ||
+            requestId !== refreshNumber
         ) {
+
             return;
+
         }
 
+        const jjs = balances.JJS;
 
-        const formatted = formatUnits(
-            balance,
-            decimals
-        );
+        if (
+            !jjs ||
+            jjs.error ||
+            jjs.formatted === undefined
+        ) {
+
+            console.error(
+                "JJS Balance Error:",
+                jjs?.error || "Balance unavailable"
+            );
+
+            balanceElement.textContent =
+                "Unable to load";
+
+            memberMessage.textContent =
+                "Wallet connected, but JJS balance could not be loaded.";
+
+            return;
+
+        }
+
+        // Display JJS balance.
 
         balanceElement.textContent =
-            formatTokenAmount(formatted) + " JJS";
+            formatTokenAmount(jjs.formatted) + " JJS";
 
+        // Membership status.
 
-        if (balance > 0n) {
+        const rawBalance = jjs.raw;
+
+        const hasJJS =
+            rawBalance !== undefined &&
+            BigInt(rawBalance.toString()) > 0n;
+
+        if (hasJJS) {
 
             membershipElement.textContent =
                 "JJS Holder";
@@ -623,23 +732,148 @@ async function refreshMemberArea() {
 
         }
 
+        memberMessage.textContent =
+            "Your wallet and JJS balance are successfully updated.";
+
+        setMemberStatus("Connected", "connected");
+
     } catch (error) {
 
         console.error(
-            "Member Area error:",
+            "Member Area Core Error:",
             error
         );
 
-        balanceElement.textContent =
-            "Unable to load";
+        if (
+            activeAddress &&
+            activeAddress.toLowerCase() === address.toLowerCase() &&
+            requestId === refreshNumber
+        ) {
 
-        memberMessage.textContent =
-            "Wallet connected, but balance could not be loaded.";
+            balanceElement.textContent =
+                "Unable to load";
+
+            memberMessage.textContent =
+                "Unable to retrieve JJS balance. Please try again.";
+
+        }
+
+    } finally {
+
+        isRefreshing = false;
+
+        if (refreshQueued) {
+
+            refreshQueued = false;
+
+            if (activeAddress) {
+                refreshMemberArea();
+            }
+
+        }
 
     }
 
 }
 
+
+// =====================================
+// AUTO REFRESH
+// =====================================
+
+function startAutoRefresh() {
+
+    if (refreshInterval) return;
+
+    refreshInterval = setInterval(() => {
+
+        syncWallet();
+
+    }, AUTO_REFRESH_INTERVAL);
+
+}
+
+
+// =====================================
+// SYNC WALLET
+// =====================================
+
+function syncWallet(accountAddress = null) {
+
+    let address;
+    let chainId;
+
+    try {
+
+        address = modal.getAddress() || accountAddress;
+        chainId = modal.getChainId();
+
+    } catch (error) {
+
+        console.error(
+            "Wallet Sync Error:",
+            error
+        );
+
+        return;
+
+    }
+
+    if (!address) return;
+
+    if (chainId === undefined || chainId === null) {
+
+        setMemberStatus("Checking Network", "warning");
+
+        memberMessage.textContent =
+            "Checking wallet network...";
+
+        return;
+
+    }
+
+    if (Number(chainId) !== POLYGON_CHAIN_ID) {
+
+        showWrongNetwork(address);
+        return;
+
+    }
+
+    const addressChanged =
+        !activeAddress ||
+        activeAddress.toLowerCase() !== address.toLowerCase();
+
+    if (addressChanged) {
+
+        refreshNumber++;
+
+        refreshQueued = false;
+
+        balanceElement.textContent = "Loading...";
+
+        membershipElement.textContent =
+            "Wallet Connected";
+
+        membershipNote.textContent =
+            "Checking JJS balance...";
+
+        showConnectedWallet(address);
+
+        memberMessage.textContent =
+            "Wallet connected. Loading JJS balance...";
+
+    }
+
+    startAutoRefresh();
+
+    refreshMemberArea();
+
+}
+
+
+// =====================================
+// CONNECT WALLET
+// =====================================
 
 connectBtn.addEventListener("click", async () => {
 
@@ -652,7 +886,7 @@ connectBtn.addEventListener("click", async () => {
     } catch (error) {
 
         console.error(
-            "Connect error:",
+            "Connect Error:",
             error
         );
 
@@ -664,65 +898,79 @@ connectBtn.addEventListener("click", async () => {
 });
 
 
-modal.subscribeState((state) => {
+// =====================================
+// APPKIT STATE LISTENER
+// =====================================
 
-    if (state.isConnected) {
+modal.subscribeState(() => {
 
-        refreshMemberArea();
+    const address = modal.getAddress();
+
+    if (address) {
+
+        syncWallet(address);
+
+    }
+
+});
+
+
+// =====================================
+// ACCOUNT LISTENER
+// =====================================
+
+modal.subscribeAccount(account => {
+
+    if (account?.address) {
+
+        syncWallet(account.address);
+
+    } else if (account?.isConnected === false) {
+
+        showDisconnected();
 
     }
 
 });
 
 
-modal.subscribeAccount((account) => {
-
-    if (
-        account.isConnected &&
-        account.address
-    ) {
-
-        refreshMemberArea();
-
-    }
-
-});
-
+// =====================================
+// NETWORK LISTENER
+// =====================================
 
 modal.subscribeNetwork(() => {
 
-    if (modal.getIsConnected()) {
+    const address = modal.getAddress();
 
-        refreshMemberArea();
+    if (address) {
+
+        syncWallet(address);
 
     }
 
 });
 
 
+// =====================================
+// RESTORE WALLET SESSION
+// =====================================
+
 async function restoreWalletSession() {
+
+    setMemberStatus("Checking...");
 
     memberMessage.textContent =
         "Restoring saved wallet session...";
-
-    connectBtn.style.display = "inline-block";
-
-    connectBtn.disabled = false;
-
-    connectBtn.textContent = "Connect Wallet";
-
 
     for (let attempt = 0; attempt < 40; attempt++) {
 
         try {
 
-            if (
-                modal.getIsConnected() &&
-                modal.getAddress()
-            ) {
+            const address = modal.getAddress();
 
-                await refreshMemberArea();
+            if (address) {
 
+                syncWallet(address);
                 return;
 
             }
@@ -730,7 +978,7 @@ async function restoreWalletSession() {
         } catch (error) {
 
             console.error(
-                "Restore check:",
+                "Restore Error:",
                 error
             );
 
@@ -742,7 +990,6 @@ async function restoreWalletSession() {
 
     }
 
-
     if (!activeAddress) {
 
         walletAddressElement.textContent =
@@ -751,7 +998,7 @@ async function restoreWalletSession() {
         setMemberStatus("Disconnected");
 
         memberMessage.textContent =
-            "Connect your wallet to enter your Member Area.";
+            "No active wallet session detected. Connect your wallet.";
 
         connectBtn.style.display =
             "inline-block";
@@ -763,18 +1010,11 @@ async function restoreWalletSession() {
 }
 
 
+// =====================================
+// INITIALIZE
+// =====================================
+
 restoreWalletSession();
-
-
-setInterval(() => {
-
-    if (modal.getIsConnected()) {
-
-        refreshMemberArea();
-
-    }
-
-}, 15000);
 
 </script>
 
