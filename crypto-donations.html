@@ -7,7 +7,6 @@
     <meta name="theme-color" content="#0c0914">
 
     <title>Support JosJis | Crypto Donations</title>
-
     <meta name="description" content="Support the JosJis ecosystem through voluntary cryptocurrency donations using JJS, POL or USDT on Polygon.">
 
     <link rel="stylesheet" href="assets/css/style.css">
@@ -26,116 +25,169 @@
         .donation-hero {
             text-align: center;
             padding: 55px 25px;
-            background: linear-gradient(
-                145deg,
-                rgba(139, 92, 246, 0.16),
-                rgba(12, 9, 20, 0.95)
-            );
-            border: 1px solid rgba(168, 85, 247, 0.25);
+            background: linear-gradient(145deg, rgba(139,92,246,.16), rgba(12,9,20,.95));
+            border: 1px solid rgba(168,85,247,.25);
             border-radius: 20px;
         }
 
-        .donation-icon {
-            font-size: 65px;
-            margin-bottom: 18px;
-        }
-
-        .donation-hero h1 {
-            font-size: clamp(30px, 6vw, 46px);
-            margin-bottom: 15px;
-            color: #ffffff;
-        }
-
-        .donation-hero h1 span {
-            color: #b58aff;
-        }
-
-        .donation-hero p {
-            max-width: 620px;
-            margin: 0 auto 25px;
-            color: #c5bfd2;
-            line-height: 1.8;
-        }
+        .donation-icon { font-size: 65px; margin-bottom: 18px; }
+        .donation-hero h1 { font-size: clamp(30px,6vw,46px); margin-bottom: 15px; color: #fff; }
+        .donation-hero h1 span { color: #b58aff; }
+        .donation-hero p { max-width: 620px; margin: 0 auto 25px; color: #c5bfd2; line-height: 1.8; }
 
         .donation-section {
             margin-top: 35px;
             padding: 30px;
-            background: rgba(255, 255, 255, 0.035);
-            border: 1px solid rgba(168, 85, 247, 0.16);
+            background: rgba(255,255,255,.035);
+            border: 1px solid rgba(168,85,247,.16);
             border-radius: 16px;
         }
 
-        .donation-section h2 {
-            color: #ffffff;
-            margin-bottom: 15px;
-        }
-
-        .donation-section p {
-            color: #c5bfd2;
-            line-height: 1.8;
-        }
+        .donation-section h2 { color: #fff; margin-bottom: 15px; }
+        .donation-section p { color: #c5bfd2; line-height: 1.8; }
 
         .donation-card {
             margin-top: 22px;
             padding: 22px;
-            border: 1px solid rgba(168, 85, 247, 0.3);
+            border: 1px solid rgba(168,85,247,.3);
             border-radius: 14px;
-            background: linear-gradient(
-                145deg,
-                rgba(139, 92, 246, 0.13),
-                rgba(0, 0, 0, 0.15)
-            );
+            background: linear-gradient(145deg, rgba(139,92,246,.13), rgba(0,0,0,.15));
         }
 
-        .donation-card h3 {
-            color: #ffffff;
-            margin-bottom: 8px;
-        }
+        .donation-card h3 { color: #fff; margin-bottom: 8px; }
+        .donation-card p { font-size: 14px; margin-bottom: 15px; }
 
-        .donation-card p {
-            font-size: 14px;
-            margin-bottom: 15px;
-        }
+        /* TOKEN ASSET SELECTOR */
 
         .donation-selector {
             margin-top: 25px;
             padding: 20px;
-            border: 1px solid rgba(168, 85, 247, 0.25);
+            border: 1px solid rgba(168,85,247,.25);
             border-radius: 14px;
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(0,0,0,.2);
         }
 
-        .donation-selector label {
+        .donation-selector-label {
             display: block;
             color: #d7c4ff;
             font-size: 14px;
             font-weight: bold;
-            margin-bottom: 10px;
+            margin-bottom: 14px;
         }
 
-        .donation-select {
+        .token-options {
+            display: grid;
+            gap: 12px;
+        }
+
+        .token-option {
             width: 100%;
-            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            gap: 14px;
             padding: 14px;
-            border-radius: 9px;
-            border: 1px solid rgba(168, 85, 247, 0.4);
-            background: #171020;
-            color: #ffffff;
-            font-size: 16px;
-            outline: none;
+            text-align: left;
+            color: #fff;
+            border: 1px solid rgba(168,85,247,.22);
+            border-radius: 12px;
+            background: rgba(255,255,255,.025);
+            cursor: pointer;
+            transition: .2s ease;
+            font-family: inherit;
         }
 
-        .donation-select option {
+        .token-option:hover {
+            border-color: rgba(168,85,247,.65);
+            background: rgba(139,92,246,.09);
+        }
+
+        .token-option.active {
+            border-color: #a855f7;
+            background: rgba(139,92,246,.15);
+            box-shadow: 0 0 0 1px rgba(168,85,247,.2);
+        }
+
+        .asset-icon {
+            position: relative;
+            width: 48px;
+            height: 48px;
+            flex: 0 0 48px;
+        }
+
+        .asset-icon > img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 50%;
+        }
+
+        .network-badge {
+            position: absolute;
+            width: 19px;
+            height: 19px;
+            right: -3px;
+            bottom: -3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
             background: #171020;
-            color: #ffffff;
+            border: 2px solid #171020;
+            overflow: hidden;
+        }
+
+        .network-badge img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 50%;
+        }
+
+        .asset-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .asset-info strong {
+            display: block;
+            color: #fff;
+            font-size: 15px;
+        }
+
+        .asset-info small {
+            display: block;
+            margin-top: 4px;
+            color: #a69bb8;
+            font-size: 12px;
+        }
+
+        .asset-check {
+            width: 21px;
+            height: 21px;
+            flex: 0 0 21px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            color: transparent;
+            font-size: 13px;
+        }
+
+        .token-option.active .asset-check {
+            background: #a855f7;
+            border-color: #a855f7;
+            color: #fff;
         }
 
         .wallet-info {
             padding: 15px;
             margin: 15px 0;
-            background: rgba(0, 0, 0, 0.25);
+            background: rgba(0,0,0,.25);
             border-radius: 10px;
-            border: 1px solid rgba(168, 85, 247, 0.2);
+            border: 1px solid rgba(168,85,247,.2);
         }
 
         .wallet-info p {
@@ -144,14 +196,8 @@
             overflow-wrap: anywhere;
         }
 
-        .wallet-label {
-            color: #a69bb8;
-        }
-
-        .wallet-value {
-            color: #ffffff;
-            font-weight: bold;
-        }
+        .wallet-label { color: #a69bb8; }
+        .wallet-value { color: #fff; font-weight: bold; }
 
         .donation-input {
             width: 100%;
@@ -159,21 +205,15 @@
             padding: 14px;
             margin: 8px 0 14px;
             border-radius: 9px;
-            border: 1px solid rgba(168, 85, 247, 0.35);
-            background: rgba(0, 0, 0, 0.3);
-            color: #ffffff;
+            border: 1px solid rgba(168,85,247,.35);
+            background: rgba(0,0,0,.3);
+            color: #fff;
             font-size: 16px;
             outline: none;
         }
 
-        .donation-input:focus,
-        .donation-select:focus {
-            border-color: #a855f7;
-        }
-
-        .donation-input::placeholder {
-            color: #82758f;
-        }
+        .donation-input:focus { border-color: #a855f7; }
+        .donation-input::placeholder { color: #82758f; }
 
         .donation-button {
             display: inline-flex;
@@ -186,22 +226,16 @@
             border-radius: 9px;
             background: #a855f7;
             border: 1px solid #a855f7;
-            color: #ffffff;
+            color: #fff;
             font-family: inherit;
             font-size: 14px;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.25s;
+            transition: .25s;
         }
 
-        .donation-button:hover {
-            background: #9333ea;
-        }
-
-        .donation-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+        .donation-button:hover { background: #9333ea; }
+        .donation-button:disabled { opacity: .5; cursor: not-allowed; }
 
         .donation-note {
             margin-top: 15px;
@@ -222,22 +256,22 @@
 
         .donation-status.info {
             display: block;
-            background: rgba(59, 130, 246, 0.1);
-            border: 1px solid rgba(59, 130, 246, 0.3);
+            background: rgba(59,130,246,.1);
+            border: 1px solid rgba(59,130,246,.3);
             color: #bfdbfe;
         }
 
         .donation-status.success {
             display: block;
-            background: rgba(34, 197, 94, 0.1);
-            border: 1px solid rgba(34, 197, 94, 0.3);
+            background: rgba(34,197,94,.1);
+            border: 1px solid rgba(34,197,94,.3);
             color: #86efac;
         }
 
         .donation-status.error {
             display: block;
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.3);
+            background: rgba(239,68,68,.1);
+            border: 1px solid rgba(239,68,68,.3);
             color: #fca5a5;
         }
 
@@ -249,9 +283,7 @@
             text-decoration: none;
         }
 
-        .donation-link:hover {
-            text-decoration: underline;
-        }
+        .donation-link:hover { text-decoration: underline; }
 
         .donation-thanks {
             text-align: center;
@@ -259,28 +291,14 @@
             padding: 25px;
         }
 
-        .donation-thanks h2 {
-            color: #c4a1ff;
-            margin-bottom: 10px;
-        }
-
-        .donation-thanks p {
-            color: #c5bfd2;
-            line-height: 1.8;
-        }
+        .donation-thanks h2 { color: #c4a1ff; margin-bottom: 10px; }
+        .donation-thanks p { color: #c5bfd2; line-height: 1.8; }
 
         @media (max-width: 600px) {
-            .donation-page {
-                padding: 30px 15px 55px;
-            }
-
-            .donation-hero {
-                padding: 40px 18px;
-            }
-
-            .donation-section {
-                padding: 22px;
-            }
+            .donation-page { padding: 30px 15px 55px; }
+            .donation-hero { padding: 40px 18px; }
+            .donation-section { padding: 22px; }
+            .donation-selector { padding: 15px; }
         }
     </style>
 </head>
@@ -290,11 +308,8 @@
 <main class="donation-page">
 
     <section class="donation-hero">
-
         <div class="donation-icon">💜</div>
-
         <h1>Support the <span>JosJis</span> Journey</h1>
-
         <p>
             Enjoying the JosJis journey?
             You can support our project through
@@ -302,100 +317,136 @@
             Every contribution helps us continue
             building, learning, and growing together.
         </p>
-
         <div class="donation-note">
             Your support is completely voluntary.
             Every contribution is appreciated.
         </div>
-
     </section>
-
 
     <section class="donation-section">
 
         <h2>Crypto Donations</h2>
-
         <p>
             Choose your preferred cryptocurrency
             and send your contribution using the
             Polygon network.
         </p>
 
-
-        <!-- TOKEN SELECTOR -->
+        <!-- TOKEN ASSET SELECTOR -->
 
         <div class="donation-selector">
-
-            <label for="donationToken">
+            <span class="donation-selector-label">
                 Select Donation Token
-            </label>
+            </span>
 
-            <select
-                id="donationToken"
-                class="donation-select"
-            >
-                <option value="JJS">💜 JosJis (JJS)</option>
-                <option value="POL">🟣 POL</option>
-                <option value="USDT">💵 USDT</option>
-            </select>
+            <div class="token-options" role="group" aria-label="Select donation token">
 
+                <button
+                    type="button"
+                    class="token-option active"
+                    data-token="JJS"
+                    aria-pressed="true"
+                >
+                    <span class="asset-icon">
+                        <img
+                            src="assets/images/josjis-logo-circle.png"
+                            alt="JosJis logo"
+                        >
+                        <span class="network-badge">
+                            <img src="assets/images/pol-logo.png" alt="Polygon">
+                        </span>
+                    </span>
+
+                    <span class="asset-info">
+                        <strong>JosJis</strong>
+                        <small>JJS · Polygon</small>
+                    </span>
+
+                    <span class="asset-check">✓</span>
+                </button>
+
+                <button
+                    type="button"
+                    class="token-option"
+                    data-token="POL"
+                    aria-pressed="false"
+                >
+                    <span class="asset-icon">
+                        <img
+                            src="assets/images/pol-logo.png"
+                            alt="POL logo"
+                        >
+                        <span class="network-badge">
+                            <img src="assets/images/pol-logo.png" alt="Polygon">
+                        </span>
+                    </span>
+
+                    <span class="asset-info">
+                        <strong>POL</strong>
+                        <small>Polygon Native Token</small>
+                    </span>
+
+                    <span class="asset-check">✓</span>
+                </button>
+
+                <button
+                    type="button"
+                    class="token-option"
+                    data-token="USDT"
+                    aria-pressed="false"
+                >
+                    <span class="asset-icon">
+                        <img
+                            src="assets/images/usdt0-logo.png"
+                            alt="USDT logo"
+                        >
+                        <span class="network-badge">
+                            <img src="assets/images/pol-logo.png" alt="Polygon">
+                        </span>
+                    </span>
+
+                    <span class="asset-info">
+                        <strong>USDT</strong>
+                        <small>USDT · Polygon</small>
+                    </span>
+
+                    <span class="asset-check">✓</span>
+                </button>
+
+            </div>
         </div>
-
 
         <!-- WALLET INFORMATION -->
 
         <div class="donation-card">
 
-            <h3 id="selectedTokenTitle">
-                💜 JJS Donation
-            </h3>
+            <h3 id="selectedTokenTitle">JJS Donation</h3>
 
             <p id="selectedTokenDescription">
                 Support the JosJis ecosystem directly using JJS on Polygon.
             </p>
 
             <div class="wallet-info">
-
                 <p>
                     <span class="wallet-label">Wallet Status:</span>
-                    <span class="wallet-value" id="walletStatus">
-                        Not Connected
-                    </span>
+                    <span class="wallet-value" id="walletStatus">Not Connected</span>
                 </p>
-
                 <p>
                     <span class="wallet-label">Wallet Address:</span>
-                    <span class="wallet-value" id="walletAddress">
-                        Not Connected
-                    </span>
+                    <span class="wallet-value" id="walletAddress">Not Connected</span>
                 </p>
-
                 <p>
                     <span class="wallet-label">Your Balance:</span>
-                    <span class="wallet-value" id="tokenBalance">
-                        --
-                    </span>
+                    <span class="wallet-value" id="tokenBalance">--</span>
                 </p>
-
             </div>
 
-            <button
-                type="button"
-                class="donation-button"
-                id="connectWalletButton"
-            >
+            <button type="button" class="donation-button" id="connectWalletButton">
                 Connect Wallet
             </button>
 
-
-            <!-- DONATION FORM -->
-
             <div id="donationForm" style="display:none; margin-top:20px;">
-
-                <label
-                    for="donationAmount"
-                    style="color:#d7c4ff; font-size:14px;"
-                >
+                <label for="donationAmount" style="color:#d7c4ff; font-size:14px;">
                     Donation Amount
                 </label>
 
@@ -409,11 +460,7 @@
                     inputmode="decimal"
                 >
 
-                <button
-                    type="button"
-                    class="donation-button"
-                    id="donateButton"
-                >
+                <button type="button" class="donation-button" id="donateButton">
                     Donate JJS
                 </button>
 
@@ -421,18 +468,11 @@
                     Confirm the transaction in your wallet.
                     Make sure you have enough POL for network gas fees.
                 </p>
-
             </div>
 
-            <div
-                id="donationStatus"
-                class="donation-status"
-                role="status"
-                aria-live="polite"
-            ></div>
+            <div id="donationStatus" class="donation-status" role="status" aria-live="polite"></div>
 
         </div>
-
 
         <p class="donation-note">
             Network: Polygon.
@@ -440,89 +480,57 @@
             Always verify the network and token before confirming.
         </p>
 
-        <a
-            href="https://polygonscan.com/address/0xc9F21B3e48C92dA0FBC31c782836F2b75ac9761C"
-            class="donation-link"
-            target="_blank"
-            rel="noopener noreferrer"
-        >
+        <a href="https://polygonscan.com/address/0xc9F21B3e48C92dA0FBC31c782836F2b75ac9761C"
+           class="donation-link" target="_blank" rel="noopener noreferrer">
             View Donation Wallet on PolygonScan ↗
         </a>
 
-        <a
-            href="https://polygonscan.com/token/0x52C8Ff13ada1431376b3E77E8219b644805122dF"
-            class="donation-link"
-            target="_blank"
-            rel="noopener noreferrer"
-            style="display:block;"
-        >
+        <a href="https://polygonscan.com/token/0x52C8Ff13ada1431376b3E77E8219b644805122dF"
+           class="donation-link" target="_blank" rel="noopener noreferrer" style="display:block;">
             View JJS Contract on PolygonScan ↗
         </a>
 
-        <a
-            href="https://polygonscan.com/token/0xc2132D05D31c914a87C6611C10748AEb04B58e8F"
-            class="donation-link"
-            target="_blank"
-            rel="noopener noreferrer"
-            style="display:block;"
-        >
+        <a href="https://polygonscan.com/token/0xc2132D05D31c914a87C6611C10748AEb04B58e8F"
+           class="donation-link" target="_blank" rel="noopener noreferrer" style="display:block;">
             View USDT Contract on PolygonScan ↗
         </a>
 
     </section>
 
-
     <section class="donation-section">
-
         <h2>Why Support JosJis?</h2>
-
         <p>
             JosJis is a community-driven project built through
             learning, experimentation, and continuous development.
         </p>
-
         <p>
             Your voluntary support can help contribute to
             website maintenance, development tools,
             infrastructure, and future ecosystem improvements.
         </p>
-
     </section>
 
-
     <section class="donation-section">
-
         <h2>Important Note</h2>
-
         <p>
             All contributions are voluntary and are considered
             community support for the JosJis project.
             Donations are not investments and do not guarantee
             financial returns, JJS tokens, or other rewards.
         </p>
-
         <p>
             Cryptocurrency transactions are generally
             irreversible. Always verify the wallet address
             and network before sending.
         </p>
-
     </section>
 
-
     <section class="donation-thanks">
-
         <h2>Thank You for Supporting JosJis 💜</h2>
-
-        <p>
-            One Community. One Journey.
-            Many Possibilities.
-        </p>
-
+        <p>One Community. One Journey. Many Possibilities.</p>
     </section>
 
 </main>
-
 
 <script type="module">
 
@@ -547,9 +555,7 @@
     } from "./assets/js/core/token-manager.js";
 
 
-    // =====================================
     // CONFIGURATION
-    // =====================================
 
     const DONATION_WALLET =
         "0xc9F21B3e48C92dA0FBC31c782836F2b75ac9761C";
@@ -566,12 +572,10 @@
     ];
 
 
-    // =====================================
     // ELEMENTS
-    // =====================================
 
-    const tokenSelector =
-        document.getElementById("donationToken");
+    const tokenOptions =
+        document.querySelectorAll(".token-option");
 
     const tokenTitle =
         document.getElementById("selectedTokenTitle");
@@ -604,37 +608,33 @@
         document.getElementById("donationStatus");
 
 
-    // =====================================
     // STATE
-    // =====================================
 
     let connectedAddress = null;
     let isSending = false;
     let balanceRequestId = 0;
 
 
-    // =====================================
     // TOKEN CONFIGURATION
-    // =====================================
 
     const TOKEN_CONFIG = {
 
         JJS: {
-            title: "💜 JJS Donation",
+            title: "JosJis Donation",
             description:
                 "Support the JosJis ecosystem directly using JJS on Polygon.",
             button: "Donate JJS"
         },
 
         POL: {
-            title: "🟣 POL Donation",
+            title: "POL Donation",
             description:
                 "Support JosJis using native POL on the Polygon network.",
             button: "Donate POL"
         },
 
         USDT: {
-            title: "💵 USDT Donation",
+            title: "USDT Donation",
             description:
                 "Support JosJis using USDT on the Polygon network.",
             button: "Donate USDT"
@@ -643,51 +643,35 @@
     };
 
 
-    // =====================================
     // STATUS MESSAGE
-    // =====================================
 
     function showStatus(message, type = "info") {
-
         statusBox.className = "donation-status " + type;
         statusBox.textContent = message;
-
     }
-
 
     function clearStatus() {
-
         statusBox.className = "donation-status";
         statusBox.textContent = "";
-
     }
 
 
-    // =====================================
     // FORMAT ADDRESS
-    // =====================================
 
     function shortAddress(address) {
-
         if (!address) return "Not Connected";
 
         return address.slice(0, 6) +
             "..." +
             address.slice(-4);
-
     }
 
 
-    // =====================================
     // CURRENT ACCOUNT
-    // =====================================
 
     function getCurrentAccount() {
-
         try {
-
             if (typeof modal.getAccount === "function") {
-
                 const account = modal.getAccount();
 
                 if (
@@ -695,30 +679,18 @@
                     account.isConnected &&
                     account.address
                 ) {
-
                     return account.address;
-
                 }
-
             }
-
         } catch (error) {
-
-            console.warn(
-                "Unable to read AppKit account:",
-                error
-            );
-
+            console.warn("Unable to read AppKit account:", error);
         }
 
         return connectedAddress;
-
     }
 
 
-    // =====================================
     // GET WALLET PROVIDER
-    // =====================================
 
     async function getWalletContext() {
 
@@ -726,11 +698,9 @@
             await modal.getWalletProvider();
 
         if (!walletProvider) {
-
             throw new Error(
                 "Wallet provider is unavailable. Please reconnect your wallet."
             );
-
         }
 
         const provider =
@@ -740,11 +710,9 @@
             await provider.getNetwork();
 
         if (Number(network.chainId) !== POLYGON_CHAIN_ID) {
-
             throw new Error(
                 "Please switch your wallet to Polygon network."
             );
-
         }
 
         const signer =
@@ -761,11 +729,9 @@
             signerAddress.toLowerCase() !==
             currentAddress.toLowerCase()
         ) {
-
             throw new Error(
                 "Wallet account changed. Please reconnect your wallet."
             );
-
         }
 
         return {
@@ -773,13 +739,10 @@
             signer,
             address: signerAddress
         };
-
     }
 
 
-    // =====================================
     // READ TOKEN BALANCE
-    // =====================================
 
     async function refreshBalance() {
 
@@ -787,7 +750,7 @@
 
         const requestId = ++balanceRequestId;
         const address = connectedAddress;
-        const selectedToken = tokenSelector.value;
+        const selectedToken = getSelectedToken();
 
         tokenBalance.textContent = "Loading...";
 
@@ -815,11 +778,7 @@
                     !result ||
                     result.formatted === undefined
                 ) {
-
-                    throw new Error(
-                        "Unable to read JJS balance."
-                    );
-
+                    throw new Error("Unable to read JJS balance.");
                 }
 
                 formattedBalance = result.formatted;
@@ -843,48 +802,34 @@
 
                 formattedBalance =
                     formatUnits(balance, decimals);
-
             }
 
             if (
                 requestId !== balanceRequestId ||
                 address !== connectedAddress ||
-                selectedToken !== tokenSelector.value
+                selectedToken !== getSelectedToken()
             ) {
-
                 return;
-
             }
 
             tokenBalance.textContent =
                 Number(formattedBalance).toLocaleString(
                     "en-US",
-                    {
-                        maximumFractionDigits: 6
-                    }
+                    { maximumFractionDigits: 6 }
                 ) + " " + selectedToken;
 
         } catch (error) {
 
-            console.error(
-                "Balance error:",
-                error
-            );
+            console.error("Balance error:", error);
 
             if (requestId === balanceRequestId) {
-
                 tokenBalance.textContent = "Unable to load";
-
             }
-
         }
-
     }
 
 
-    // =====================================
     // UPDATE WALLET UI
-    // =====================================
 
     async function updateWallet(address) {
 
@@ -900,7 +845,6 @@
             connectButton.textContent = "Connect Wallet";
 
             return;
-
         }
 
         walletStatus.textContent = "Connected";
@@ -909,81 +853,86 @@
             shortAddress(connectedAddress);
 
         donationForm.style.display = "block";
-
         connectButton.textContent = "Wallet Connected";
 
         await refreshBalance();
-
     }
 
 
-    // =====================================
     // TOKEN SELECTION
-    // =====================================
 
-    function updateSelectedToken() {
+    function getSelectedToken() {
+        const activeOption =
+            document.querySelector(".token-option.active");
 
-        const selectedToken = tokenSelector.value;
+        return activeOption
+            ? activeOption.dataset.token
+            : "JJS";
+    }
+
+    function updateSelectedToken(selectedToken) {
+
+        if (isSending) return;
+
+        tokenOptions.forEach(option => {
+
+            const isActive =
+                option.dataset.token === selectedToken;
+
+            option.classList.toggle("active", isActive);
+
+            option.setAttribute(
+                "aria-pressed",
+                isActive ? "true" : "false"
+            );
+        });
+
         const config = TOKEN_CONFIG[selectedToken];
 
         tokenTitle.textContent = config.title;
-
-        tokenDescription.textContent =
-            config.description;
-
-        donateButton.textContent =
-            config.button;
+        tokenDescription.textContent = config.description;
+        donateButton.textContent = config.button;
 
         amountInput.value = "";
-
         clearStatus();
 
         if (connectedAddress) {
-
             refreshBalance();
-
+        } else {
+            tokenBalance.textContent = "--";
         }
-
     }
 
-    tokenSelector.addEventListener(
-        "change",
-        updateSelectedToken
-    );
+    tokenOptions.forEach(option => {
+
+        option.addEventListener("click", () => {
+            updateSelectedToken(option.dataset.token);
+        });
+
+    });
 
 
-    // =====================================
     // CONNECT WALLET
-    // =====================================
 
     connectButton.addEventListener("click", async () => {
 
         try {
-
             clearStatus();
-
             await modal.open();
 
         } catch (error) {
 
-            console.error(
-                "Wallet connection error:",
-                error
-            );
+            console.error("Wallet connection error:", error);
 
             showStatus(
                 "Unable to open wallet connection. Please try again.",
                 "error"
             );
-
         }
-
     });
 
 
-    // =====================================
     // APPKIT ACCOUNT SUBSCRIPTION
-    // =====================================
 
     if (typeof modal.subscribeAccount === "function") {
 
@@ -994,36 +943,24 @@
                 account.isConnected &&
                 account.address
             ) {
-
                 await updateWallet(account.address);
-
             } else {
-
                 await updateWallet(null);
-
             }
-
         });
-
     }
 
 
-    // =====================================
     // INITIAL ACCOUNT CHECK
-    // =====================================
 
     const initialAccount = getCurrentAccount();
 
     if (initialAccount) {
-
         await updateWallet(initialAccount);
-
     }
 
 
-    // =====================================
     // VALIDATE AMOUNT
-    // =====================================
 
     function validateAmount(value) {
 
@@ -1031,33 +968,26 @@
             !value ||
             !/^\d+(\.\d+)?$/.test(value)
         ) {
-
             throw new Error(
                 "Please enter a valid donation amount."
             );
-
         }
 
         if (!/[1-9]/.test(value)) {
-
             throw new Error(
                 "Donation amount must be greater than zero."
             );
-
         }
-
     }
 
 
-    // =====================================
     // DONATE
-    // =====================================
 
     donateButton.addEventListener("click", async () => {
 
         if (isSending) return;
 
-        const selectedToken = tokenSelector.value;
+        const selectedToken = getSelectedToken();
 
         try {
 
@@ -1069,11 +999,7 @@
             validateAmount(amountText);
 
             if (!isAddress(DONATION_WALLET)) {
-
-                throw new Error(
-                    "Donation wallet address is invalid."
-                );
-
+                throw new Error("Donation wallet address is invalid.");
             }
 
             const currentAddress =
@@ -1087,16 +1013,12 @@
                 );
 
                 await modal.open();
-
                 return;
-
             }
 
             isSending = true;
-
             donateButton.disabled = true;
-            donateButton.textContent =
-                "Preparing Transaction...";
+            donateButton.textContent = "Preparing Transaction...";
 
 
             // GET WALLET
@@ -1119,15 +1041,12 @@
                     await provider.getBalance(address);
 
                 if (balance < donationAmount) {
-
                     throw new Error(
                         "Insufficient POL balance for this donation and network gas fees."
                     );
-
                 }
 
-                donateButton.textContent =
-                    "Waiting for Confirmation...";
+                donateButton.textContent = "Waiting for Confirmation...";
 
                 showStatus(
                     "Please confirm the POL donation in your wallet.",
@@ -1140,30 +1059,20 @@
                         value: donationAmount
                     });
 
-                donateButton.textContent =
-                    "Processing Transaction...";
+                donateButton.textContent = "Processing Transaction...";
 
                 showStatus(
                     "POL transaction submitted. Waiting for Polygon confirmation...",
                     "info"
                 );
 
-                const receipt =
-                    await transaction.wait();
+                const receipt = await transaction.wait();
 
                 if (!receipt || receipt.status !== 1) {
-
-                    throw new Error(
-                        "POL transaction failed on the blockchain."
-                    );
-
+                    throw new Error("POL transaction failed on the blockchain.");
                 }
 
-                showSuccess(
-                    transaction.hash,
-                    "POL"
-                );
-
+                showSuccess(transaction.hash, "POL");
             }
 
 
@@ -1181,31 +1090,17 @@
                     parseUnits(amountText, decimals);
 
                 const balanceResult =
-                    await getTokenBalance(
-                        "JJS",
-                        address
-                    );
+                    await getTokenBalance("JJS", address);
 
                 if (
                     !balanceResult ||
                     balanceResult.raw === undefined
                 ) {
-
-                    throw new Error(
-                        "Unable to verify your JJS balance."
-                    );
-
+                    throw new Error("Unable to verify your JJS balance.");
                 }
 
-                if (
-                    BigInt(balanceResult.raw) <
-                    donationAmount
-                ) {
-
-                    throw new Error(
-                        "Insufficient JJS balance."
-                    );
-
+                if (BigInt(balanceResult.raw) < donationAmount) {
+                    throw new Error("Insufficient JJS balance.");
                 }
 
                 const contract = new Contract(
@@ -1214,8 +1109,7 @@
                     signer
                 );
 
-                donateButton.textContent =
-                    "Waiting for Confirmation...";
+                donateButton.textContent = "Waiting for Confirmation...";
 
                 showStatus(
                     "Please confirm the JJS donation in your wallet.",
@@ -1228,30 +1122,20 @@
                         donationAmount
                     );
 
-                donateButton.textContent =
-                    "Processing Transaction...";
+                donateButton.textContent = "Processing Transaction...";
 
                 showStatus(
                     "JJS transaction submitted. Waiting for Polygon confirmation...",
                     "info"
                 );
 
-                const receipt =
-                    await transaction.wait();
+                const receipt = await transaction.wait();
 
                 if (!receipt || receipt.status !== 1) {
-
-                    throw new Error(
-                        "JJS transaction failed on the blockchain."
-                    );
-
+                    throw new Error("JJS transaction failed on the blockchain.");
                 }
 
-                showSuccess(
-                    transaction.hash,
-                    "JJS"
-                );
-
+                showSuccess(transaction.hash, "JJS");
             }
 
 
@@ -1272,21 +1156,13 @@
                     ]);
 
                 const donationAmount =
-                    parseUnits(
-                        amountText,
-                        Number(decimals)
-                    );
+                    parseUnits(amountText, Number(decimals));
 
                 if (balance < donationAmount) {
-
-                    throw new Error(
-                        "Insufficient USDT balance."
-                    );
-
+                    throw new Error("Insufficient USDT balance.");
                 }
 
-                donateButton.textContent =
-                    "Waiting for Confirmation...";
+                donateButton.textContent = "Waiting for Confirmation...";
 
                 showStatus(
                     "Please confirm the USDT donation in your wallet.",
@@ -1299,55 +1175,39 @@
                         donationAmount
                     );
 
-                donateButton.textContent =
-                    "Processing Transaction...";
+                donateButton.textContent = "Processing Transaction...";
 
                 showStatus(
                     "USDT transaction submitted. Waiting for Polygon confirmation...",
                     "info"
                 );
 
-                const receipt =
-                    await transaction.wait();
+                const receipt = await transaction.wait();
 
                 if (!receipt || receipt.status !== 1) {
-
-                    throw new Error(
-                        "USDT transaction failed on the blockchain."
-                    );
-
+                    throw new Error("USDT transaction failed on the blockchain.");
                 }
 
-                showSuccess(
-                    transaction.hash,
-                    "USDT"
-                );
-
+                showSuccess(transaction.hash, "USDT");
             }
 
 
-            // CLEAR INPUT
+            // CLEAR INPUT AND REFRESH BALANCE
 
             amountInput.value = "";
 
             await refreshBalance();
 
-
             if (typeof showJJSAlert === "function") {
-
                 showJJSAlert(
                     selectedToken + " donation completed successfully!",
                     "success"
                 );
-
             }
 
         } catch (error) {
 
-            console.error(
-                selectedToken + " donation error:",
-                error
-            );
+            console.error(selectedToken + " donation error:", error);
 
             let message =
                 error.shortMessage ||
@@ -1359,17 +1219,12 @@
                 error.code === 4001 ||
                 error.code === "ACTION_REJECTED"
             ) {
-
-                message =
-                    "Transaction was rejected in your wallet.";
+                message = "Transaction was rejected in your wallet.";
 
             } else if (
                 error.code === "INSUFFICIENT_FUNDS"
             ) {
-
-                message =
-                    "Insufficient POL for network gas fees.";
-
+                message = "Insufficient POL for network gas fees.";
             }
 
             showStatus(message, "error");
@@ -1377,20 +1232,15 @@
         } finally {
 
             isSending = false;
-
             donateButton.disabled = false;
 
             donateButton.textContent =
-                TOKEN_CONFIG[selectedToken].button;
-
+                TOKEN_CONFIG[getSelectedToken()].button;
         }
-
     });
 
 
-    // =====================================
     // SUCCESS MESSAGE
-    // =====================================
 
     function showSuccess(hash, token) {
 
@@ -1411,21 +1261,14 @@
         link.target = "_blank";
         link.rel = "noopener noreferrer";
         link.className = "donation-link";
-        link.textContent =
-            "View Transaction on PolygonScan ↗";
+        link.textContent = "View Transaction on PolygonScan ↗";
 
-        statusBox.appendChild(
-            document.createElement("br")
-        );
-
+        statusBox.appendChild(document.createElement("br"));
         statusBox.appendChild(link);
-
     }
 
 
-    // =====================================
     // REFRESH WALLET STATE
-    // =====================================
 
     window.addEventListener("focus", async () => {
 
@@ -1435,28 +1278,23 @@
             address &&
             address !== connectedAddress
         ) {
-
             await updateWallet(address);
 
         } else if (
             !address &&
             connectedAddress
         ) {
-
             await updateWallet(null);
 
         } else if (address) {
-
             await refreshBalance();
-
         }
-
     });
 
 
     // INITIAL TOKEN UI
 
-    updateSelectedToken();
+    updateSelectedToken("JJS");
 
 </script>
 
