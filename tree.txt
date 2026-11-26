@@ -46,9 +46,11 @@
 │   └── liquidity.js
 ├── member
 │   ├── README.md
-│   └── my-assets
-│       ├── README.md
-│       └── index.html
+│   ├── my-assets
+│   │   ├── README.md
+│   │   └── index.html
+│   └── staking
+│       └── README.md
 ├── member.html
 ├── roadmap.html
 ├── smart-account.html
@@ -60,4 +62,4 @@
     ├── README.md
     └── web3-config.js
 
-10 directories, 51 files
+11 directories, 52 files
