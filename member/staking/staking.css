@@ -1,0 +1,670 @@
+/* =========================================
+   JOSJIS STAKING
+   Version: V1
+========================================= */
+
+.staking-page {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 35px 20px 50px;
+    color: #f5f0ff;
+}
+
+
+/* =========================================
+   PAGE HEADER
+========================================= */
+
+.staking-hero {
+    margin-bottom: 30px;
+}
+
+.staking-label {
+    color: #b68cff;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+
+.staking-hero h1 {
+    font-size: clamp(30px, 6vw, 44px);
+    font-weight: 900;
+    margin: 0 0 12px;
+    color: #ffffff;
+}
+
+.staking-hero p {
+    max-width: 600px;
+    color: #aaa1bb;
+    font-size: 14px;
+    line-height: 1.7;
+    margin: 0 0 20px;
+}
+
+.staking-back-link {
+    display: inline-block;
+    color: #c7a4ff;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 700;
+    transition: color 0.2s ease;
+}
+
+.staking-back-link:hover {
+    color: #ffffff;
+}
+
+
+/* =========================================
+   CARD
+========================================= */
+
+.staking-card {
+    background:
+        linear-gradient(
+            145deg,
+            rgba(39, 26, 58, 0.96),
+            rgba(17, 13, 28, 0.98)
+        );
+
+    border: 1px solid rgba(180, 130, 255, 0.16);
+    border-radius: 18px;
+    padding: 24px;
+    margin-bottom: 22px;
+
+    box-shadow:
+        0 12px 35px rgba(0, 0, 0, 0.22);
+}
+
+.staking-card-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.staking-card-heading h2,
+.staking-section-heading h2,
+.reward-info h2 {
+    color: #ffffff;
+    font-size: 21px;
+    font-weight: 800;
+    margin: 0;
+}
+
+
+/* =========================================
+   WALLET STATUS
+========================================= */
+
+.staking-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 7px 12px;
+    border-radius: 30px;
+
+    background: rgba(255, 255, 255, 0.07);
+    color: #c5b8d9;
+
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.staking-address {
+    background: rgba(0, 0, 0, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 10px;
+
+    padding: 13px;
+    margin-bottom: 16px;
+
+    color: #c4b8d8;
+    font-size: 12px;
+    word-break: break-all;
+}
+
+.staking-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+
+/* =========================================
+   BUTTONS
+========================================= */
+
+.staking-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 44px;
+    padding: 12px 20px;
+
+    border: 1px solid transparent;
+    border-radius: 10px;
+
+    background:
+        linear-gradient(135deg, #8c4bdf, #6030a9);
+
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 800;
+
+    text-decoration: none;
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        opacity 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.staking-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 7px 20px rgba(140, 75, 223, 0.25);
+}
+
+.staking-button.secondary {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #d8c8f5;
+}
+
+.staking-button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.staking-button.full-width {
+    width: 100%;
+    margin-top: 20px;
+}
+
+
+/* =========================================
+   MESSAGES
+========================================= */
+
+.staking-message {
+    color: #a99dbb;
+    font-size: 12px;
+    line-height: 1.6;
+    margin: 14px 0 0;
+}
+
+
+/* =========================================
+   NETWORK INFORMATION
+========================================= */
+
+.staking-network {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    background: rgba(45, 180, 120, 0.07);
+    border: 1px solid rgba(45, 180, 120, 0.16);
+    border-radius: 12px;
+
+    padding: 14px 17px;
+    margin-bottom: 35px;
+
+    color: #b8e6cc;
+    font-size: 12px;
+}
+
+.staking-network > div {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.network-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #35d58b;
+    box-shadow: 0 0 10px rgba(53, 213, 139, 0.7);
+}
+
+
+/* =========================================
+   SECTION
+========================================= */
+
+.staking-section {
+    margin-bottom: 35px;
+}
+
+.staking-section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 18px;
+}
+
+.staking-section-heading h2 {
+    font-size: 23px;
+}
+
+
+/* =========================================
+   REFRESH BUTTON
+========================================= */
+
+.refresh-button {
+    padding: 9px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 9px;
+
+    background: rgba(255, 255, 255, 0.05);
+    color: #d6c2f5;
+
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.refresh-button:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.refresh-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+
+/* =========================================
+   STAKING OVERVIEW
+========================================= */
+
+.staking-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.staking-stat-card {
+    background:
+        linear-gradient(
+            145deg,
+            rgba(35, 25, 52, 0.95),
+            rgba(19, 15, 30, 0.98)
+        );
+
+    border: 1px solid rgba(180, 130, 255, 0.13);
+    border-radius: 15px;
+
+    padding: 19px;
+    min-width: 0;
+}
+
+.staking-stat-card span {
+    display: block;
+    color: #a99dbb;
+    font-size: 12px;
+    margin-bottom: 12px;
+}
+
+.staking-stat-card strong {
+    display: block;
+    color: #ffffff;
+    font-size: clamp(17px, 2.5vw, 25px);
+    font-weight: 900;
+    overflow-wrap: anywhere;
+}
+
+.staking-stat-card small {
+    display: block;
+    color: #a78ad1;
+    font-size: 11px;
+    margin-top: 7px;
+}
+
+
+/* =========================================
+   STAKING FORM
+========================================= */
+
+.staking-form-group {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.staking-form-group label {
+    display: block;
+    color: #e5d9f8;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.staking-input-wrapper {
+    display: flex;
+    align-items: center;
+
+    background: rgba(0, 0, 0, 0.24);
+    border: 1px solid rgba(180, 130, 255, 0.2);
+    border-radius: 11px;
+
+    padding: 0 14px;
+}
+
+.staking-input-wrapper:focus-within {
+    border-color: #a66af1;
+    box-shadow: 0 0 0 3px rgba(166, 106, 241, 0.1);
+}
+
+.staking-input-wrapper input {
+    width: 100%;
+    min-width: 0;
+    height: 52px;
+
+    background: transparent;
+    border: none;
+    outline: none;
+
+    color: #ffffff;
+    font-size: 16px;
+}
+
+.staking-input-wrapper input::placeholder {
+    color: #70657f;
+}
+
+.staking-input-wrapper input:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.staking-input-wrapper span {
+    color: #c5a5f4;
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.max-button {
+    display: block;
+    margin: 9px 0 0 auto;
+
+    background: transparent;
+    border: none;
+
+    color: #b68cff;
+    font-size: 11px;
+    font-weight: 900;
+
+    cursor: pointer;
+}
+
+.max-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+
+/* =========================================
+   LOCK INFORMATION
+========================================= */
+
+.staking-lock-info {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+
+    margin: 20px 0;
+}
+
+.staking-lock-info > div {
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 11px;
+
+    padding: 14px;
+}
+
+.staking-lock-info span {
+    display: block;
+    color: #a99dbb;
+    font-size: 11px;
+    margin-bottom: 8px;
+}
+
+.staking-lock-info strong {
+    color: #ffffff;
+    font-size: 14px;
+}
+
+
+/* =========================================
+   NOTICE
+========================================= */
+
+.staking-notice {
+    padding: 15px;
+    border-radius: 11px;
+
+    background: rgba(185, 140, 255, 0.07);
+    border: 1px solid rgba(185, 140, 255, 0.15);
+}
+
+.staking-notice strong {
+    display: block;
+    color: #d4b7ff;
+    font-size: 12px;
+    margin-bottom: 9px;
+}
+
+.staking-notice p {
+    color: #b5a9c5;
+    font-size: 12px;
+    line-height: 1.7;
+    margin: 6px 0;
+}
+
+
+/* =========================================
+   EMPTY STATE
+========================================= */
+
+.staking-positions {
+    display: grid;
+    gap: 14px;
+}
+
+.staking-empty-state {
+    text-align: center;
+
+    padding: 35px 20px;
+
+    background: rgba(32, 23, 46, 0.7);
+    border: 1px dashed rgba(180, 130, 255, 0.2);
+    border-radius: 16px;
+}
+
+.empty-icon {
+    font-size: 35px;
+    margin-bottom: 12px;
+}
+
+.staking-empty-state h3 {
+    color: #ffffff;
+    font-size: 17px;
+    margin: 0 0 9px;
+}
+
+.staking-empty-state p {
+    color: #a99dbb;
+    font-size: 12px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+
+/* =========================================
+   REWARD INFORMATION
+========================================= */
+
+.reward-info {
+    border-color: rgba(180, 130, 255, 0.22);
+}
+
+.reward-info h2 {
+    margin-bottom: 13px;
+}
+
+.reward-info p {
+    color: #b5a9c5;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+
+/* =========================================
+   SECURITY NOTE
+========================================= */
+
+.staking-note {
+    padding: 20px;
+
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 14px;
+
+    margin-bottom: 30px;
+}
+
+.staking-note h3 {
+    color: #e4d6f7;
+    font-size: 15px;
+    margin: 0 0 12px;
+}
+
+.staking-note p {
+    color: #a99dbb;
+    font-size: 12px;
+    line-height: 1.7;
+    margin: 8px 0;
+}
+
+
+/* =========================================
+   FOOTER
+========================================= */
+
+.staking-footer {
+    text-align: center;
+    color: #756b85;
+    font-size: 11px;
+    padding: 20px 0;
+}
+
+
+/* =========================================
+   RESPONSIVE TABLET
+========================================= */
+
+@media (max-width: 800px) {
+
+    .staking-overview-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+
+/* =========================================
+   RESPONSIVE MOBILE
+========================================= */
+
+@media (max-width: 520px) {
+
+    .staking-page {
+        padding: 25px 14px 40px;
+    }
+
+    .staking-card {
+        padding: 18px;
+        border-radius: 15px;
+    }
+
+    .staking-hero h1 {
+        font-size: 31px;
+    }
+
+    .staking-card-heading h2,
+    .staking-section-heading h2,
+    .reward-info h2 {
+        font-size: 19px;
+    }
+
+    .staking-network {
+        font-size: 10px;
+        padding: 12px;
+    }
+
+    .staking-overview-grid {
+        gap: 10px;
+    }
+
+    .staking-stat-card {
+        padding: 14px;
+    }
+
+    .staking-stat-card span {
+        font-size: 10px;
+    }
+
+    .staking-stat-card strong {
+        font-size: 19px;
+    }
+
+    .staking-lock-info {
+        gap: 9px;
+    }
+
+    .staking-lock-info > div {
+        padding: 12px;
+    }
+
+    .staking-actions {
+        flex-direction: column;
+    }
+
+    .staking-actions .staking-button {
+        width: 100%;
+    }
+
+    .staking-section-heading {
+        align-items: flex-start;
+    }
+
+}
+
+
+/* =========================================
+   ACCESSIBILITY
+========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .staking-button {
+        transition: none;
+    }
+
+    .staking-button:hover {
+        transform: none;
+    }
+
+}
