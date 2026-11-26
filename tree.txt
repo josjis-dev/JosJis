@@ -52,7 +52,8 @@
 │   └── staking
 │       ├── README.md
 │       ├── index.html
-│       └── staking.css
+│       ├── staking.css
+│       └── staking.js
 ├── member.html
 ├── roadmap.html
 ├── smart-account.html
@@ -64,4 +65,4 @@
     ├── README.md
     └── web3-config.js
 
-11 directories, 54 files
+11 directories, 55 files
