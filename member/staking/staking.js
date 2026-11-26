@@ -1,7 +1,7 @@
 
 /* =========================================
    JOSJIS DUMMY STAKING
-   Version: V3
+   Version: V4
    Mode: Simulation Only
    Wallet: Shared Reown AppKit Session
 ========================================= */
@@ -19,10 +19,13 @@ import {
 
 const CONFIG = {
     chainId: 137,
+    decimals: 18,
     lockPeriod: 7 * 24 * 60 * 60 * 1000,
     storageKey: "josjis_dummy_staking_v3",
     autoRefresh: 15000
 };
+
+const UNIT = 10n ** BigInt(CONFIG.decimals);
 
 
 /* =========================================
@@ -60,27 +63,73 @@ let walletAddress = null;
 let walletChainId = null;
 
 let positions = [];
-let realBalance = 0;
+let realBalance = 0n;
 
 let balanceLoading = false;
 let balanceError = null;
 
 let refreshTimer = null;
+let countdownTimer = null;
 let balanceRequest = 0;
+let lastBalanceAddress = null;
 
 
 /* =========================================
    HELPERS
 ========================================= */
 
-function formatJJS(value) {
-    const number = Number(value);
+function formatJJS(rawValue) {
+    let value;
 
-    if (!Number.isFinite(number)) return "0";
+    try {
+        value = BigInt(rawValue);
+    } catch {
+        return "0";
+    }
 
-    return number.toLocaleString("en-US", {
-        maximumFractionDigits: 4
-    });
+    const negative = value < 0n;
+    if (negative) value = -value;
+
+    const whole = value / UNIT;
+
+    const fraction = (value % UNIT)
+        .toString()
+        .padStart(CONFIG.decimals, "0")
+        .slice(0, 4)
+        .replace(/0+$/, "");
+
+    const grouped = whole.toString().replace(
+        /\B(?=(\d{3})+(?!\d))/g,
+        ","
+    );
+
+    return (negative ? "-" : "") +
+        grouped +
+        (fraction ? "." + fraction : "");
+}
+
+
+function parseJJS(value) {
+    const input = String(value).trim();
+
+    if (!/^\d+(\.\d{1,18})?$/.test(input)) {
+        throw new Error(
+            "Enter a valid amount with up to 18 decimal places."
+        );
+    }
+
+    const parts = input.split(".");
+    const whole = BigInt(parts[0]);
+    const fraction = BigInt(
+        (parts[1] || "").padEnd(CONFIG.decimals, "0") || "0"
+    );
+
+    return whole * UNIT + fraction;
+}
+
+
+function shortenAddress(address) {
+    return address.slice(0, 6) + "..." + address.slice(-4);
 }
 
 
@@ -96,17 +145,16 @@ function setStakeMessage(message) {
 
 function getTotalStaked() {
     return positions.reduce(
-        (total, item) => total + Number(item.amount),
-        0
+        (total, item) => total + item.amountRaw,
+        0n
     );
 }
 
 
 function getAvailableBalance() {
-    return Math.max(
-        0,
-        realBalance - getTotalStaked()
-    );
+    const available = realBalance - getTotalStaked();
+
+    return available > 0n ? available : 0n;
 }
 
 
@@ -158,10 +206,19 @@ function saveData() {
     if (!key) return;
 
     try {
-        localStorage.setItem(
-            key,
-            JSON.stringify({ positions })
-        );
+        const data = {
+            version: 4,
+            positions: positions.map(item => ({
+                id: item.id,
+                amount: item.amount,
+                startTime: item.startTime,
+                unlockTime: item.unlockTime,
+                status: item.status
+            }))
+        };
+
+        localStorage.setItem(key, JSON.stringify(data));
+
     } catch (error) {
         console.error("Storage error:", error);
         setStakeMessage("Unable to save simulation data.");
@@ -184,18 +241,66 @@ function loadData() {
 
         const data = JSON.parse(saved);
 
-        positions = Array.isArray(data.positions)
-            ? data.positions.filter(item =>
-                Number.isFinite(Number(item.amount)) &&
-                Number(item.amount) > 0 &&
-                Number.isFinite(Number(item.unlockTime))
-            )
-            : [];
+        if (!Array.isArray(data.positions)) {
+            positions = [];
+            return;
+        }
+
+        positions = data.positions
+            .map(item => {
+                try {
+                    const amountRaw = parseJJS(item.amount);
+
+                    if (
+                        amountRaw <= 0n ||
+                        !Number.isFinite(Number(item.id)) ||
+                        !Number.isFinite(Number(item.unlockTime)) ||
+                        !Number.isFinite(Number(item.startTime))
+                    ) {
+                        return null;
+                    }
+
+                    return {
+                        id: Number(item.id),
+                        amount: String(item.amount),
+                        amountRaw,
+                        startTime: Number(item.startTime),
+                        unlockTime: Number(item.unlockTime),
+                        status: "active"
+                    };
+
+                } catch {
+                    return null;
+                }
+            })
+            .filter(Boolean);
 
     } catch (error) {
         console.error("Load staking data error:", error);
         positions = [];
     }
+}
+
+
+/* =========================================
+   VALIDATE STORED POSITIONS
+========================================= */
+
+function validatePositionsAgainstBalance() {
+    const total = getTotalStaked();
+
+    if (total > realBalance) {
+        positions = [];
+        saveData();
+
+        setStakeMessage(
+            "Invalid old simulation data was cleared because total staked exceeded your current JJS wallet balance."
+        );
+
+        return false;
+    }
+
+    return true;
 }
 
 
@@ -208,9 +313,10 @@ function showDisconnected() {
 
     walletAddress = null;
     walletChainId = null;
+    lastBalanceAddress = null;
 
     positions = [];
-    realBalance = 0;
+    realBalance = 0n;
 
     balanceLoading = false;
     balanceError = null;
@@ -273,9 +379,14 @@ function updateWalletUI() {
 
     el.walletStatus.textContent = "Connected";
 
-    el.stakeAmount.disabled = false;
-    el.maxBtn.disabled = false;
-    el.stakeBtn.disabled = false;
+    el.stakeAmount.disabled =
+        balanceLoading || !!balanceError;
+
+    el.maxBtn.disabled =
+        balanceLoading || !!balanceError;
+
+    el.stakeBtn.disabled =
+        balanceLoading || !!balanceError;
 
     el.stakeBtn.textContent = "Stake JJS";
     el.refreshBtn.disabled = false;
@@ -284,7 +395,6 @@ function updateWalletUI() {
 
 /* =========================================
    WALLET SESSION SYNC
-   Same restoration pattern as Member Area
 ========================================= */
 
 function syncWallet(accountAddress = null) {
@@ -322,31 +432,38 @@ function syncWallet(accountAddress = null) {
 
         walletAddress = address;
         positions = [];
-        realBalance = 0;
+        realBalance = 0n;
+        balanceError = null;
+        balanceLoading = false;
+        lastBalanceAddress = null;
 
         loadData();
 
         el.stakeAmount.value = "";
-    } else {
-        walletAddress = address;
     }
 
     walletChainId = newChainId;
 
-    if (addressChanged || networkChanged) {
-        balanceError = null;
-    }
-
     updateWalletUI();
     updateDashboard();
 
-    if (isPolygon()) {
-        refreshBalance();
-    } else {
+    if (!isPolygon()) {
         balanceRequest++;
-        realBalance = 0;
+        realBalance = 0n;
         balanceLoading = false;
+        balanceError = null;
+        lastBalanceAddress = null;
+
         updateDashboard();
+        return true;
+    }
+
+    if (
+        addressChanged ||
+        networkChanged ||
+        lastBalanceAddress !== address.toLowerCase()
+    ) {
+        refreshBalance();
     }
 
     return true;
@@ -355,7 +472,6 @@ function syncWallet(accountAddress = null) {
 
 /* =========================================
    RESTORE WALLET SESSION
-   40 attempts x 250 ms
 ========================================= */
 
 async function restoreWalletSession() {
@@ -434,6 +550,7 @@ async function refreshBalance() {
     balanceLoading = true;
     balanceError = null;
 
+    updateWalletUI();
     updateDashboard();
 
     try {
@@ -447,32 +564,41 @@ async function refreshBalance() {
             return;
         }
 
-        if (!result || result.error) {
+        if (!result || result.error || result.raw === undefined) {
             throw new Error(
                 result?.error || "Unable to read JJS balance."
             );
         }
 
-        const balance = Number(result.formatted);
+        const balance = BigInt(result.raw.toString());
 
-        if (!Number.isFinite(balance)) {
+        if (balance < 0n) {
             throw new Error("Invalid JJS balance.");
         }
 
         realBalance = balance;
         balanceError = null;
+        lastBalanceAddress = address.toLowerCase();
+
+        validatePositionsAgainstBalance();
+
+        setMessage(
+            "JJS wallet balance successfully updated."
+        );
 
     } catch (error) {
         console.error("JJS balance error:", error);
 
         if (requestId === balanceRequest) {
-            balanceError = error.message ||
-                "Unable to read JJS balance.";
+            balanceError =
+                error.message || "Unable to read JJS balance.";
         }
 
     } finally {
         if (requestId === balanceRequest) {
             balanceLoading = false;
+
+            updateWalletUI();
             updateDashboard();
         }
     }
@@ -531,14 +657,21 @@ function stakeTokens() {
         return;
     }
 
-    const amount = Number(el.stakeAmount.value);
+    let amountRaw;
 
-    if (!Number.isFinite(amount) || amount <= 0) {
+    try {
+        amountRaw = parseJJS(el.stakeAmount.value);
+    } catch (error) {
+        setStakeMessage(error.message);
+        return;
+    }
+
+    if (amountRaw <= 0n) {
         setStakeMessage("Enter a valid JJS amount.");
         return;
     }
 
-    if (amount > getAvailableBalance()) {
+    if (amountRaw > getAvailableBalance()) {
         setStakeMessage("Insufficient available JJS balance.");
         return;
     }
@@ -547,7 +680,8 @@ function stakeTokens() {
 
     positions.push({
         id: now,
-        amount,
+        amount: el.stakeAmount.value.trim(),
+        amountRaw,
         startTime: now,
         unlockTime: now + CONFIG.lockPeriod,
         status: "active"
@@ -559,7 +693,7 @@ function stakeTokens() {
     el.stakeAmount.value = "";
 
     setStakeMessage(
-        `${formatJJS(amount)} JJS added to dummy staking. No blockchain transaction occurred and no tokens were transferred.`
+        "Dummy staking position created. No blockchain transaction occurred and no tokens were transferred."
     );
 }
 
@@ -588,7 +722,7 @@ function withdrawPosition(positionId) {
     updateDashboard();
 
     setStakeMessage(
-        `${formatJJS(position.amount)} JJS released from dummy staking. No blockchain transaction occurred.`
+        `${formatJJS(position.amountRaw)} JJS released from dummy staking. No blockchain transaction occurred.`
     );
 }
 
@@ -631,7 +765,7 @@ function renderPositions() {
 
                 <div class="staking-stat-card">
                     <span>Staked Amount</span>
-                    <strong>${formatJJS(position.amount)}</strong>
+                    <strong>${formatJJS(position.amountRaw)}</strong>
                     <small>JJS · Simulation only</small>
                 </div>
 
@@ -717,7 +851,17 @@ el.maxBtn.addEventListener("click", () => {
         return;
     }
 
-    el.stakeAmount.value = getAvailableBalance();
+    const available = getAvailableBalance();
+
+    // Convert raw units to a decimal string without Number precision loss.
+    const whole = available / UNIT;
+    const fraction = (available % UNIT)
+        .toString()
+        .padStart(CONFIG.decimals, "0")
+        .replace(/0+$/, "");
+
+    el.stakeAmount.value =
+        whole.toString() + (fraction ? "." + fraction : "");
 });
 
 
@@ -766,10 +910,9 @@ function startAutoRefresh() {
     }
 
     refreshTimer = setInterval(() => {
-        // Same approach as Member Area:
-        // check the current AppKit session again.
-        syncWallet();
-
+        if (walletAddress && isPolygon()) {
+            refreshBalance();
+        }
     }, CONFIG.autoRefresh);
 }
 
@@ -778,11 +921,17 @@ function startAutoRefresh() {
    COUNTDOWN REFRESH
 ========================================= */
 
-setInterval(() => {
-    if (walletAddress) {
-        renderPositions();
+function startCountdown() {
+    if (countdownTimer) {
+        clearInterval(countdownTimer);
     }
-}, 1000);
+
+    countdownTimer = setInterval(() => {
+        if (walletAddress) {
+            renderPositions();
+        }
+    }, 1000);
+}
 
 
 /* =========================================
@@ -792,17 +941,13 @@ setInterval(() => {
 async function initialize() {
     showDisconnected();
 
-    setupInitialMessage();
+    setMessage("Restoring saved wallet session...");
+    setStakeMessage("Connect your wallet to start staking.");
 
     await restoreWalletSession();
 
     startAutoRefresh();
-}
-
-
-function setupInitialMessage() {
-    setMessage("Restoring saved wallet session...");
-    setStakeMessage("Connect your wallet to start staking.");
+    startCountdown();
 }
 
 
