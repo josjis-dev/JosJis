@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0c0914">
+
+    <title>JJS Staking | JosJis</title>
+
+    <meta
+        name="description"
+        content="Stake your JosJis tokens through the JosJis Web3 Ecosystem."
+    >
+
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="staking.css">
+</head>
+
+<body>
+
+    <main class="staking-page">
+
+        <!-- PAGE HEADER -->
+
+        <section class="staking-hero">
+
+            <div class="staking-label">
+                JOSJIS WEB3 ECOSYSTEM
+            </div>
+
+            <h1>JJS Staking</h1>
+
+            <p>
+                Lock your JosJis tokens and participate
+                in the growing JosJis ecosystem.
+            </p>
+
+            <a href="../../member.html" class="staking-back-link">
+                ← Back to Member Area
+            </a>
+
+        </section>
+
+
+        <!-- WALLET INFORMATION -->
+
+        <section class="staking-card">
+
+            <div class="staking-card-heading">
+
+                <div>
+                    <div class="staking-label">
+                        WALLET INFORMATION
+                    </div>
+
+                    <h2>Your Wallet</h2>
+                </div>
+
+                <span
+                    id="walletStatus"
+                    class="staking-status">
+                    Checking...
+                </span>
+
+            </div>
+
+            <div
+                id="walletAddress"
+                class="staking-address">
+                Not connected
+            </div>
+
+            <div class="staking-actions">
+
+                <button
+                    id="connectBtn"
+                    class="staking-button"
+                    type="button">
+                    Connect Wallet
+                </button>
+
+                <button
+                    id="copyBtn"
+                    class="staking-button secondary"
+                    type="button"
+                    hidden>
+                    Copy Address
+                </button>
+
+                <a
+                    id="explorerLink"
+                    class="staking-button secondary"
+                    href="#"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    hidden>
+                    View on PolygonScan
+                </a>
+
+            </div>
+
+            <p
+                id="stakingMessage"
+                class="staking-message">
+                Restoring wallet session...
+            </p>
+
+        </section>
+
+
+        <!-- NETWORK INFORMATION -->
+
+        <section class="staking-network">
+
+            <div>
+                <span class="network-dot"></span>
+                <strong>Polygon Mainnet</strong>
+            </div>
+
+            <span>Chain ID: 137</span>
+
+        </section>
+
+
+        <!-- STAKING OVERVIEW -->
+
+        <section class="staking-section">
+
+            <div class="staking-section-heading">
+
+                <div>
+                    <div class="staking-label">
+                        YOUR STAKING
+                    </div>
+
+                    <h2>Staking Overview</h2>
+                </div>
+
+                <button
+                    id="refreshBtn"
+                    class="refresh-button"
+                    type="button"
+                    disabled>
+                    ↻ Refresh
+                </button>
+
+            </div>
+
+
+            <div class="staking-overview-grid">
+
+                <article class="staking-stat-card">
+
+                    <span>Total Staked</span>
+
+                    <strong id="totalStaked">
+                        --
+                    </strong>
+
+                    <small>JJS</small>
+
+                </article>
+
+
+                <article class="staking-stat-card">
+
+                    <span>Available Balance</span>
+
+                    <strong id="availableBalance">
+                        --
+                    </strong>
+
+                    <small>JJS</small>
+
+                </article>
+
+
+                <article class="staking-stat-card">
+
+                    <span>Active Positions</span>
+
+                    <strong id="activePositions">
+                        --
+                    </strong>
+
+                    <small>Positions</small>
+
+                </article>
+
+
+                <article class="staking-stat-card">
+
+                    <span>Pending Rewards</span>
+
+                    <strong id="pendingRewards">
+                        0
+                    </strong>
+
+                    <small>JJS · Not active yet</small>
+
+                </article>
+
+            </div>
+
+        </section>
+
+
+        <!-- STAKE FORM -->
+
+        <section class="staking-section">
+
+            <div class="staking-section-heading">
+
+                <div>
+                    <div class="staking-label">
+                        START STAKING
+                    </div>
+
+                    <h2>Stake JJS</h2>
+                </div>
+
+            </div>
+
+
+            <div class="staking-card">
+
+                <div class="staking-form-group">
+
+                    <label for="stakeAmount">
+                        Amount to Stake
+                    </label>
+
+                    <div class="staking-input-wrapper">
+
+                        <input
+                            type="number"
+                            id="stakeAmount"
+                            placeholder="Enter JJS amount"
+                            min="0"
+                            step="any"
+                            inputmode="decimal"
+                            disabled
+                        >
+
+                        <span>JJS</span>
+
+                    </div>
+
+                    <button
+                        type="button"
+                        id="maxBtn"
+                        class="max-button"
+                        disabled>
+                        MAX
+                    </button>
+
+                </div>
+
+
+                <div class="staking-lock-info">
+
+                    <div>
+                        <span>Lock Period</span>
+                        <strong>7 Days</strong>
+                    </div>
+
+                    <div>
+                        <span>Reward System</span>
+                        <strong>Not Active</strong>
+                    </div>
+
+                </div>
+
+
+                <div class="staking-notice">
+
+                    <strong>Important Information</strong>
+
+                    <p>
+                        Your JJS tokens will be locked for
+                        7 days after a successful staking
+                        transaction.
+                    </p>
+
+                    <p>
+                        You cannot withdraw your staked
+                        tokens before the lock period ends.
+                    </p>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    id="stakeBtn"
+                    class="staking-button full-width"
+                    disabled>
+                    Connect Wallet to Stake
+                </button>
+
+                <p
+                    id="stakeMessage"
+                    class="staking-message">
+                    Connect your wallet to start staking.
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- STAKING POSITIONS -->
+
+        <section class="staking-section">
+
+            <div class="staking-section-heading">
+
+                <div>
+                    <div class="staking-label">
+                        YOUR POSITIONS
+                    </div>
+
+                    <h2>My Staking Positions</h2>
+                </div>
+
+            </div>
+
+
+            <div
+                id="positionsContainer"
+                class="staking-positions">
+
+                <div class="staking-empty-state">
+
+                    <div class="empty-icon">
+                        🔒
+                    </div>
+
+                    <h3>No Staking Positions</h3>
+
+                    <p>
+                        Your active staking positions
+                        will appear here.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- REWARD INFORMATION -->
+
+        <section class="staking-card reward-info">
+
+            <div class="staking-label">
+                STAKING REWARDS
+            </div>
+
+            <h2>Coming in a Future Update</h2>
+
+            <p>
+                The initial staking version focuses on
+                secure token locking and withdrawal.
+            </p>
+
+            <p>
+                JJS rewards and exclusive membership
+                benefits may be introduced in future
+                versions.
+            </p>
+
+        </section>
+
+
+        <!-- SECURITY INFORMATION -->
+
+        <section class="staking-note">
+
+            <h3>About JosJis Staking</h3>
+
+            <p>
+                Staking uses a separate smart contract
+                from the official JosJis token contract.
+            </p>
+
+            <p>
+                Never send JJS directly to a contract
+                address. Always use the official staking
+                interface.
+            </p>
+
+            <p>
+                This initial version is intended for
+                testing and development.
+            </p>
+
+        </section>
+
+
+        <!-- FOOTER NOTE -->
+
+        <div class="staking-footer">
+
+            JosJis Web3 Ecosystem · Powered by Polygon
+
+        </div>
+
+    </main>
+
+
+    <!-- SHARED WEBSITE SCRIPTS -->
+
+    <script src="../../assets/js/header.js" defer></script>
+    <script src="../../assets/js/footer.js" defer></script>
+    <script src="../../assets/js/components.js" defer></script>
+
+
+    <!-- STAKING JAVASCRIPT -->
+
+    <script
+        type="module"
+        src="staking.js">
+    </script>
+
+</body>
+</html>
