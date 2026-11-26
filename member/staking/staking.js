@@ -1,9 +1,9 @@
 
 /* =========================================
    JOSJIS DUMMY STAKING
-   Version: V2
+   Version: V3
    Mode: Simulation Only
-   Wallet: Reown AppKit
+   Wallet: Shared Reown AppKit Session
 ========================================= */
 
 import { modal } from "../../web3/web3-config.js";
@@ -17,11 +17,11 @@ import {
    CONFIGURATION
 ========================================= */
 
-const STAKING_CONFIG = {
-    lockPeriod: 7 * 24 * 60 * 60 * 1000,
+const CONFIG = {
     chainId: 137,
-    storageKey: "josjis_dummy_staking_v2",
-    refreshInterval: 15000
+    lockPeriod: 7 * 24 * 60 * 60 * 1000,
+    storageKey: "josjis_dummy_staking_v3",
+    autoRefresh: 15000
 };
 
 
@@ -29,7 +29,7 @@ const STAKING_CONFIG = {
    ELEMENTS
 ========================================= */
 
-const elements = {
+const el = {
     walletStatus: document.getElementById("walletStatus"),
     walletAddress: document.getElementById("walletAddress"),
     connectBtn: document.getElementById("connectBtn"),
@@ -60,15 +60,13 @@ let walletAddress = null;
 let walletChainId = null;
 
 let positions = [];
-
 let realBalance = 0;
+
 let balanceLoading = false;
 let balanceError = null;
 
 let refreshTimer = null;
-let accountUnsubscribe = null;
-let networkUnsubscribe = null;
-let stateUnsubscribe = null;
+let balanceRequest = 0;
 
 
 /* =========================================
@@ -78,9 +76,7 @@ let stateUnsubscribe = null;
 function formatJJS(value) {
     const number = Number(value);
 
-    if (!Number.isFinite(number)) {
-        return "0";
-    }
+    if (!Number.isFinite(number)) return "0";
 
     return number.toLocaleString("en-US", {
         maximumFractionDigits: 4
@@ -88,42 +84,39 @@ function formatJJS(value) {
 }
 
 
-function shortenAddress(address) {
-    return address.slice(0, 6) + "..." + address.slice(-4);
+function setMessage(message) {
+    el.stakingMessage.textContent = message;
 }
 
 
-function normalizeChainId(chainId) {
-    if (chainId === null || chainId === undefined) {
-        return null;
-    }
-
-    const parsed = Number(chainId);
-
-    return Number.isFinite(parsed) ? parsed : null;
+function setStakeMessage(message) {
+    el.stakeMessage.textContent = message;
 }
 
 
 function getTotalStaked() {
     return positions.reduce(
-        (total, position) => total + Number(position.amount),
+        (total, item) => total + Number(item.amount),
         0
     );
 }
 
 
 function getAvailableBalance() {
-    return Math.max(0, realBalance - getTotalStaked());
+    return Math.max(
+        0,
+        realBalance - getTotalStaked()
+    );
 }
 
 
-function isCorrectNetwork() {
-    return walletChainId === STAKING_CONFIG.chainId;
+function isPolygon() {
+    return Number(walletChainId) === CONFIG.chainId;
 }
 
 
 function getTimeRemaining(timestamp) {
-    const remaining = timestamp - Date.now();
+    const remaining = Number(timestamp) - Date.now();
 
     if (remaining <= 0) {
         return "Ready to withdraw";
@@ -147,56 +140,37 @@ function getTimeRemaining(timestamp) {
 }
 
 
-function setMessage(message) {
-    elements.stakingMessage.textContent = message;
-}
-
-
-function setStakeMessage(message) {
-    elements.stakeMessage.textContent = message;
-}
-
-
 /* =========================================
    LOCAL STORAGE
 ========================================= */
 
-function getStorageKey() {
+function storageKey() {
     if (!walletAddress) return null;
 
-    return (
-        STAKING_CONFIG.storageKey +
-        "_" +
-        walletAddress.toLowerCase()
-    );
+    return CONFIG.storageKey + "_" +
+        walletAddress.toLowerCase();
 }
 
 
 function saveData() {
-    const key = getStorageKey();
+    const key = storageKey();
 
     if (!key) return;
 
     try {
         localStorage.setItem(
             key,
-            JSON.stringify({
-                positions
-            })
+            JSON.stringify({ positions })
         );
-
     } catch (error) {
-        console.error("Staking storage error:", error);
-
-        setStakeMessage(
-            "Unable to save staking simulation data."
-        );
+        console.error("Storage error:", error);
+        setStakeMessage("Unable to save simulation data.");
     }
 }
 
 
 function loadData() {
-    const key = getStorageKey();
+    const key = storageKey();
 
     if (!key) return;
 
@@ -211,81 +185,56 @@ function loadData() {
         const data = JSON.parse(saved);
 
         positions = Array.isArray(data.positions)
-            ? data.positions.filter(position => {
-                return (
-                    Number.isFinite(Number(position.amount)) &&
-                    Number(position.amount) > 0 &&
-                    Number.isFinite(Number(position.unlockTime))
-                );
-            })
+            ? data.positions.filter(item =>
+                Number.isFinite(Number(item.amount)) &&
+                Number(item.amount) > 0 &&
+                Number.isFinite(Number(item.unlockTime))
+            )
             : [];
 
     } catch (error) {
-        console.error("Failed to load staking data:", error);
-
+        console.error("Load staking data error:", error);
         positions = [];
     }
 }
 
 
 /* =========================================
-   REAL JJS BALANCE
+   DISCONNECTED UI
 ========================================= */
 
-async function refreshBalance() {
-    if (!walletAddress || !isCorrectNetwork()) {
-        realBalance = 0;
-        balanceError = null;
+function showDisconnected() {
+    balanceRequest++;
 
-        updateDashboard();
+    walletAddress = null;
+    walletChainId = null;
 
-        return;
-    }
+    positions = [];
+    realBalance = 0;
 
-    const address = walletAddress;
-
-    balanceLoading = true;
+    balanceLoading = false;
     balanceError = null;
 
+    el.walletStatus.textContent = "Not Connected";
+    el.walletAddress.textContent = "Not connected";
+
+    el.connectBtn.textContent = "Connect Wallet";
+    el.connectBtn.disabled = false;
+
+    el.copyBtn.hidden = true;
+    el.explorerLink.hidden = true;
+
+    el.stakeAmount.value = "";
+    el.stakeAmount.disabled = true;
+
+    el.maxBtn.disabled = true;
+
+    el.stakeBtn.disabled = true;
+    el.stakeBtn.textContent = "Connect Wallet to Stake";
+
+    el.refreshBtn.disabled = true;
+
     updateDashboard();
-
-    try {
-        const result = await getTokenBalance(
-            "JJS",
-            address
-        );
-
-        // Hindari hasil lama menimpa wallet baru.
-        if (
-            !walletAddress ||
-            walletAddress.toLowerCase() !== address.toLowerCase()
-        ) {
-            return;
-        }
-
-        if (result.error) {
-            throw new Error(result.error);
-        }
-
-        realBalance = Number(result.formatted);
-
-        if (!Number.isFinite(realBalance)) {
-            throw new Error("Invalid JJS balance.");
-        }
-
-        balanceError = null;
-
-    } catch (error) {
-        console.error("JJS balance error:", error);
-
-        balanceError = error.message ||
-            "Unable to read JJS balance.";
-
-    } finally {
-        balanceLoading = false;
-
-        updateDashboard();
-    }
 }
 
 
@@ -296,124 +245,161 @@ async function refreshBalance() {
 function updateWalletUI() {
     if (!walletAddress) return;
 
-    elements.walletAddress.textContent = walletAddress;
+    el.walletAddress.textContent = walletAddress;
 
-    elements.connectBtn.textContent = "Wallet Connected";
-    elements.connectBtn.disabled = true;
+    el.copyBtn.hidden = false;
+    el.explorerLink.hidden = false;
 
-    elements.copyBtn.hidden = false;
-    elements.explorerLink.hidden = false;
-
-    elements.explorerLink.href =
+    el.explorerLink.href =
         "https://polygonscan.com/address/" + walletAddress;
 
-    elements.refreshBtn.disabled = !isCorrectNetwork();
+    el.connectBtn.disabled = true;
+    el.connectBtn.textContent = "Wallet Connected";
 
-    if (!isCorrectNetwork()) {
-        elements.walletStatus.textContent = "Wrong Network";
+    if (!isPolygon()) {
+        el.walletStatus.textContent = "Wrong Network";
 
-        elements.stakeAmount.disabled = true;
-        elements.maxBtn.disabled = true;
-        elements.stakeBtn.disabled = true;
+        el.stakeAmount.disabled = true;
+        el.maxBtn.disabled = true;
+        el.stakeBtn.disabled = true;
 
-        elements.stakeBtn.textContent =
-            "Switch to Polygon Mainnet";
+        el.stakeBtn.textContent = "Switch to Polygon Mainnet";
+        el.refreshBtn.disabled = true;
 
-        setMessage(
-            "Please switch your wallet to Polygon Mainnet."
-        );
+        setMessage("Please switch your wallet to Polygon Mainnet.");
 
         return;
     }
 
-    elements.walletStatus.textContent = "Connected";
+    el.walletStatus.textContent = "Connected";
 
-    elements.stakeAmount.disabled = false;
-    elements.maxBtn.disabled = false;
-    elements.stakeBtn.disabled = false;
+    el.stakeAmount.disabled = false;
+    el.maxBtn.disabled = false;
+    el.stakeBtn.disabled = false;
 
-    elements.stakeBtn.textContent = "Stake JJS";
-}
-
-
-function disconnectWalletUI() {
-    walletAddress = null;
-    walletChainId = null;
-
-    positions = [];
-    realBalance = 0;
-
-    balanceLoading = false;
-    balanceError = null;
-
-    elements.walletStatus.textContent = "Not Connected";
-    elements.walletAddress.textContent = "Not connected";
-
-    elements.connectBtn.textContent = "Connect Wallet";
-    elements.connectBtn.disabled = false;
-
-    elements.copyBtn.hidden = true;
-    elements.explorerLink.hidden = true;
-
-    elements.stakeAmount.value = "";
-    elements.stakeAmount.disabled = true;
-
-    elements.maxBtn.disabled = true;
-
-    elements.stakeBtn.disabled = true;
-    elements.stakeBtn.textContent = "Connect Wallet to Stake";
-
-    elements.refreshBtn.disabled = true;
-
-    updateDashboard();
+    el.stakeBtn.textContent = "Stake JJS";
+    el.refreshBtn.disabled = false;
 }
 
 
 /* =========================================
-   WALLET SESSION
+   WALLET SESSION SYNC
+   Same restoration pattern as Member Area
 ========================================= */
 
-async function syncWalletSession() {
+function syncWallet(accountAddress = null) {
+    let address;
+    let chainId;
+
     try {
-        const address = await modal.getAddress();
-
-        const chainId = normalizeChainId(
-            await modal.getChainId()
-        );
-
-        if (!address) {
-            disconnectWalletUI();
-            return;
-        }
-
-        const changed =
-            !walletAddress ||
-            walletAddress.toLowerCase() !== address.toLowerCase();
-
-        walletAddress = address;
-        walletChainId = chainId;
-
-        if (changed) {
-            loadData();
-            realBalance = 0;
-        }
-
-        updateWalletUI();
-        updateDashboard();
-
-        if (isCorrectNetwork()) {
-            await refreshBalance();
-        }
+        address = modal.getAddress() || accountAddress;
+        chainId = modal.getChainId();
 
     } catch (error) {
-        console.error("Wallet session error:", error);
+        console.error("Wallet sync error:", error);
+        return false;
+    }
+
+    if (!address) return false;
+
+    if (chainId === undefined || chainId === null) {
+        el.walletStatus.textContent = "Checking Network";
+        setMessage("Checking wallet network...");
+        return false;
+    }
+
+    const newChainId = Number(chainId);
+
+    const addressChanged =
+        !walletAddress ||
+        walletAddress.toLowerCase() !== address.toLowerCase();
+
+    const networkChanged =
+        walletChainId !== newChainId;
+
+    if (addressChanged) {
+        balanceRequest++;
+
+        walletAddress = address;
+        positions = [];
+        realBalance = 0;
+
+        loadData();
+
+        el.stakeAmount.value = "";
+    } else {
+        walletAddress = address;
+    }
+
+    walletChainId = newChainId;
+
+    if (addressChanged || networkChanged) {
+        balanceError = null;
+    }
+
+    updateWalletUI();
+    updateDashboard();
+
+    if (isPolygon()) {
+        refreshBalance();
+    } else {
+        balanceRequest++;
+        realBalance = 0;
+        balanceLoading = false;
+        updateDashboard();
+    }
+
+    return true;
+}
+
+
+/* =========================================
+   RESTORE WALLET SESSION
+   40 attempts x 250 ms
+========================================= */
+
+async function restoreWalletSession() {
+    el.walletStatus.textContent = "Checking...";
+    setMessage("Restoring saved wallet session...");
+
+    for (let attempt = 0; attempt < 40; attempt++) {
+        try {
+            const address = modal.getAddress();
+
+            if (address) {
+                const restored = syncWallet(address);
+
+                if (restored) {
+                    setMessage(
+                        "Wallet session restored. Dummy staking mode is active."
+                    );
+
+                    return;
+                }
+            }
+
+        } catch (error) {
+            console.error("Restore wallet error:", error);
+        }
+
+        await new Promise(resolve =>
+            setTimeout(resolve, 250)
+        );
+    }
+
+    if (!walletAddress) {
+        showDisconnected();
 
         setMessage(
-            "Unable to restore wallet session. Please try again."
+            "No active wallet session detected. Connect your wallet."
         );
     }
 }
 
+
+/* =========================================
+   CONNECT WALLET
+========================================= */
 
 async function connectWallet() {
     try {
@@ -423,12 +409,10 @@ async function connectWallet() {
             view: "Connect"
         });
 
-        // Account/network subscriptions will update the UI.
-        // Also check the current session after opening.
-        await syncWalletSession();
+        await restoreWalletSession();
 
     } catch (error) {
-        console.error("Wallet connection error:", error);
+        console.error("Connect wallet error:", error);
 
         setMessage(
             error.message || "Unable to open wallet connection."
@@ -438,80 +422,59 @@ async function connectWallet() {
 
 
 /* =========================================
-   ACCOUNT AND NETWORK SUBSCRIPTIONS
+   REAL JJS BALANCE
 ========================================= */
 
-function setupWalletSubscriptions() {
+async function refreshBalance() {
+    if (!walletAddress || !isPolygon()) return;
 
-    if (typeof modal.subscribeAccount === "function") {
+    const address = walletAddress;
+    const requestId = ++balanceRequest;
 
-        accountUnsubscribe = modal.subscribeAccount(
-            async account => {
-                const address = account?.address;
+    balanceLoading = true;
+    balanceError = null;
 
-                if (!address) {
-                    disconnectWalletUI();
-                    return;
-                }
+    updateDashboard();
 
-                const changed =
-                    !walletAddress ||
-                    walletAddress.toLowerCase() !== address.toLowerCase();
+    try {
+        const result = await getTokenBalance("JJS", address);
 
-                walletAddress = address;
+        if (
+            !walletAddress ||
+            walletAddress.toLowerCase() !== address.toLowerCase() ||
+            requestId !== balanceRequest
+        ) {
+            return;
+        }
 
-                if (changed) {
-                    loadData();
-                    realBalance = 0;
-                }
+        if (!result || result.error) {
+            throw new Error(
+                result?.error || "Unable to read JJS balance."
+            );
+        }
 
-                updateWalletUI();
-                updateDashboard();
+        const balance = Number(result.formatted);
 
-                if (isCorrectNetwork()) {
-                    await refreshBalance();
-                }
-            }
-        );
-    }
+        if (!Number.isFinite(balance)) {
+            throw new Error("Invalid JJS balance.");
+        }
 
+        realBalance = balance;
+        balanceError = null;
 
-    if (typeof modal.subscribeNetwork === "function") {
+    } catch (error) {
+        console.error("JJS balance error:", error);
 
-        networkUnsubscribe = modal.subscribeNetwork(
-            async network => {
-                walletChainId = normalizeChainId(
-                    network?.chainId
-                );
+        if (requestId === balanceRequest) {
+            balanceError = error.message ||
+                "Unable to read JJS balance.";
+        }
 
-                if (!walletAddress) return;
-
-                updateWalletUI();
-
-                if (isCorrectNetwork()) {
-                    await refreshBalance();
-                } else {
-                    realBalance = 0;
-                    updateDashboard();
-
-                    setMessage(
-                        "Please switch to Polygon Mainnet."
-                    );
-                }
-            }
-        );
-    }
-
-
-    if (typeof modal.subscribeState === "function") {
-
-        stateUnsubscribe = modal.subscribeState(
-            async state => {
-                if (state?.open === false) {
-                    await syncWalletSession();
-                }
-            }
-        );
+    } finally {
+        if (requestId === balanceRequest) {
+            balanceLoading = false;
+            updateDashboard();
+        }
     }
 }
 
@@ -521,34 +484,28 @@ function setupWalletSubscriptions() {
 ========================================= */
 
 function updateDashboard() {
-
-    const totalStaked = getTotalStaked();
-
-    elements.totalStaked.textContent =
-        formatJJS(totalStaked);
+    el.totalStaked.textContent =
+        formatJJS(getTotalStaked());
 
     if (!walletAddress) {
+        el.availableBalance.textContent = "--";
 
-        elements.availableBalance.textContent = "--";
+    } else if (!isPolygon()) {
+        el.availableBalance.textContent = "Polygon required";
 
     } else if (balanceLoading) {
-
-        elements.availableBalance.textContent = "Loading...";
+        el.availableBalance.textContent = "Loading...";
 
     } else if (balanceError) {
-
-        elements.availableBalance.textContent = "Unavailable";
+        el.availableBalance.textContent = "Unavailable";
 
     } else {
-
-        elements.availableBalance.textContent =
+        el.availableBalance.textContent =
             formatJJS(getAvailableBalance());
     }
 
-    elements.activePositions.textContent =
-        positions.length;
-
-    elements.pendingRewards.textContent = "0";
+    el.activePositions.textContent = positions.length;
+    el.pendingRewards.textContent = "0";
 
     renderPositions();
 }
@@ -559,59 +516,50 @@ function updateDashboard() {
 ========================================= */
 
 function stakeTokens() {
-
     if (!walletAddress) {
         setStakeMessage("Connect your wallet first.");
         return;
     }
 
-    if (!isCorrectNetwork()) {
+    if (!isPolygon()) {
         setStakeMessage("Please switch to Polygon Mainnet.");
         return;
     }
 
     if (balanceLoading || balanceError) {
-        setStakeMessage(
-            "JJS balance is not available. Refresh your balance first."
-        );
+        setStakeMessage("JJS balance is not available yet.");
         return;
     }
 
-    const amount = Number(elements.stakeAmount.value);
+    const amount = Number(el.stakeAmount.value);
 
     if (!Number.isFinite(amount) || amount <= 0) {
         setStakeMessage("Enter a valid JJS amount.");
         return;
     }
 
-    const availableBalance = getAvailableBalance();
-
-    if (amount > availableBalance) {
-        setStakeMessage(
-            "Insufficient real JJS balance available for this simulation."
-        );
+    if (amount > getAvailableBalance()) {
+        setStakeMessage("Insufficient available JJS balance.");
         return;
     }
 
     const now = Date.now();
 
-    const position = {
+    positions.push({
         id: now,
         amount,
         startTime: now,
-        unlockTime: now + STAKING_CONFIG.lockPeriod,
+        unlockTime: now + CONFIG.lockPeriod,
         status: "active"
-    };
-
-    positions.push(position);
+    });
 
     saveData();
     updateDashboard();
 
-    elements.stakeAmount.value = "";
+    el.stakeAmount.value = "";
 
     setStakeMessage(
-        `${formatJJS(amount)} JJS added to your dummy staking position. No blockchain transaction occurred and no JJS was transferred.`
+        `${formatJJS(amount)} JJS added to dummy staking. No blockchain transaction occurred and no tokens were transferred.`
     );
 }
 
@@ -621,27 +569,26 @@ function stakeTokens() {
 ========================================= */
 
 function withdrawPosition(positionId) {
-
     const position = positions.find(
-        item => item.id === positionId
+        item => Number(item.id) === Number(positionId)
     );
 
     if (!position) return;
 
-    if (Date.now() < position.unlockTime) {
-        alert("This staking simulation is still locked.");
+    if (Date.now() < Number(position.unlockTime)) {
+        alert("This staking position is still locked.");
         return;
     }
 
     positions = positions.filter(
-        item => item.id !== positionId
+        item => Number(item.id) !== Number(positionId)
     );
 
     saveData();
     updateDashboard();
 
     setStakeMessage(
-        `${formatJJS(position.amount)} JJS released from your dummy staking position. No blockchain transaction occurred.`
+        `${formatJJS(position.amount)} JJS released from dummy staking. No blockchain transaction occurred.`
     );
 }
 
@@ -651,10 +598,8 @@ function withdrawPosition(positionId) {
 ========================================= */
 
 function renderPositions() {
-
     if (!walletAddress || positions.length === 0) {
-
-        elements.positionsContainer.innerHTML = `
+        el.positionsContainer.innerHTML = `
             <div class="staking-empty-state">
                 <div class="empty-icon">🔒</div>
                 <h3>No Staking Positions</h3>
@@ -665,155 +610,150 @@ function renderPositions() {
         return;
     }
 
-    elements.positionsContainer.innerHTML =
-        positions.map(position => {
+    el.positionsContainer.innerHTML = positions.map(position => {
+        const unlocked =
+            Date.now() >= Number(position.unlockTime);
 
-            const unlocked =
-                Date.now() >= Number(position.unlockTime);
+        const status = unlocked
+            ? "Ready to Withdraw"
+            : "Locked";
 
-            const status = unlocked
-                ? "Ready to Withdraw"
-                : "Locked";
+        const countdown =
+            getTimeRemaining(position.unlockTime);
 
-            const countdown =
-                getTimeRemaining(Number(position.unlockTime));
+        return `
+            <article class="staking-card">
 
-            return `
-                <article class="staking-card">
+                <div class="staking-card-heading">
+                    <h2>Position #${position.id}</h2>
+                    <span class="staking-status">${status}</span>
+                </div>
 
-                    <div class="staking-card-heading">
-                        <h2>Position #${position.id}</h2>
+                <div class="staking-stat-card">
+                    <span>Staked Amount</span>
+                    <strong>${formatJJS(position.amount)}</strong>
+                    <small>JJS · Simulation only</small>
+                </div>
 
-                        <span class="staking-status">
-                            ${status}
-                        </span>
+                <div class="staking-lock-info">
+                    <div>
+                        <span>Lock Period</span>
+                        <strong>7 Days</strong>
                     </div>
 
-                    <div class="staking-stat-card">
-                        <span>Staked Amount</span>
-                        <strong>${formatJJS(position.amount)}</strong>
-                        <small>JJS · Simulation only</small>
+                    <div>
+                        <span>Time Remaining</span>
+                        <strong>${countdown}</strong>
                     </div>
+                </div>
 
-                    <div class="staking-lock-info">
-                        <div>
-                            <span>Lock Period</span>
-                            <strong>7 Days</strong>
-                        </div>
+                <button
+                    type="button"
+                    class="staking-button full-width"
+                    data-withdraw="${position.id}"
+                    ${unlocked ? "" : "disabled"}
+                >
+                    ${unlocked ? "Withdraw JJS" : "Locked"}
+                </button>
 
-                        <div>
-                            <span>Time Remaining</span>
-                            <strong>${countdown}</strong>
-                        </div>
-                    </div>
-
-                    <button
-                        type="button"
-                        class="staking-button full-width"
-                        data-withdraw="${position.id}"
-                        ${unlocked ? "" : "disabled"}
-                    >
-                        ${unlocked ? "Withdraw JJS" : "Locked"}
-                    </button>
-
-                </article>
-            `;
-        }).join("");
+            </article>
+        `;
+    }).join("");
 }
+
+
+/* =========================================
+   APPKIT SUBSCRIPTIONS
+========================================= */
+
+modal.subscribeState(() => {
+    syncWallet();
+});
+
+
+modal.subscribeAccount(account => {
+    if (account?.address) {
+        syncWallet(account.address);
+
+    } else if (account?.isConnected === false) {
+        showDisconnected();
+    }
+});
+
+
+modal.subscribeNetwork(() => {
+    syncWallet();
+});
 
 
 /* =========================================
    BUTTON EVENTS
 ========================================= */
 
-elements.connectBtn.addEventListener(
+el.connectBtn.addEventListener(
     "click",
     connectWallet
 );
 
 
-elements.copyBtn.addEventListener(
-    "click",
-    async () => {
+el.copyBtn.addEventListener("click", async () => {
+    if (!walletAddress) return;
 
-        if (!walletAddress) return;
+    try {
+        await navigator.clipboard.writeText(walletAddress);
+        setMessage("Wallet address copied.");
 
-        try {
-            await navigator.clipboard.writeText(walletAddress);
-
-            setMessage("Wallet address copied.");
-
-        } catch (error) {
-            setMessage("Unable to copy wallet address.");
-        }
+    } catch (error) {
+        setMessage("Unable to copy wallet address.");
     }
-);
+});
 
 
-elements.maxBtn.addEventListener(
-    "click",
-    () => {
+el.maxBtn.addEventListener("click", () => {
+    if (!walletAddress || !isPolygon()) return;
 
-        if (!walletAddress || !isCorrectNetwork()) return;
-
-        if (balanceLoading || balanceError) {
-            setStakeMessage("JJS balance is not available yet.");
-            return;
-        }
-
-        elements.stakeAmount.value =
-            getAvailableBalance();
+    if (balanceLoading || balanceError) {
+        setStakeMessage("JJS balance is not available yet.");
+        return;
     }
-);
+
+    el.stakeAmount.value = getAvailableBalance();
+});
 
 
-elements.stakeBtn.addEventListener(
+el.stakeBtn.addEventListener(
     "click",
     stakeTokens
 );
 
 
-elements.refreshBtn.addEventListener(
-    "click",
-    async () => {
+el.refreshBtn.addEventListener("click", async () => {
+    if (!walletAddress) return;
 
-        if (!walletAddress) return;
-
-        if (!isCorrectNetwork()) {
-            setMessage("Please switch to Polygon Mainnet.");
-            return;
-        }
-
-        setMessage("Refreshing JJS balance and staking data...");
-
-        await refreshBalance();
-
-        if (!balanceError) {
-            setMessage(
-                "JJS balance and dummy staking data refreshed."
-            );
-        } else {
-            setMessage(
-                "Unable to refresh JJS balance: " + balanceError
-            );
-        }
+    if (!isPolygon()) {
+        setMessage("Please switch to Polygon Mainnet.");
+        return;
     }
-);
 
+    setMessage("Refreshing JJS balance...");
 
-elements.positionsContainer.addEventListener(
-    "click",
-    event => {
+    await refreshBalance();
 
-        const button = event.target.closest("[data-withdraw]");
-
-        if (!button || button.disabled) return;
-
-        withdrawPosition(
-            Number(button.dataset.withdraw)
-        );
+    if (balanceError) {
+        setMessage("Unable to refresh JJS balance: " + balanceError);
+    } else {
+        setMessage("JJS balance and staking data refreshed.");
     }
-);
+});
+
+
+el.positionsContainer.addEventListener("click", event => {
+    const button = event.target.closest("[data-withdraw]");
+
+    if (!button || button.disabled) return;
+
+    withdrawPosition(button.dataset.withdraw);
+});
 
 
 /* =========================================
@@ -821,18 +761,16 @@ elements.positionsContainer.addEventListener(
 ========================================= */
 
 function startAutoRefresh() {
-
     if (refreshTimer) {
         clearInterval(refreshTimer);
     }
 
     refreshTimer = setInterval(() => {
+        // Same approach as Member Area:
+        // check the current AppKit session again.
+        syncWallet();
 
-        if (walletAddress && isCorrectNetwork()) {
-            refreshBalance();
-        }
-
-    }, STAKING_CONFIG.refreshInterval);
+    }, CONFIG.autoRefresh);
 }
 
 
@@ -841,35 +779,30 @@ function startAutoRefresh() {
 ========================================= */
 
 setInterval(() => {
-
-    if (!walletAddress) return;
-
-    renderPositions();
-
+    if (walletAddress) {
+        renderPositions();
+    }
 }, 1000);
 
 
 /* =========================================
-   INITIALIZATION
+   INITIALIZE
 ========================================= */
 
 async function initialize() {
+    showDisconnected();
 
-    disconnectWalletUI();
+    setupInitialMessage();
 
-    setMessage("Restoring Reown wallet session...");
-
-    setupWalletSubscriptions();
-
-    await syncWalletSession();
+    await restoreWalletSession();
 
     startAutoRefresh();
+}
 
-    if (!walletAddress) {
-        setMessage(
-            "Connect your wallet to access dummy staking."
-        );
-    }
+
+function setupInitialMessage() {
+    setMessage("Restoring saved wallet session...");
+    setStakeMessage("Connect your wallet to start staking.");
 }
 
 
