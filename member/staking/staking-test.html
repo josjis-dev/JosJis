@@ -299,12 +299,13 @@ let accountSubscriptionStarted = false;
 let providerSubscriptionStarted = false;
 
 let walletCheckRunning = false;
+let providerCallbackReceived = false;
 
 const moduleList = [
     ["config", "./modules/config.js"],
     ["helpers", "./modules/helpers.js"],
     ["contracts", "./modules/contracts.js"],
-    ["wallet", "./modules/wallet.js"],
+    ["wallet", "./modules/wallet.js?v=5"],
     ["staking-actions", "./modules/staking-actions.js"],
     ["positions", "./modules/positions.js"],
     ["dashboard", "./modules/dashboard.js"]
@@ -321,9 +322,7 @@ async function loadModules() {
 
     for (const [name, path] of moduleList) {
         try {
-            const module = await import(
-                `${path}?v=4`
-            );
+            const module = await import(path);
 
             loadedModules[name] = module;
 
@@ -484,18 +483,21 @@ async function checkWalletModuleProvider() {
     }
 
     try {
-        walletProvider =
-            walletModule.getWalletProvider();
+        /*
+         * Use the provider received through the module
+         * subscription callback.
+         * Do not replace it with a raw provider.
+         */
 
         if (!walletProvider) {
             setStatus(
                 "providerStatus",
-                "NOT AVAILABLE",
+                "WAITING FOR PROVIDER",
                 "warning"
             );
 
             log(
-                "Wallet module has no EVM provider."
+                "Waiting for wallet provider callback..."
             );
 
             return {
@@ -504,9 +506,7 @@ async function checkWalletModuleProvider() {
             };
         }
 
-        log(
-            "Wallet module provider received."
-        );
+        log("Wallet module provider received.");
 
         log(
             "Provider constructor: " +
@@ -542,11 +542,20 @@ async function checkWalletModuleProvider() {
             method: "eth_chainId"
         });
 
-        setStatus(
-            "providerStatus",
-            "VALID",
-            "success"
-        );
+        const numericChainId = Number(chainId);
+
+        const appKitAddress =
+            appModal?.getAddress()?.toLowerCase() || null;
+
+        const providerAddress =
+            accounts?.[0]?.toLowerCase() || null;
+
+        const addressMatches =
+            Boolean(
+                appKitAddress &&
+                providerAddress &&
+                appKitAddress === providerAddress
+            );
 
         log(
             "Provider account: " +
@@ -557,11 +566,35 @@ async function checkWalletModuleProvider() {
             "Provider chain ID: " + chainId
         );
 
+        log(
+            "Provider address matches AppKit: " +
+            addressMatches
+        );
+
+        if (numericChainId !== 137) {
+            throw new Error(
+                `Wrong wallet network. Expected 137, received ${numericChainId}.`
+            );
+        }
+
+        if (!addressMatches) {
+            throw new Error(
+                "Provider account does not match the AppKit account."
+            );
+        }
+
+        setStatus(
+            "providerStatus",
+            "VALID",
+            "success"
+        );
+
         return {
             available: true,
             valid: true,
             accounts,
-            chainId
+            chainId,
+            addressMatches
         };
 
     } catch (error) {
@@ -612,6 +645,7 @@ async function checkWallet() {
             `Provider Valid: ${provider.valid}\n` +
             `Provider Account: ${provider.accounts?.[0] || "Unavailable"}\n` +
             `Provider Chain ID: ${provider.chainId || "Unknown"}\n` +
+            `Provider Address Matches: ${provider.addressMatches ?? false}\n` +
             `Module Wallet Address: ${session.walletAddress || "Not initialized"}\n` +
             `Module Connected: ${Boolean(session.connected)}`;
 
@@ -695,14 +729,9 @@ async function initializeAppKit() {
             });
         }
 
-        /*
-         * Subscribe through the actual wallet module.
-         * This is the provider path used by Staking.
-         */
+        /* Subscribe to wallet provider */
 
         if (!providerSubscriptionStarted) {
-            providerSubscriptionStarted = true;
-
             if (
                 typeof walletModule?.subscribeWalletProvider !==
                 "function"
@@ -711,6 +740,8 @@ async function initializeAppKit() {
                     "subscribeWalletProvider() is unavailable."
                 );
             }
+
+            providerSubscriptionStarted = true;
 
             setStatus(
                 "subscriptionStatus",
@@ -725,6 +756,8 @@ async function initializeAppKit() {
             walletModule.subscribeWalletProvider(
                 (provider, error) => {
                     walletProvider = provider || null;
+
+                    providerCallbackReceived = Boolean(provider);
 
                     if (error) {
                         setStatus(
@@ -741,13 +774,15 @@ async function initializeAppKit() {
                     } else {
                         setStatus(
                             "subscriptionStatus",
-                            "CALLBACK RECEIVED",
-                            "success"
+                            provider
+                                ? "CALLBACK RECEIVED"
+                                : "NO PROVIDER",
+                            provider ? "success" : "warning"
                         );
 
                         log(
                             provider
-                                ? "Wallet module callback received an EVM provider."
+                                ? "Wallet module callback received a provider."
                                 : "Wallet module callback received no provider."
                         );
                     }
