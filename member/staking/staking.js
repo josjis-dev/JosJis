@@ -1,7 +1,7 @@
 
 /* =========================================
    JOSJIS STAKING
-   Version: V6
+   Version: V7
    Mode: Polygon Mainnet
 ========================================= */
 
@@ -122,6 +122,22 @@ const readStaking = new Contract(
     STAKING_ABI,
     rpcProvider
 );
+
+
+/* =========================================
+   DURATION LABELS
+========================================= */
+
+const DURATION_LABELS = {
+    "60": "1 Minute",
+    "300": "5 Minutes",
+    "86400": "1 Day",
+    "604800": "7 Days",
+    "2592000": "30 Days",
+    "7776000": "90 Days",
+    "15552000": "180 Days",
+    "31536000": "365 Days"
+};
 
 
 /* =========================================
@@ -282,6 +298,11 @@ function updateControls() {
     } else if (balanceLoading || balanceError) {
         el.stakeBtn.disabled = true;
         el.stakeBtn.textContent = "Checking JJS Balance...";
+    } else if (
+        el.stakeDuration.selectedOptions[0]?.disabled
+    ) {
+        el.stakeBtn.disabled = true;
+        el.stakeBtn.textContent = "Duration Unavailable";
     } else {
         el.stakeBtn.disabled = false;
         el.stakeBtn.textContent = "Approve & Stake JJS";
@@ -339,6 +360,67 @@ async function validateContract() {
         setMessage(
             "Staking contract validation failed: " + contractError
         );
+
+        return false;
+    }
+}
+
+
+/* =========================================
+   LOAD AVAILABLE DURATIONS
+========================================= */
+
+async function loadDurationOptions() {
+    if (!contractReady) return false;
+
+    try {
+        const options = Array.from(el.stakeDuration.options);
+
+        let firstEnabled = null;
+
+        for (const option of options) {
+            const duration = BigInt(option.value);
+
+            const config = await readStaking.durationConfigs(duration);
+
+            const enabled = config.enabled;
+            const rewardBps = Number(config.rewardBps);
+
+            option.disabled = !enabled;
+
+            const baseLabel =
+                DURATION_LABELS[option.value] ||
+                option.textContent;
+
+            option.textContent = enabled
+                ? `${baseLabel} (${(rewardBps / 100).toFixed(2)}%)`
+                : `${baseLabel} (Unavailable)`;
+
+            if (enabled && !firstEnabled) {
+                firstEnabled = option;
+            }
+        }
+
+        const selectedOption =
+            el.stakeDuration.selectedOptions[0];
+
+        if (!selectedOption || selectedOption.disabled) {
+            if (firstEnabled) {
+                el.stakeDuration.value = firstEnabled.value;
+            }
+        }
+
+        await updateRewardEstimate();
+
+        updateControls();
+
+        return true;
+
+    } catch (error) {
+        console.error("Duration loading error:", error);
+
+        el.selectedRewardRate.textContent = "Unavailable";
+        el.estimatedReward.textContent = "0 JJS";
 
         return false;
     }
@@ -816,10 +898,23 @@ async function refreshAll() {
         return;
     }
 
+    await loadDurationOptions();
+
+    if (
+        walletVersion !== version ||
+        sequence !== refreshSequence
+    ) {
+        return;
+    }
+
     updateDashboard();
-    await updateRewardEstimate();
+    updateControls();
 }
 
+
+/* =========================================
+   DASHBOARD
+========================================= */
 
 function updateDashboard() {
     if (!walletAddress) return;
@@ -875,6 +970,7 @@ async function updateRewardEstimate() {
         if (!config.enabled) {
             el.selectedRewardRate.textContent = "Unavailable";
             el.estimatedReward.textContent = "0 JJS";
+            updateControls();
             return;
         }
 
@@ -1613,6 +1709,8 @@ async function initialize() {
     }
 
     setMessage("Staking contract connected.");
+
+    await loadDurationOptions();
 
     await restoreWalletSession();
 
