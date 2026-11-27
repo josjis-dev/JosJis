@@ -57,6 +57,7 @@
 │       │   ├── README.md
 │       │   ├── config.js
 │       │   ├── contracts.js
+│       │   ├── dashboard.js
 │       │   ├── helpers.js
 │       │   ├── positions.js
 │       │   ├── staking-actions.js
@@ -74,4 +75,4 @@
     ├── README.md
     └── web3-config.js
 
-12 directories, 63 files
+12 directories, 64 files
