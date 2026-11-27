@@ -1,7 +1,7 @@
 
 /* =========================================
    JOSJIS STAKING
-   Version: V9
+   Version: V10
    Mode: Polygon Mainnet
 ========================================= */
 
@@ -85,9 +85,7 @@ const el = {
 
 for (const [name, element] of Object.entries(el)) {
     if (!element) {
-        throw new Error(
-            `Required HTML element not found: ${name}`
-        );
+        throw new Error(`Required HTML element not found: ${name}`);
     }
 }
 
@@ -98,6 +96,12 @@ for (const [name, element] of Object.entries(el)) {
 
 let walletAddress = null;
 let walletChainId = null;
+
+/*
+ * EIP-1193 provider supplied by Reown AppKit.
+ * This is populated through subscribeProviders().
+ */
+let walletProvider = null;
 
 let realBalance = 0n;
 let positions = [];
@@ -169,7 +173,6 @@ const originalDurationLabels = new Map(
 ========================================= */
 
 const UNIT = 10n ** BigInt(CONFIG.decimals);
-
 
 function formatJJS(rawValue) {
     try {
@@ -276,9 +279,7 @@ function getErrorMessage(error) {
         return "Transaction rejected by user.";
     }
 
-    if (
-        error?.code === "INSUFFICIENT_FUNDS"
-    ) {
+    if (error?.code === "INSUFFICIENT_FUNDS") {
         return "Insufficient POL for network gas fees.";
     }
 
@@ -455,7 +456,6 @@ async function loadDurationOptions() {
 
     try {
         const options = Array.from(el.stakeDuration.options);
-
         let firstEnabled = null;
 
         for (const option of options) {
@@ -494,7 +494,6 @@ async function loadDurationOptions() {
         }
 
         await updateRewardEstimate();
-
         updateControls();
 
         return true;
@@ -521,6 +520,7 @@ function showDisconnected() {
 
     walletAddress = null;
     walletChainId = null;
+    walletProvider = null;
 
     realBalance = 0n;
     resetPositionCache();
@@ -582,6 +582,11 @@ function updateWalletUI() {
    WALLET PROVIDER AND SIGNER
 ========================================= */
 
+/*
+ * Provider is received from the AppKit provider subscription.
+ * Do not call modal.getWalletProvider() here.
+ */
+
 async function getSignerContracts() {
     if (!walletAddress || !isPolygon()) {
         throw new Error(
@@ -594,19 +599,26 @@ async function getSignerContracts() {
 
     setStakeMessage("Connecting to wallet provider...");
 
-    // Get the current wallet provider directly from AppKit.
-    const walletProvider = await modal.getWalletProvider();
+    const provider = walletProvider;
 
-    if (!walletProvider) {
+    if (!provider) {
         throw new Error(
-            "Wallet provider is unavailable. Reconnect your wallet."
+            "Wallet provider is unavailable. Disconnect and reconnect your wallet."
+        );
+    }
+
+    if (typeof provider.request !== "function") {
+        console.error("Invalid EIP-1193 provider:", provider);
+
+        throw new Error(
+            "Wallet provider is invalid. Please reconnect your wallet."
         );
     }
 
     assertCurrentWallet(address, version);
 
     const browserProvider = new BrowserProvider(
-        walletProvider,
+        provider,
         "any"
     );
 
@@ -1207,10 +1219,7 @@ async function stakeTokens() {
             );
         }
 
-        const {
-            token,
-            staking
-        } = await getSignerContracts();
+        const { token, staking } = await getSignerContracts();
 
         setStakeMessage("Checking JJS wallet balance...");
 
@@ -1242,8 +1251,6 @@ async function stakeTokens() {
                 "Please confirm JJS approval in MetaMask..."
             );
 
-            // No separate RPC gas estimation is used here.
-            // Ethers sends the approval through the wallet signer.
             const approveTx = await token.approve(
                 CONFIG.stakingAddress,
                 amount
@@ -1334,7 +1341,6 @@ async function stakeTokens() {
 
     } catch (error) {
         console.error("Stake transaction error:", error);
-
         setStakeMessage(getErrorMessage(error));
 
     } finally {
@@ -1412,7 +1418,6 @@ async function withdrawPrincipal(positionId) {
 
     } catch (error) {
         console.error("Principal withdrawal error:", error);
-
         setStakeMessage(getErrorMessage(error));
 
     } finally {
@@ -1490,7 +1495,6 @@ async function claimReward(positionId) {
 
     } catch (error) {
         console.error("Reward claim error:", error);
-
         setStakeMessage(getErrorMessage(error));
 
     } finally {
@@ -1551,11 +1555,7 @@ function renderPositions() {
         );
 
         heading.append(
-            createElement(
-                "h2",
-                "",
-                "Position #" + position.id
-            ),
+            createElement("h2", "", "Position #" + position.id),
             createElement(
                 "span",
                 "staking-status",
@@ -1570,11 +1570,7 @@ function renderPositions() {
 
         amountCard.append(
             createElement("span", "", "Staked Principal"),
-            createElement(
-                "strong",
-                "",
-                formatJJS(position.amount)
-            ),
+            createElement("strong", "", formatJJS(position.amount)),
             createElement("small", "", "JJS")
         );
 
@@ -1585,11 +1581,7 @@ function renderPositions() {
 
         rewardCard.append(
             createElement("span", "", "Position Reward"),
-            createElement(
-                "strong",
-                "",
-                formatJJS(position.reward)
-            ),
+            createElement("strong", "", formatJJS(position.reward)),
             createElement("small", "", "JJS")
         );
 
@@ -1635,16 +1627,11 @@ function renderPositions() {
             const withdrawBtn = createElement(
                 "button",
                 "staking-button full-width",
-                matured
-                    ? "Withdraw Principal"
-                    : "Principal Locked"
+                matured ? "Withdraw Principal" : "Principal Locked"
             );
 
             withdrawBtn.type = "button";
-
-            withdrawBtn.disabled =
-                !matured || !canTransact;
-
+            withdrawBtn.disabled = !matured || !canTransact;
             withdrawBtn.dataset.withdraw = position.id;
 
             card.append(withdrawBtn);
@@ -1663,16 +1650,11 @@ function renderPositions() {
             const claimBtn = createElement(
                 "button",
                 "staking-button secondary full-width",
-                matured
-                    ? "Claim Reward"
-                    : "Reward Locked"
+                matured ? "Claim Reward" : "Reward Locked"
             );
 
             claimBtn.type = "button";
-
-            claimBtn.disabled =
-                !matured || !canTransact;
-
+            claimBtn.disabled = !matured || !canTransact;
             claimBtn.dataset.claim = position.id;
 
             card.append(claimBtn);
@@ -1723,7 +1705,6 @@ el.copyBtn.addEventListener("click", async () => {
 
     try {
         await navigator.clipboard.writeText(walletAddress);
-
         setMessage("Wallet address copied.");
 
     } catch {
@@ -1816,7 +1797,39 @@ el.positionsContainer.addEventListener("click", event => {
 
 
 /* =========================================
-   APPKIT SUBSCRIPTIONS
+   APPKIT PROVIDER SUBSCRIPTION
+========================================= */
+
+/*
+ * This subscription supplies the active EIP-1193 provider.
+ * The provider is used by ethers BrowserProvider for signing.
+ */
+
+modal.subscribeProviders((providers) => {
+    const nextProvider = providers?.eip155 || null;
+
+    if (
+        nextProvider &&
+        typeof nextProvider.request === "function"
+    ) {
+        walletProvider = nextProvider;
+
+        console.log(
+            "JosJis: EIP-1193 wallet provider received."
+        );
+
+    } else {
+        walletProvider = null;
+
+        console.log(
+            "JosJis: EIP-1193 wallet provider is not available yet."
+        );
+    }
+});
+
+
+/* =========================================
+   APPKIT ACCOUNT SUBSCRIPTIONS
 ========================================= */
 
 modal.subscribeState(() => {
