@@ -1,7 +1,7 @@
 /**
  * JosJis Staking
  * Module: Contracts
- * Version: V1
+ * Version: V2
  * Network: Polygon Mainnet
  */
 
@@ -15,7 +15,7 @@ import {
 
 import {
     rpcProvider
-} from "../../web3/web3-config.js";
+} from "../../../web3/web3-config.js";
 
 /* =========================================
    PROVIDER VALIDATION
@@ -23,7 +23,15 @@ import {
 
 export function getRpcProvider() {
     if (!rpcProvider) {
-        throw new Error("Polygon RPC provider is unavailable.");
+        throw new Error(
+            "Polygon RPC provider is unavailable."
+        );
+    }
+
+    if (typeof rpcProvider.getNetwork !== "function") {
+        throw new Error(
+            "Invalid RPC provider: getNetwork() is unavailable."
+        );
     }
 
     return rpcProvider;
@@ -62,23 +70,34 @@ export function getReadContracts() {
 export async function validateStakingContract() {
     try {
         const {
+            provider,
             tokenContract,
             stakingContract
         } = getReadContracts();
 
         const [
+            network,
             stakingTokenAddress,
             paused,
             availableRewards
         ] = await Promise.all([
+            provider.getNetwork(),
             stakingContract.stakingToken(),
             stakingContract.stakingPaused(),
             stakingContract.availableRewards()
         ]);
 
-        const expectedToken = CONFIG.tokenAddress.toLowerCase();
+        if (Number(network.chainId) !== CONFIG.chainId) {
+            throw new Error(
+                "RPC provider is connected to the wrong network."
+            );
+        }
 
-        const actualToken = stakingTokenAddress.toLowerCase();
+        const expectedToken =
+            CONFIG.tokenAddress.toLowerCase();
+
+        const actualToken =
+            stakingTokenAddress.toLowerCase();
 
         if (actualToken !== expectedToken) {
             throw new Error(
@@ -88,6 +107,7 @@ export async function validateStakingContract() {
 
         return {
             valid: true,
+            chainId: Number(network.chainId),
             paused,
             availableRewards,
             stakingTokenAddress,
@@ -95,11 +115,15 @@ export async function validateStakingContract() {
         };
 
     } catch (error) {
-        console.error("Staking contract validation failed:", error);
+        console.error(
+            "Staking contract validation failed:",
+            error
+        );
 
         return {
             valid: false,
-            error: error?.message || "Contract validation failed."
+            error: error?.message ||
+                "Contract validation failed."
         };
     }
 }
@@ -109,7 +133,18 @@ export async function validateStakingContract() {
 ========================================= */
 
 export async function getStakingStatus() {
-    const { stakingContract } = getReadContracts();
+    const {
+        provider,
+        stakingContract
+    } = getReadContracts();
+
+    const network = await provider.getNetwork();
+
+    if (Number(network.chainId) !== CONFIG.chainId) {
+        throw new Error(
+            "RPC provider is not connected to Polygon Mainnet."
+        );
+    }
 
     const [
         paused,
@@ -178,7 +213,9 @@ export async function getPosition(positionId) {
 
 export async function getJJSBalance(walletAddress) {
     if (!walletAddress) {
-        throw new Error("Wallet address is required.");
+        throw new Error(
+            "Wallet address is required."
+        );
     }
 
     const { tokenContract } = getReadContracts();
@@ -192,7 +229,9 @@ export async function getJJSBalance(walletAddress) {
 
 export async function getJJSAllowance(walletAddress) {
     if (!walletAddress) {
-        throw new Error("Wallet address is required.");
+        throw new Error(
+            "Wallet address is required."
+        );
     }
 
     const { tokenContract } = getReadContracts();
