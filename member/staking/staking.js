@@ -1,7 +1,7 @@
 
 /* =========================================
    JOSJIS STAKING
-   Version: V5
+   Version: V6
    Mode: Polygon Mainnet
 ========================================= */
 
@@ -24,6 +24,7 @@ const CONFIG = {
     chainId: 137,
     decimals: 18,
     autoRefresh: 15000,
+    logChunkSize: 10000,
 
     tokenAddress: "0x52C8Ff13ada1431376b3E77E8219b644805122dF",
     stakingAddress: "0x9b196084F6650bf5A1f38d2Abc0f93358Dc31382"
@@ -93,13 +94,17 @@ let contractReady = false;
 let contractPaused = true;
 let contractError = null;
 let positionsError = null;
+let balanceError = null;
 
 let balanceLoading = false;
 let actionBusy = false;
 
 let refreshTimer = null;
 let countdownTimer = null;
+
 let balanceRequest = 0;
+let walletVersion = 0;
+let refreshSequence = 0;
 
 
 /* =========================================
@@ -161,11 +166,6 @@ function parseJJS(value) {
 }
 
 
-function shortenAddress(address) {
-    return address.slice(0, 6) + "..." + address.slice(-4);
-}
-
-
 function setMessage(message) {
     el.stakingMessage.textContent = message;
 }
@@ -184,9 +184,7 @@ function isPolygon() {
 function getTimeRemaining(unlockTime) {
     const remaining = Number(unlockTime) * 1000 - Date.now();
 
-    if (remaining <= 0) {
-        return "Ready";
-    }
+    if (remaining <= 0) return "Ready";
 
     const days = Math.floor(remaining / 86400000);
     const hours = Math.floor((remaining % 86400000) / 3600000);
@@ -210,8 +208,38 @@ function createElement(tag, className, text) {
 function setBusy(value) {
     actionBusy = value;
     updateControls();
+    renderPositions();
 }
 
+
+function getErrorMessage(error) {
+    return (
+        error?.shortMessage ||
+        error?.reason ||
+        error?.info?.error?.message ||
+        error?.message ||
+        "An unexpected error occurred."
+    );
+}
+
+
+function assertCurrentWallet(address, version) {
+    if (
+        !walletAddress ||
+        walletAddress.toLowerCase() !== address.toLowerCase() ||
+        walletVersion !== version ||
+        !isPolygon()
+    ) {
+        throw new Error(
+            "Wallet or network changed. Please refresh and try again."
+        );
+    }
+}
+
+
+/* =========================================
+   CONTROL STATE
+========================================= */
 
 function updateControls() {
     const connected = !!walletAddress;
@@ -225,10 +253,16 @@ function updateControls() {
         !actionBusy
     );
 
-    el.stakeAmount.disabled = !canUse || balanceLoading;
+    el.stakeAmount.disabled =
+        !canUse || balanceLoading || !!balanceError;
+
     el.stakeDuration.disabled = !canUse;
-    el.maxBtn.disabled = !canUse || balanceLoading;
-    el.refreshBtn.disabled = !connected || !correctNetwork || actionBusy;
+
+    el.maxBtn.disabled =
+        !canUse || balanceLoading || !!balanceError;
+
+    el.refreshBtn.disabled =
+        !connected || !correctNetwork || actionBusy;
 
     if (!connected) {
         el.stakeBtn.disabled = true;
@@ -245,6 +279,9 @@ function updateControls() {
     } else if (actionBusy) {
         el.stakeBtn.disabled = true;
         el.stakeBtn.textContent = "Processing...";
+    } else if (balanceLoading || balanceError) {
+        el.stakeBtn.disabled = true;
+        el.stakeBtn.textContent = "Checking JJS Balance...";
     } else {
         el.stakeBtn.disabled = false;
         el.stakeBtn.textContent = "Approve & Stake JJS";
@@ -261,7 +298,18 @@ async function validateContract() {
         const network = await rpcProvider.getNetwork();
 
         if (Number(network.chainId) !== CONFIG.chainId) {
-            throw new Error("Website RPC is not connected to Polygon.");
+            throw new Error(
+                "Website RPC is not connected to Polygon Mainnet."
+            );
+        }
+
+        const tokenCode = await rpcProvider.getCode(CONFIG.tokenAddress);
+        const stakingCode = await rpcProvider.getCode(CONFIG.stakingAddress);
+
+        if (tokenCode === "0x" || stakingCode === "0x") {
+            throw new Error(
+                "Token or staking contract was not found on Polygon."
+            );
         }
 
         const tokenAddress = await readStaking.stakingToken();
@@ -276,6 +324,7 @@ async function validateContract() {
         }
 
         contractPaused = await readStaking.stakingPaused();
+
         contractReady = true;
         contractError = null;
 
@@ -285,9 +334,11 @@ async function validateContract() {
         console.error("Contract validation error:", error);
 
         contractReady = false;
-        contractError = error.message || "Unable to validate staking contract.";
+        contractError = getErrorMessage(error);
 
-        setMessage("Staking contract validation failed: " + contractError);
+        setMessage(
+            "Staking contract validation failed: " + contractError
+        );
 
         return false;
     }
@@ -299,15 +350,19 @@ async function validateContract() {
 ========================================= */
 
 function showDisconnected() {
+    walletVersion++;
     balanceRequest++;
+    refreshSequence++;
 
     walletAddress = null;
     walletChainId = null;
+    walletProvider = null;
 
     realBalance = 0n;
     positions = [];
 
     balanceLoading = false;
+    balanceError = null;
     positionsError = null;
 
     el.walletStatus.textContent = "Not Connected";
@@ -339,6 +394,7 @@ function updateWalletUI() {
     if (!walletAddress) return;
 
     el.walletAddress.textContent = walletAddress;
+
     el.copyBtn.hidden = false;
     el.explorerLink.hidden = false;
 
@@ -364,14 +420,15 @@ function updateWalletUI() {
 ========================================= */
 
 modal.subscribeProviders((providers) => {
-    walletProvider =
-        providers?.["eip155"] || null;
+    walletProvider = providers?.["eip155"] || null;
 });
 
 
 async function getSignerContracts() {
     if (!walletAddress || !isPolygon()) {
-        throw new Error("Connect a wallet on Polygon Mainnet.");
+        throw new Error(
+            "Connect a wallet on Polygon Mainnet."
+        );
     }
 
     if (!walletProvider) {
@@ -380,24 +437,38 @@ async function getSignerContracts() {
         );
     }
 
+    const address = walletAddress;
+    const version = walletVersion;
+
     const browserProvider = new BrowserProvider(walletProvider);
     const network = await browserProvider.getNetwork();
 
     if (Number(network.chainId) !== CONFIG.chainId) {
-        throw new Error("Wallet is not connected to Polygon Mainnet.");
+        throw new Error(
+            "Wallet is not connected to Polygon Mainnet."
+        );
     }
 
     const signer = await browserProvider.getSigner();
     const signerAddress = await signer.getAddress();
 
-    if (signerAddress.toLowerCase() !== walletAddress.toLowerCase()) {
-        throw new Error("Wallet account changed. Please refresh the page.");
+    assertCurrentWallet(address, version);
+
+    if (
+        signerAddress.toLowerCase() !==
+        address.toLowerCase()
+    ) {
+        throw new Error(
+            "Wallet account changed. Please reconnect."
+        );
     }
 
     return {
         signer,
         token: new Contract(CONFIG.tokenAddress, TOKEN_ABI, signer),
-        staking: new Contract(CONFIG.stakingAddress, STAKING_ABI, signer)
+        staking: new Contract(CONFIG.stakingAddress, STAKING_ABI, signer),
+        address,
+        version
     };
 }
 
@@ -424,15 +495,22 @@ function syncWallet(accountAddress = null) {
         const networkChanged =
             walletChainId !== newChainId;
 
-        if (addressChanged) {
+        if (addressChanged || networkChanged) {
+            walletVersion++;
             balanceRequest++;
-            walletAddress = address;
+            refreshSequence++;
+
             realBalance = 0n;
+            balanceLoading = false;
+            balanceError = null;
+
             positions = [];
             positionsError = null;
+
             el.stakeAmount.value = "";
         }
 
+        walletAddress = address;
         walletChainId = newChainId;
 
         updateWalletUI();
@@ -441,7 +519,14 @@ function syncWallet(accountAddress = null) {
             balanceRequest++;
             realBalance = 0n;
             balanceLoading = false;
+            balanceError = null;
+
+            positions = [];
+            positionsError = null;
+
             updateDashboard();
+            updateControls();
+
             return true;
         }
 
@@ -470,10 +555,8 @@ async function restoreWalletSession() {
         try {
             const address = modal.getAddress();
 
-            if (address) {
-                if (syncWallet(address)) {
-                    return;
-                }
+            if (address && syncWallet(address)) {
+                return true;
             }
         } catch (error) {
             console.error("Wallet restore error:", error);
@@ -484,8 +567,12 @@ async function restoreWalletSession() {
 
     if (!walletAddress) {
         showDisconnected();
-        setMessage("No active wallet session detected. Connect your wallet.");
+        setMessage(
+            "No active wallet session detected. Connect your wallet."
+        );
     }
+
+    return !!walletAddress;
 }
 
 
@@ -503,7 +590,7 @@ async function connectWallet() {
 
     } catch (error) {
         console.error("Connect wallet error:", error);
-        setMessage(error.message || "Unable to connect wallet.");
+        setMessage(getErrorMessage(error));
     }
 }
 
@@ -516,9 +603,12 @@ async function refreshBalance() {
     if (!walletAddress || !isPolygon()) return;
 
     const address = walletAddress;
+    const version = walletVersion;
     const requestId = ++balanceRequest;
 
     balanceLoading = true;
+    balanceError = null;
+
     updateControls();
 
     try {
@@ -527,23 +617,39 @@ async function refreshBalance() {
         if (
             !walletAddress ||
             walletAddress.toLowerCase() !== address.toLowerCase() ||
+            walletVersion !== version ||
             requestId !== balanceRequest
         ) {
             return;
         }
 
         if (!result || result.error || result.raw === undefined) {
-            throw new Error(result?.error || "Unable to read JJS balance.");
+            throw new Error(
+                result?.error || "Unable to read JJS balance."
+            );
         }
 
         realBalance = BigInt(result.raw.toString());
+        balanceError = null;
 
     } catch (error) {
         console.error("Balance error:", error);
-        setMessage("Unable to read JJS balance: " + error.message);
+
+        if (
+            requestId === balanceRequest &&
+            walletVersion === version
+        ) {
+            balanceError = getErrorMessage(error);
+            setMessage(
+                "Unable to read JJS balance: " + balanceError
+            );
+        }
 
     } finally {
-        if (requestId === balanceRequest) {
+        if (
+            requestId === balanceRequest &&
+            walletVersion === version
+        ) {
             balanceLoading = false;
             updateDashboard();
             updateControls();
@@ -557,18 +663,45 @@ async function refreshBalance() {
 ========================================= */
 
 async function loadPositions() {
-    if (!walletAddress) return;
+    if (!walletAddress || !isPolygon()) return;
+
+    const address = walletAddress;
+    const version = walletVersion;
 
     positionsError = null;
 
     try {
-        const filter = readStaking.filters.Staked(null, walletAddress);
+        const filter = readStaking.filters.Staked(null, address);
+        const latestBlock = await rpcProvider.getBlockNumber();
 
-        const logs = await readStaking.queryFilter(
-            filter,
-            0,
-            "latest"
-        );
+        const logs = [];
+
+        for (
+            let fromBlock = 0;
+            fromBlock <= latestBlock;
+            fromBlock += CONFIG.logChunkSize
+        ) {
+            const toBlock = Math.min(
+                fromBlock + CONFIG.logChunkSize - 1,
+                latestBlock
+            );
+
+            const batch = await readStaking.queryFilter(
+                filter,
+                fromBlock,
+                toBlock
+            );
+
+            if (
+                walletVersion !== version ||
+                !walletAddress ||
+                walletAddress.toLowerCase() !== address.toLowerCase()
+            ) {
+                return;
+            }
+
+            logs.push(...batch);
+        }
 
         const ids = [
             ...new Set(
@@ -579,14 +712,24 @@ async function loadPositions() {
         const loaded = [];
 
         for (const id of ids) {
+            if (
+                walletVersion !== version ||
+                !walletAddress ||
+                walletAddress.toLowerCase() !== address.toLowerCase()
+            ) {
+                return;
+            }
+
             const p = await readStaking.positions(id);
 
-            if (p.user.toLowerCase() !== walletAddress.toLowerCase()) {
+            if (
+                p.user.toLowerCase() !== address.toLowerCase()
+            ) {
                 continue;
             }
 
             loaded.push({
-                id: id,
+                id,
                 amount: p.amount,
                 reward: p.reward,
                 unlockTime: Number(p.unlockTime),
@@ -595,18 +738,29 @@ async function loadPositions() {
             });
         }
 
+        if (walletVersion !== version) return;
+
         positions = loaded.sort(
-            (a, b) => Number(a.id) - Number(b.id)
+            (a, b) => {
+                const first = BigInt(a.id);
+                const second = BigInt(b.id);
+
+                return first < second ? -1 : first > second ? 1 : 0;
+            }
         );
 
     } catch (error) {
         console.error("Position loading error:", error);
 
-        positionsError =
-            "Unable to load position history from the RPC provider.";
+        if (walletVersion === version) {
+            positionsError =
+                "Unable to load position history. Please try refreshing.";
+        }
     }
 
-    updateDashboard();
+    if (walletVersion === version) {
+        updateDashboard();
+    }
 }
 
 
@@ -616,17 +770,22 @@ async function loadPositions() {
 
 async function refreshContractStatus() {
     try {
-        contractPaused = await readStaking.stakingPaused();
-        contractReady = true;
+        const [paused, available] = await Promise.all([
+            readStaking.stakingPaused(),
+            readStaking.availableRewards()
+        ]);
 
-        const available = await readStaking.availableRewards();
+        contractPaused = paused;
+        contractReady = true;
+        contractError = null;
 
         el.stakeMessage.dataset.availableRewards =
             formatJJS(available);
 
     } catch (error) {
         contractReady = false;
-        contractError = error.message || "Contract read failed.";
+        contractError = getErrorMessage(error);
+
         console.error("Contract status error:", error);
     }
 
@@ -641,11 +800,21 @@ async function refreshContractStatus() {
 async function refreshAll() {
     if (!walletAddress || !isPolygon()) return;
 
+    const version = walletVersion;
+    const sequence = ++refreshSequence;
+
     await Promise.all([
         refreshBalance(),
         loadPositions(),
         refreshContractStatus()
     ]);
+
+    if (
+        walletVersion !== version ||
+        sequence !== refreshSequence
+    ) {
+        return;
+    }
 
     updateDashboard();
     await updateRewardEstimate();
@@ -675,8 +844,13 @@ function updateDashboard() {
 
     el.totalStaked.textContent = formatJJS(principal);
 
-    el.availableBalance.textContent =
-        balanceLoading ? "Loading..." : formatJJS(realBalance);
+    if (balanceLoading) {
+        el.availableBalance.textContent = "Loading...";
+    } else if (balanceError) {
+        el.availableBalance.textContent = "Unavailable";
+    } else {
+        el.availableBalance.textContent = formatJJS(realBalance);
+    }
 
     el.activePositions.textContent = outstanding;
     el.pendingRewards.textContent = formatJJS(pending);
@@ -697,9 +871,8 @@ async function updateRewardEstimate() {
         const config = await readStaking.durationConfigs(duration);
 
         const rewardBps = BigInt(config.rewardBps);
-        const enabled = config.enabled;
 
-        if (!enabled) {
+        if (!config.enabled) {
             el.selectedRewardRate.textContent = "Unavailable";
             el.estimatedReward.textContent = "0 JJS";
             return;
@@ -723,6 +896,7 @@ async function updateRewardEstimate() {
     } catch (error) {
         el.selectedRewardRate.textContent = "--";
         el.estimatedReward.textContent = "0 JJS";
+
         console.error("Reward estimate error:", error);
     }
 }
@@ -734,14 +908,33 @@ async function updateRewardEstimate() {
 
 async function stakeTokens() {
     if (!walletAddress || !isPolygon()) {
-        setStakeMessage("Connect your wallet to Polygon Mainnet.");
+        setStakeMessage(
+            "Connect your wallet to Polygon Mainnet."
+        );
         return;
     }
 
-    if (!contractReady || contractPaused) {
-        setStakeMessage("Staking contract is unavailable or paused.");
+    if (!contractReady) {
+        setStakeMessage(
+            "Staking contract is unavailable."
+        );
         return;
     }
+
+    if (contractPaused) {
+        setStakeMessage("Staking is currently paused.");
+        return;
+    }
+
+    if (balanceLoading || balanceError) {
+        setStakeMessage(
+            "JJS balance must be refreshed successfully before staking."
+        );
+        return;
+    }
+
+    const address = walletAddress;
+    const version = walletVersion;
 
     let amount;
     let duration;
@@ -750,7 +943,7 @@ async function stakeTokens() {
         amount = parseJJS(el.stakeAmount.value);
         duration = BigInt(el.stakeDuration.value);
     } catch (error) {
-        setStakeMessage(error.message);
+        setStakeMessage(getErrorMessage(error));
         return;
     }
 
@@ -767,51 +960,112 @@ async function stakeTokens() {
     setBusy(true);
 
     try {
-        setStakeMessage("Checking staking configuration...");
+        setStakeMessage("Checking staking contract status...");
 
-        const config = await readStaking.durationConfigs(duration);
+        const [paused, config, availableRewards] = await Promise.all([
+            readStaking.stakingPaused(),
+            readStaking.durationConfigs(duration),
+            readStaking.availableRewards()
+        ]);
+
+        assertCurrentWallet(address, version);
+
+        if (paused) {
+            contractPaused = true;
+            updateControls();
+
+            throw new Error(
+                "Staking has been paused by the contract owner."
+            );
+        }
+
+        contractPaused = false;
 
         if (!config.enabled) {
-            throw new Error("This staking duration is not available.");
+            throw new Error(
+                "This staking duration is not available."
+            );
         }
 
-        const reward = amount * BigInt(config.rewardBps) / 10000n;
-        const availableRewards = await readStaking.availableRewards();
+        const reward =
+            amount * BigInt(config.rewardBps) / 10000n;
 
         if (reward > availableRewards) {
-            throw new Error("Insufficient reward reserves in the staking contract.");
+            throw new Error(
+                "Insufficient reward reserves in the staking contract."
+            );
         }
 
-        const { token, staking } = await getSignerContracts();
+        const {
+            token,
+            staking
+        } = await getSignerContracts();
+
+        const latestBalance = await token.balanceOf(address);
+
+        assertCurrentWallet(address, version);
+
+        if (latestBalance < amount) {
+            throw new Error(
+                "Your current JJS balance is insufficient."
+            );
+        }
 
         const allowance = await token.allowance(
-            walletAddress,
+            address,
             CONFIG.stakingAddress
         );
 
+        assertCurrentWallet(address, version);
+
         if (allowance < amount) {
-            setStakeMessage("Please approve JJS spending in your wallet...");
+            setStakeMessage(
+                "Please approve JJS spending in your wallet..."
+            );
 
             const approveTx = await token.approve(
                 CONFIG.stakingAddress,
                 amount
             );
 
-            setStakeMessage("Approval submitted. Waiting for confirmation...");
+            assertCurrentWallet(address, version);
 
-            await approveTx.wait();
+            setStakeMessage(
+                "Approval submitted. Waiting for confirmation..."
+            );
+
+            const approvalReceipt = await approveTx.wait();
+
+            if (!approvalReceipt || approvalReceipt.status !== 1) {
+                throw new Error(
+                    "JJS approval transaction failed."
+                );
+            }
         }
 
-        setStakeMessage("Please confirm the staking transaction...");
+        assertCurrentWallet(address, version);
 
-        const stakeTx = await staking.stake(amount, duration);
+        setStakeMessage(
+            "Please confirm the staking transaction in your wallet..."
+        );
 
-        setStakeMessage("Staking transaction submitted. Waiting for confirmation...");
+        const stakeTx = await staking.stake(
+            amount,
+            duration
+        );
+
+        assertCurrentWallet(address, version);
+
+        setStakeMessage(
+            "Staking submitted. Waiting for confirmation..."
+        );
 
         const receipt = await stakeTx.wait();
 
         if (!receipt || receipt.status !== 1) {
-            throw new Error("Staking transaction failed.");
+            throw new Error(
+                "Staking transaction failed."
+            );
         }
 
         el.stakeAmount.value = "";
@@ -825,12 +1079,7 @@ async function stakeTokens() {
     } catch (error) {
         console.error("Stake transaction error:", error);
 
-        setStakeMessage(
-            error.shortMessage ||
-            error.reason ||
-            error.message ||
-            "Staking transaction failed."
-        );
+        setStakeMessage(getErrorMessage(error));
 
     } finally {
         setBusy(false);
@@ -843,6 +1092,13 @@ async function stakeTokens() {
 ========================================= */
 
 async function withdrawPrincipal(positionId) {
+    if (!walletAddress || !isPolygon()) {
+        setStakeMessage(
+            "Connect your wallet to Polygon Mainnet."
+        );
+        return;
+    }
+
     const position = positions.find(
         p => p.id === String(positionId)
     );
@@ -850,40 +1106,51 @@ async function withdrawPrincipal(positionId) {
     if (!position || position.principalWithdrawn) return;
 
     if (Date.now() < position.unlockTime * 1000) {
-        setStakeMessage("This position has not matured yet.");
+        setStakeMessage(
+            "This position has not matured yet."
+        );
         return;
     }
+
+    const address = walletAddress;
+    const version = walletVersion;
 
     setBusy(true);
 
     try {
         const { staking } = await getSignerContracts();
 
-        setStakeMessage("Confirm principal withdrawal in your wallet...");
+        assertCurrentWallet(address, version);
+
+        setStakeMessage(
+            "Confirm principal withdrawal in your wallet..."
+        );
 
         const tx = await staking.withdrawPrincipal(position.id);
 
-        setStakeMessage("Withdrawal submitted. Waiting for confirmation...");
+        assertCurrentWallet(address, version);
+
+        setStakeMessage(
+            "Withdrawal submitted. Waiting for confirmation..."
+        );
 
         const receipt = await tx.wait();
 
         if (!receipt || receipt.status !== 1) {
-            throw new Error("Principal withdrawal failed.");
+            throw new Error(
+                "Principal withdrawal failed."
+            );
         }
 
-        setStakeMessage("Principal successfully withdrawn.");
+        setStakeMessage(
+            "Principal successfully withdrawn."
+        );
 
         await refreshAll();
 
     } catch (error) {
         console.error("Principal withdrawal error:", error);
-
-        setStakeMessage(
-            error.shortMessage ||
-            error.reason ||
-            error.message ||
-            "Unable to withdraw principal."
-        );
+        setStakeMessage(getErrorMessage(error));
 
     } finally {
         setBusy(false);
@@ -896,6 +1163,13 @@ async function withdrawPrincipal(positionId) {
 ========================================= */
 
 async function claimReward(positionId) {
+    if (!walletAddress || !isPolygon()) {
+        setStakeMessage(
+            "Connect your wallet to Polygon Mainnet."
+        );
+        return;
+    }
+
     const position = positions.find(
         p => p.id === String(positionId)
     );
@@ -903,40 +1177,51 @@ async function claimReward(positionId) {
     if (!position || position.rewardClaimed) return;
 
     if (Date.now() < position.unlockTime * 1000) {
-        setStakeMessage("Rewards are locked until the maturity date.");
+        setStakeMessage(
+            "Rewards are locked until the maturity date."
+        );
         return;
     }
+
+    const address = walletAddress;
+    const version = walletVersion;
 
     setBusy(true);
 
     try {
         const { staking } = await getSignerContracts();
 
-        setStakeMessage("Confirm reward claim in your wallet...");
+        assertCurrentWallet(address, version);
+
+        setStakeMessage(
+            "Confirm reward claim in your wallet..."
+        );
 
         const tx = await staking.claimReward(position.id);
 
-        setStakeMessage("Reward claim submitted. Waiting for confirmation...");
+        assertCurrentWallet(address, version);
+
+        setStakeMessage(
+            "Reward claim submitted. Waiting for confirmation..."
+        );
 
         const receipt = await tx.wait();
 
         if (!receipt || receipt.status !== 1) {
-            throw new Error("Reward claim failed.");
+            throw new Error(
+                "Reward claim failed."
+            );
         }
 
-        setStakeMessage("JJS reward successfully claimed.");
+        setStakeMessage(
+            "JJS reward successfully claimed."
+        );
 
         await refreshAll();
 
     } catch (error) {
         console.error("Reward claim error:", error);
-
-        setStakeMessage(
-            error.shortMessage ||
-            error.reason ||
-            error.message ||
-            "Unable to claim reward."
-        );
+        setStakeMessage(getErrorMessage(error));
 
     } finally {
         setBusy(false);
@@ -953,7 +1238,9 @@ function renderPositions() {
 
     if (!walletAddress) {
         el.positionsContainer.append(
-            createEmptyState("Connect your wallet to view your positions.")
+            createEmptyState(
+                "Connect your wallet to view your positions."
+            )
         );
         return;
     }
@@ -967,7 +1254,9 @@ function renderPositions() {
 
     if (positions.length === 0) {
         el.positionsContainer.append(
-            createEmptyState("Your on-chain staking positions will appear here.")
+            createEmptyState(
+                "Your on-chain staking positions will appear here."
+            )
         );
         return;
     }
@@ -976,11 +1265,27 @@ function renderPositions() {
         const matured =
             Date.now() >= position.unlockTime * 1000;
 
-        const card = createElement("article", "staking-card");
+        const canTransact =
+            walletAddress &&
+            isPolygon() &&
+            !actionBusy;
 
-        const heading = createElement("div", "staking-card-heading");
+        const card = createElement(
+            "article",
+            "staking-card"
+        );
+
+        const heading = createElement(
+            "div",
+            "staking-card-heading"
+        );
+
         heading.append(
-            createElement("h2", "", "Position #" + position.id),
+            createElement(
+                "h2",
+                "",
+                "Position #" + position.id
+            ),
             createElement(
                 "span",
                 "staking-status",
@@ -988,37 +1293,60 @@ function renderPositions() {
             )
         );
 
-        const amountCard = createElement("div", "staking-stat-card");
+        const amountCard = createElement(
+            "div",
+            "staking-stat-card"
+        );
+
         amountCard.append(
             createElement("span", "", "Staked Principal"),
-            createElement("strong", "", formatJJS(position.amount)),
+            createElement(
+                "strong",
+                "",
+                formatJJS(position.amount)
+            ),
             createElement("small", "", "JJS")
         );
 
-        const rewardCard = createElement("div", "staking-stat-card");
+        const rewardCard = createElement(
+            "div",
+            "staking-stat-card"
+        );
+
         rewardCard.append(
             createElement("span", "", "Position Reward"),
-            createElement("strong", "", formatJJS(position.reward)),
+            createElement(
+                "strong",
+                "",
+                formatJJS(position.reward)
+            ),
             createElement("small", "", "JJS")
         );
 
-        const lockInfo = createElement("div", "staking-lock-info");
+        const lockInfo = createElement(
+            "div",
+            "staking-lock-info"
+        );
 
         const unlockDate = new Date(
             position.unlockTime * 1000
         ).toLocaleString();
 
         const timeBox = document.createElement("div");
+
         timeBox.append(
             createElement("span", "", "Time Remaining"),
             createElement(
                 "strong",
                 "position-countdown",
-                matured ? "Ready" : getTimeRemaining(position.unlockTime)
+                matured
+                    ? "Ready"
+                    : getTimeRemaining(position.unlockTime)
             )
         );
 
         const dateBox = document.createElement("div");
+
         dateBox.append(
             createElement("span", "", "Unlock Date"),
             createElement("strong", "", unlockDate)
@@ -1026,23 +1354,37 @@ function renderPositions() {
 
         lockInfo.append(timeBox, dateBox);
 
-        card.append(heading, amountCard, rewardCard, lockInfo);
+        card.append(
+            heading,
+            amountCard,
+            rewardCard,
+            lockInfo
+        );
 
         if (!position.principalWithdrawn) {
             const withdrawBtn = createElement(
                 "button",
                 "staking-button full-width",
-                matured ? "Withdraw Principal" : "Principal Locked"
+                matured
+                    ? "Withdraw Principal"
+                    : "Principal Locked"
             );
 
             withdrawBtn.type = "button";
-            withdrawBtn.disabled = !matured || actionBusy;
+            withdrawBtn.disabled =
+                !matured || !canTransact;
+
             withdrawBtn.dataset.withdraw = position.id;
 
             card.append(withdrawBtn);
+
         } else {
             card.append(
-                createElement("p", "staking-message", "Principal withdrawn.")
+                createElement(
+                    "p",
+                    "staking-message",
+                    "Principal withdrawn."
+                )
             );
         }
 
@@ -1050,17 +1392,26 @@ function renderPositions() {
             const claimBtn = createElement(
                 "button",
                 "staking-button secondary full-width",
-                matured ? "Claim Reward" : "Reward Locked"
+                matured
+                    ? "Claim Reward"
+                    : "Reward Locked"
             );
 
             claimBtn.type = "button";
-            claimBtn.disabled = !matured || actionBusy;
+            claimBtn.disabled =
+                !matured || !canTransact;
+
             claimBtn.dataset.claim = position.id;
 
             card.append(claimBtn);
+
         } else {
             card.append(
-                createElement("p", "staking-message", "Reward claimed.")
+                createElement(
+                    "p",
+                    "staking-message",
+                    "Reward claimed."
+                )
             );
         }
 
@@ -1070,7 +1421,10 @@ function renderPositions() {
 
 
 function createEmptyState(message) {
-    const box = createElement("div", "staking-empty-state");
+    const box = createElement(
+        "div",
+        "staking-empty-state"
+    );
 
     box.append(
         createElement("div", "empty-icon", "🔒"),
@@ -1086,7 +1440,11 @@ function createEmptyState(message) {
    EVENT LISTENERS
 ========================================= */
 
-el.connectBtn.addEventListener("click", connectWallet);
+el.connectBtn.addEventListener(
+    "click",
+    connectWallet
+);
+
 
 el.copyBtn.addEventListener("click", async () => {
     if (!walletAddress) return;
@@ -1101,7 +1459,14 @@ el.copyBtn.addEventListener("click", async () => {
 
 
 el.maxBtn.addEventListener("click", () => {
-    if (!walletAddress || !isPolygon()) return;
+    if (
+        !walletAddress ||
+        !isPolygon() ||
+        balanceLoading ||
+        balanceError
+    ) {
+        return;
+    }
 
     el.stakeAmount.value = formatUnits(
         realBalance,
@@ -1131,26 +1496,41 @@ el.stakeBtn.addEventListener(
 
 
 el.refreshBtn.addEventListener("click", async () => {
-    if (!walletAddress || !isPolygon()) return;
+    if (!walletAddress || !isPolygon() || actionBusy) {
+        return;
+    }
 
     setMessage("Refreshing staking data...");
 
     await refreshAll();
 
-    setMessage("Staking data refreshed.");
+    if (!balanceError && !positionsError && contractReady) {
+        setMessage("Staking data refreshed.");
+    } else {
+        setMessage(
+            "Some staking data could not be refreshed. Please try again."
+        );
+    }
 });
 
 
 el.positionsContainer.addEventListener("click", event => {
-    const withdrawButton = event.target.closest("[data-withdraw]");
-    const claimButton = event.target.closest("[data-claim]");
+    const withdrawButton =
+        event.target.closest("[data-withdraw]");
+
+    const claimButton =
+        event.target.closest("[data-claim]");
 
     if (withdrawButton && !withdrawButton.disabled) {
-        withdrawPrincipal(withdrawButton.dataset.withdraw);
+        withdrawPrincipal(
+            withdrawButton.dataset.withdraw
+        );
     }
 
     if (claimButton && !claimButton.disabled) {
-        claimReward(claimButton.dataset.claim);
+        claimReward(
+            claimButton.dataset.claim
+        );
     }
 });
 
@@ -1183,10 +1563,16 @@ modal.subscribeNetwork(() => {
 ========================================= */
 
 function startAutoRefresh() {
-    if (refreshTimer) clearInterval(refreshTimer);
+    if (refreshTimer) {
+        clearInterval(refreshTimer);
+    }
 
     refreshTimer = setInterval(() => {
-        if (walletAddress && isPolygon() && !actionBusy) {
+        if (
+            walletAddress &&
+            isPolygon() &&
+            !actionBusy
+        ) {
             refreshAll();
         }
     }, CONFIG.autoRefresh);
@@ -1194,10 +1580,14 @@ function startAutoRefresh() {
 
 
 function startCountdown() {
-    if (countdownTimer) clearInterval(countdownTimer);
+    if (countdownTimer) {
+        clearInterval(countdownTimer);
+    }
 
     countdownTimer = setInterval(() => {
-        if (walletAddress) renderPositions();
+        if (walletAddress) {
+            renderPositions();
+        }
     }, 1000);
 }
 
@@ -1217,6 +1607,7 @@ async function initialize() {
         setStakeMessage(
             "Staking is unavailable: " + contractError
         );
+
         updateControls();
         return;
     }
