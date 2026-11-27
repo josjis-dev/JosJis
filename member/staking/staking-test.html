@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111827">
+
+    <title>JosJis Staking - System Test</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #0f172a;
+            color: #e5e7eb;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 30px auto;
+        }
+
+        h1 {
+            color: #facc15;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            margin-bottom: 25px;
+        }
+
+        .panel {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 16px;
+        }
+
+        .panel h2 {
+            font-size: 17px;
+            margin-top: 0;
+            color: #facc15;
+        }
+
+        .test-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #334155;
+        }
+
+        .test-item:last-child {
+            border-bottom: none;
+        }
+
+        .status {
+            font-size: 12px;
+            font-weight: bold;
+            color: #94a3b8;
+            text-align: right;
+        }
+
+        .success {
+            color: #4ade80;
+        }
+
+        .error {
+            color: #f87171;
+        }
+
+        .warning {
+            color: #facc15;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 8px;
+            background: #eab308;
+            color: #111827;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .secondary {
+            background: #334155;
+            color: white;
+        }
+
+        .details {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 12px;
+            line-height: 1.7;
+            overflow-wrap: anywhere;
+            white-space: pre-wrap;
+        }
+
+        .notice {
+            color: #facc15;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>JosJis Staking Test</h1>
+
+    <p class="subtitle">
+        Modular System Diagnostic - Polygon Mainnet
+    </p>
+
+    <div class="panel">
+        <h2>1. Module Loading</h2>
+
+        <div id="moduleResults">
+            <div class="test-item">
+                <span>Module initialization</span>
+                <span class="status">CHECKING...</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>2. Wallet Connection</h2>
+
+        <div class="test-item">
+            <span>Reown AppKit</span>
+            <span id="reownStatus" class="status">WAITING</span>
+        </div>
+
+        <div class="test-item">
+            <span>Wallet Provider</span>
+            <span id="providerStatus" class="status">WAITING</span>
+        </div>
+
+        <div class="test-item">
+            <span>Wallet Address</span>
+            <span id="addressStatus" class="status">WAITING</span>
+        </div>
+
+        <div class="test-item">
+            <span>Network</span>
+            <span id="networkStatus" class="status">WAITING</span>
+        </div>
+
+        <button id="connectBtn">
+            Connect Wallet
+        </button>
+
+        <button id="checkBtn" class="secondary">
+            Check Wallet Again
+        </button>
+    </div>
+
+    <div class="panel">
+        <h2>3. Wallet Information</h2>
+
+        <div class="details" id="walletInfo">
+            Wallet has not been connected.
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>4. Diagnostic Log</h2>
+
+        <div class="details" id="logs">
+            System initializing...
+        </div>
+
+        <button id="clearLogBtn" class="secondary">
+            Clear Logs
+        </button>
+    </div>
+
+    <div class="panel">
+        <p class="notice">
+            SECURITY NOTICE: This page is for read-only diagnostics.
+            It does not send transactions or request token approvals.
+            Never enter your seed phrase or private key here.
+        </p>
+    </div>
+
+</div>
+
+<script type="module">
+
+const $ = (id) => document.getElementById(id);
+
+const logBox = $("logs");
+
+function log(message) {
+    const time = new Date().toLocaleTimeString();
+
+    logBox.textContent +=
+        `[${time}] ${message}\n`;
+
+    console.log("[JosJis Test]", message);
+}
+
+function setStatus(id, message, type = "") {
+    const element = $(id);
+
+    element.textContent = message;
+    element.className = "status " + type;
+}
+
+function shortenAddress(address) {
+    if (!address) return "-";
+
+    return address.slice(0, 6) +
+        "..." +
+        address.slice(-4);
+}
+
+let appModal = null;
+let walletProvider = null;
+let providerSubscriptionStarted = false;
+
+let loadedModules = {};
+
+const moduleList = [
+    ["config", "./modules/config.js"],
+    ["helpers", "./modules/helpers.js"],
+    ["contracts", "./modules/contracts.js"],
+    ["wallet", "./modules/wallet.js"],
+    ["staking-actions", "./modules/staking-actions.js"],
+    ["positions", "./modules/positions.js"],
+    ["dashboard", "./modules/dashboard.js"]
+];
+
+async function loadModules() {
+
+    const results = [];
+
+    for (const [name, path] of moduleList) {
+
+        try {
+            loadedModules[name] = await import(path);
+
+            results.push({
+                name,
+                success: true
+            });
+
+            log(`Module loaded: ${name}`);
+
+        } catch (error) {
+
+            results.push({
+                name,
+                success: false,
+                error: error.message
+            });
+
+            log(`Module error: ${name} - ${error.message}`);
+        }
+    }
+
+    $("moduleResults").innerHTML = "";
+
+    results.forEach(result => {
+
+        const item = document.createElement("div");
+        item.className = "test-item";
+
+        const name = document.createElement("span");
+        name.textContent = result.name;
+
+        const status = document.createElement("span");
+
+        status.className = "status " +
+            (result.success ? "success" : "error");
+
+        status.textContent = result.success
+            ? "LOADED"
+            : "FAILED";
+
+        item.append(name, status);
+        $("moduleResults").appendChild(item);
+    });
+
+    return results;
+}
+
+async function initializeAppKit() {
+
+    try {
+
+        const configModule = await import(
+            "../../web3/web3-config.js"
+        );
+
+        appModal = configModule.modal;
+
+        if (!appModal) {
+            throw new Error("modal export not found");
+        }
+
+        if (typeof appModal.open !== "function") {
+            throw new Error("modal.open() is unavailable");
+        }
+
+        if (typeof appModal.subscribeProviders !== "function") {
+            throw new Error("modal.subscribeProviders() is unavailable");
+        }
+
+        setStatus("reownStatus", "READY", "success");
+
+        log("Reown AppKit initialized.");
+
+        if (!providerSubscriptionStarted) {
+
+            providerSubscriptionStarted = true;
+
+            appModal.subscribeProviders((providers) => {
+
+                const provider = providers?.eip155 || null;
+
+                walletProvider = provider;
+
+                if (provider) {
+
+                    setStatus(
+                        "providerStatus",
+                        "AVAILABLE",
+                        "success"
+                    );
+
+                    log("EIP-155 provider detected.");
+
+                    checkWallet();
+                } else {
+
+                    setStatus(
+                        "providerStatus",
+                        "NOT AVAILABLE",
+                        "warning"
+                    );
+
+                    log("No EIP-155 provider detected.");
+                }
+            });
+        }
+
+    } catch (error) {
+
+        setStatus("reownStatus", "FAILED", "error");
+
+        log(
+            "AppKit initialization error: " +
+            (error.message || error)
+        );
+    }
+}
+
+async function connectWallet() {
+
+    if (!appModal) {
+        log("AppKit is not initialized.");
+        return;
+    }
+
+    try {
+
+        log("Opening wallet connection modal...");
+
+        await appModal.open();
+
+    } catch (error) {
+
+        log(
+            "Wallet modal error: " +
+            (error.message || error)
+        );
+    }
+}
+
+async function checkWallet() {
+
+    if (!walletProvider) {
+
+        setStatus(
+            "providerStatus",
+            "NOT AVAILABLE",
+            "warning"
+        );
+
+        setStatus(
+            "addressStatus",
+            "NOT CONNECTED",
+            "warning"
+        );
+
+        setStatus(
+            "networkStatus",
+            "UNKNOWN",
+            "warning"
+        );
+
+        $("walletInfo").textContent =
+            "No EIP-155 provider detected.";
+
+        log("Wallet check stopped: provider unavailable.");
+
+        return;
+    }
+
+    try {
+
+        if (typeof walletProvider.request !== "function") {
+            throw new Error("Provider.request is not a function");
+        }
+
+        setStatus(
+            "providerStatus",
+            "AVAILABLE",
+            "success"
+        );
+
+        const accounts = await walletProvider.request({
+            method: "eth_accounts"
+        });
+
+        const chainId = await walletProvider.request({
+            method: "eth_chainId"
+        });
+
+        const address = accounts?.[0] || null;
+
+        if (address) {
+
+            setStatus(
+                "addressStatus",
+                shortenAddress(address),
+                "success"
+            );
+
+        } else {
+
+            setStatus(
+                "addressStatus",
+                "NOT CONNECTED",
+                "warning"
+            );
+        }
+
+        const numericChainId = Number(chainId);
+
+        if (numericChainId === 137) {
+
+            setStatus(
+                "networkStatus",
+                "POLYGON MAINNET",
+                "success"
+            );
+
+        } else {
+
+            setStatus(
+                "networkStatus",
+                `WRONG NETWORK (${numericChainId})`,
+                "error"
+            );
+        }
+
+        $("walletInfo").textContent =
+            `Address: ${address || "Not connected"}\n` +
+            `Chain ID: ${chainId || "Unknown"}\n` +
+            `Provider request: Available`;
+
+        log("Wallet check completed.");
+        log("Chain ID: " + chainId);
+        log("Account: " + (address || "No account"));
+
+    } catch (error) {
+
+        setStatus(
+            "addressStatus",
+            "CHECK FAILED",
+            "error"
+        );
+
+        $("walletInfo").textContent =
+            error.message || String(error);
+
+        log(
+            "Wallet check error: " +
+            (error.message || error)
+        );
+    }
+}
+
+$("connectBtn").addEventListener(
+    "click",
+    connectWallet
+);
+
+$("checkBtn").addEventListener(
+    "click",
+    checkWallet
+);
+
+$("clearLogBtn").addEventListener(
+    "click",
+    () => {
+        logBox.textContent = "";
+    }
+);
+
+async function initialize() {
+
+    log("Starting JosJis Staking diagnostics...");
+
+    await loadModules();
+
+    await initializeAppKit();
+
+    log("Diagnostic initialization completed.");
+}
+
+initialize();
+
+</script>
+
+</body>
+</html>
