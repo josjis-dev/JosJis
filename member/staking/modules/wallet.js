@@ -1,7 +1,8 @@
+
 /**
  * JosJis Staking
  * Module: Wallet
- * Version: V2
+ * Version: V3 Diagnostic
  * Network: Polygon Mainnet
  */
 
@@ -69,6 +70,10 @@ export function setWalletProvider(provider) {
 
     walletProvider = provider;
 
+    console.log(
+        "[JJS Wallet] EVM provider successfully initialized."
+    );
+
     return true;
 }
 
@@ -97,29 +102,75 @@ export function subscribeWalletProvider(callback) {
         );
     }
 
-    return modal.subscribeProviders((providers) => {
-        try {
-            const provider = providers?.eip155 || null;
+    console.log(
+        "[JJS Wallet] Registering provider subscription..."
+    );
 
-            if (provider) {
-                setWalletProvider(provider);
-            } else {
-                clearWalletSession();
-            }
+    return modal.subscribeProviders((state) => {
+        console.log(
+            "[JJS Wallet] Provider callback received."
+        );
 
-            if (typeof callback === "function") {
-                callback(provider);
-            }
+        console.log(
+            "[JJS Wallet] State type:",
+            typeof state
+        );
 
-        } catch (error) {
-            console.error(
-                "Wallet provider subscription error:",
-                error
+        console.log(
+            "[JJS Wallet] State keys:",
+            state && typeof state === "object"
+                ? Object.keys(state)
+                : []
+        );
+
+        /*
+         * Reown AppKit EVM provider.
+         * Diagnostic version: inspect the actual callback shape.
+         */
+
+        const provider = state?.["eip155"] || null;
+
+        console.log(
+            "[JJS Wallet] EVM provider:",
+            provider ? "FOUND" : "NOT FOUND"
+        );
+
+        if (provider) {
+            console.log(
+                "[JJS Wallet] Provider constructor:",
+                provider.constructor?.name || "Unknown"
             );
 
-            if (typeof callback === "function") {
-                callback(null, error);
+            console.log(
+                "[JJS Wallet] Has request():",
+                typeof provider.request === "function"
+            );
+
+            console.log(
+                "[JJS Wallet] Provider keys:",
+                Object.keys(provider)
+            );
+
+            try {
+                setWalletProvider(provider);
+            } catch (error) {
+                console.error(
+                    "[JJS Wallet] Provider validation failed:",
+                    error
+                );
+
+                clearWalletSession();
             }
+        } else {
+            console.warn(
+                "[JJS Wallet] No eip155 provider in callback."
+            );
+
+            clearWalletSession();
+        }
+
+        if (typeof callback === "function") {
+            callback(provider);
         }
     });
 }
@@ -159,7 +210,10 @@ export async function getConnectedAddress(
         method: "eth_accounts"
     });
 
-    if (!Array.isArray(accounts) || accounts.length === 0) {
+    if (
+        !Array.isArray(accounts) ||
+        accounts.length === 0
+    ) {
         walletAddress = null;
         walletSigner = null;
 
