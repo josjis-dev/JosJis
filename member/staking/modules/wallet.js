@@ -1,7 +1,7 @@
 /**
  * JosJis Staking
  * Module: Wallet
- * Version: V1
+ * Version: V2
  * Network: Polygon Mainnet
  */
 
@@ -12,7 +12,7 @@ import {
 
 import {
     modal
-} from "../../web3/web3-config.js";
+} from "../../../web3/web3-config.js";
 
 import {
     CONFIG,
@@ -61,6 +61,12 @@ export function setWalletProvider(provider) {
 
     validateWalletProvider(provider);
 
+    if (walletProvider !== provider) {
+        browserProvider = null;
+        walletSigner = null;
+        walletAddress = null;
+    }
+
     walletProvider = provider;
 
     return true;
@@ -79,9 +85,15 @@ export function getWalletProvider() {
 ========================================= */
 
 export function subscribeWalletProvider(callback) {
-    if (!modal || typeof modal.subscribeProviders !== "function") {
+    if (!modal) {
         throw new Error(
-            "Reown AppKit provider subscription is unavailable."
+            "Reown AppKit modal is unavailable."
+        );
+    }
+
+    if (typeof modal.subscribeProviders !== "function") {
+        throw new Error(
+            "Reown AppKit subscribeProviders() is unavailable."
         );
     }
 
@@ -116,13 +128,20 @@ export function subscribeWalletProvider(callback) {
    CREATE BROWSER PROVIDER
 ========================================= */
 
-export async function createBrowserProvider(provider = walletProvider) {
+export async function createBrowserProvider(
+    provider = walletProvider
+) {
     validateWalletProvider(provider);
 
-    browserProvider = new BrowserProvider(
-        provider,
-        "any"
-    );
+    if (
+        !browserProvider ||
+        walletProvider !== provider
+    ) {
+        browserProvider = new BrowserProvider(
+            provider,
+            "any"
+        );
+    }
 
     return browserProvider;
 }
@@ -131,7 +150,9 @@ export async function createBrowserProvider(provider = walletProvider) {
    GET CONNECTED WALLET ADDRESS
 ========================================= */
 
-export async function getConnectedAddress(provider = walletProvider) {
+export async function getConnectedAddress(
+    provider = walletProvider
+) {
     validateWalletProvider(provider);
 
     const accounts = await provider.request({
@@ -139,7 +160,12 @@ export async function getConnectedAddress(provider = walletProvider) {
     });
 
     if (!Array.isArray(accounts) || accounts.length === 0) {
-        throw new Error("No connected wallet account found.");
+        walletAddress = null;
+        walletSigner = null;
+
+        throw new Error(
+            "No connected wallet account found."
+        );
     }
 
     walletAddress = accounts[0];
@@ -151,14 +177,17 @@ export async function getConnectedAddress(provider = walletProvider) {
    GET SIGNER
 ========================================= */
 
-export async function getWalletSigner(provider = walletProvider) {
-    const currentBrowserProvider = await createBrowserProvider(
-        provider
-    );
+export async function getWalletSigner(
+    provider = walletProvider
+) {
+    const currentBrowserProvider =
+        await createBrowserProvider(provider);
 
-    walletSigner = await currentBrowserProvider.getSigner();
+    walletSigner =
+        await currentBrowserProvider.getSigner();
 
-    walletAddress = await walletSigner.getAddress();
+    walletAddress =
+        await walletSigner.getAddress();
 
     return walletSigner;
 }
@@ -172,15 +201,17 @@ export async function getSignerContracts() {
 
     validateWalletProvider(provider);
 
-    const currentBrowserProvider = await createBrowserProvider(
-        provider
-    );
+    const currentBrowserProvider =
+        await createBrowserProvider(provider);
 
-    const signer = await currentBrowserProvider.getSigner();
+    const signer =
+        await currentBrowserProvider.getSigner();
 
-    const address = await signer.getAddress();
+    const address =
+        await signer.getAddress();
 
-    const network = await currentBrowserProvider.getNetwork();
+    const network =
+        await currentBrowserProvider.getNetwork();
 
     if (Number(network.chainId) !== CONFIG.chainId) {
         throw new Error(
@@ -222,7 +253,10 @@ export function getWalletSession() {
         browserProvider,
         walletSigner,
         walletAddress,
-        connected: Boolean(walletProvider && walletAddress)
+        connected: Boolean(
+            walletProvider &&
+            walletAddress
+        )
     };
 }
 
@@ -243,18 +277,28 @@ export function clearWalletSession() {
 
 export async function checkWalletConnection() {
     try {
-        const address = await getConnectedAddress();
+        if (!walletProvider) {
+            throw new Error(
+                "Wallet provider is not initialized."
+            );
+        }
+
+        const address =
+            await getConnectedAddress(walletProvider);
 
         return {
             connected: true,
-            address
+            address,
+            provider: walletProvider
         };
 
     } catch (error) {
         return {
             connected: false,
             address: null,
-            error: error?.message || "Wallet is disconnected."
+            provider: walletProvider,
+            error: error?.message ||
+                "Wallet is disconnected."
         };
     }
 }
