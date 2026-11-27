@@ -58,6 +58,7 @@
 │       │   ├── config.js
 │       │   ├── contracts.js
 │       │   ├── helpers.js
+│       │   ├── positions.js
 │       │   ├── staking-actions.js
 │       │   └── wallet.js
 │       ├── staking.css
@@ -73,4 +74,4 @@
     ├── README.md
     └── web3-config.js
 
-12 directories, 62 files
+12 directories, 63 files
