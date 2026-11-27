@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -67,6 +68,7 @@
             font-weight: bold;
             color: #94a3b8;
             text-align: right;
+            overflow-wrap: anywhere;
         }
 
         .success {
@@ -134,6 +136,7 @@
 
     <div class="panel">
         <h2>1. Module Loading</h2>
+
         <div id="moduleResults">
             <div class="test-item">
                 <span>Module initialization</span>
@@ -151,6 +154,11 @@
         </div>
 
         <div class="test-item">
+            <span>AppKit Account</span>
+            <span id="accountStatus" class="status">WAITING</span>
+        </div>
+
+        <div class="test-item">
             <span>Wallet Provider</span>
             <span id="providerStatus" class="status">WAITING</span>
         </div>
@@ -165,14 +173,20 @@
             <span id="networkStatus" class="status">WAITING</span>
         </div>
 
-        <button id="connectBtn">Connect Wallet</button>
-        <button id="checkBtn" class="secondary">Check Wallet Again</button>
+        <button id="connectBtn">
+            Connect Wallet
+        </button>
+
+        <button id="checkBtn" class="secondary">
+            Check Wallet Again
+        </button>
     </div>
 
     <div class="panel">
         <h2>3. Wallet Information</h2>
+
         <div class="details" id="walletInfo">
-            Wallet has not been connected.
+            Wallet has not been checked.
         </div>
     </div>
 
@@ -232,6 +246,10 @@
 
 <script type="module">
 
+/* =========================================
+   DOM HELPERS
+========================================= */
+
 const $ = (id) => document.getElementById(id);
 
 const logBox = $("logs");
@@ -248,6 +266,8 @@ function log(message) {
 function setStatus(id, message, type = "") {
     const element = $(id);
 
+    if (!element) return;
+
     element.textContent = message;
     element.className = "status " + type;
 }
@@ -260,10 +280,18 @@ function shortenAddress(address) {
         address.slice(-4);
 }
 
+/* =========================================
+   APPLICATION STATE
+========================================= */
+
 let appModal = null;
 let walletProvider = null;
 let contractsModule = null;
+
+let accountSubscriptionStarted = false;
 let providerSubscriptionStarted = false;
+
+let walletCheckRunning = false;
 
 const moduleList = [
     ["config", "./modules/config.js"],
@@ -276,6 +304,10 @@ const moduleList = [
 ];
 
 const loadedModules = {};
+
+/* =========================================
+   MODULE LOADING
+========================================= */
 
 async function loadModules() {
     const results = [];
@@ -301,7 +333,9 @@ async function loadModules() {
             results.push({
                 name,
                 success: false,
-                error: error?.stack || error?.message || String(error)
+                error: error?.stack ||
+                    error?.message ||
+                    String(error)
             });
 
             log(
@@ -309,13 +343,16 @@ async function loadModules() {
                 (error?.message || error)
             );
 
-            console.error(`Module error: ${name}`, error);
+            console.error(
+                `Module error: ${name}`,
+                error
+            );
         }
     }
 
     $("moduleResults").replaceChildren();
 
-    results.forEach(result => {
+    for (const result of results) {
         const item = document.createElement("div");
         item.className = "test-item";
 
@@ -323,7 +360,9 @@ async function loadModules() {
         name.textContent = result.name;
 
         const status = document.createElement("span");
-        status.className = "status " +
+
+        status.className =
+            "status " +
             (result.success ? "success" : "error");
 
         status.textContent = result.success
@@ -331,8 +370,9 @@ async function loadModules() {
             : "FAILED";
 
         item.append(name, status);
+
         $("moduleResults").appendChild(item);
-    });
+    }
 
     setStatus(
         "contractsStatus",
@@ -343,117 +383,120 @@ async function loadModules() {
     return results;
 }
 
-async function initializeAppKit() {
-    try {
-        const configModule = await import(
-            "../../web3/web3-config.js"
-        );
+/* =========================================
+   APPKIT ACCOUNT DIAGNOSTIC
+========================================= */
 
-        appModal = configModule.modal;
-
-        if (!appModal) {
-            throw new Error("modal export not found");
-        }
-
-        if (typeof appModal.open !== "function") {
-            throw new Error("modal.open() is unavailable");
-        }
-
-        if (typeof appModal.subscribeProviders !== "function") {
-            throw new Error(
-                "modal.subscribeProviders() is unavailable"
-            );
-        }
-
-        setStatus("reownStatus", "READY", "success");
-
-        log("Reown AppKit initialized.");
-
-        if (!providerSubscriptionStarted) {
-            providerSubscriptionStarted = true;
-
-            appModal.subscribeProviders((providers) => {
-                walletProvider = providers?.eip155 || null;
-
-                if (walletProvider) {
-                    setStatus(
-                        "providerStatus",
-                        "OBJECT RECEIVED",
-                        "success"
-                    );
-
-                    log("EIP-155 provider object received.");
-
-                    checkWallet();
-                } else {
-                    setStatus(
-                        "providerStatus",
-                        "NOT AVAILABLE",
-                        "warning"
-                    );
-
-                    log("No EIP-155 provider detected.");
-                }
-            });
-        }
-
-    } catch (error) {
-        setStatus("reownStatus", "FAILED", "error");
-
-        log(
-            "AppKit initialization error: " +
-            (error?.stack || error?.message || error)
-        );
-
-        console.error("AppKit initialization error:", error);
-    }
-}
-
-async function connectWallet() {
+function checkAppKitAccount() {
     if (!appModal) {
-        log("AppKit is not initialized.");
-        return;
+        return {
+            connected: false,
+            address: null,
+            chainId: null
+        };
     }
 
     try {
-        log("Opening wallet connection modal...");
-        await appModal.open();
+        const address = appModal.getAddress();
+
+        const chainId = appModal.getChainId();
+
+        const connected = Boolean(address);
+
+        const numericChainId = Number(chainId);
+
+        setStatus(
+            "accountStatus",
+            connected ? "CONNECTED" : "DISCONNECTED",
+            connected ? "success" : "warning"
+        );
+
+        setStatus(
+            "addressStatus",
+            connected
+                ? shortenAddress(address)
+                : "NOT CONNECTED",
+            connected ? "success" : "warning"
+        );
+
+        setStatus(
+            "networkStatus",
+            numericChainId === 137
+                ? "POLYGON MAINNET"
+                : chainId
+                    ? `WRONG NETWORK (${chainId})`
+                    : "UNKNOWN",
+            numericChainId === 137
+                ? "success"
+                : "warning"
+        );
+
+        return {
+            connected,
+            address: address || null,
+            chainId: chainId ?? null
+        };
 
     } catch (error) {
-        log(
-            "Wallet modal error: " +
-            (error?.stack || error?.message || error)
+        setStatus(
+            "accountStatus",
+            "CHECK FAILED",
+            "error"
         );
+
+        setStatus(
+            "addressStatus",
+            "CHECK FAILED",
+            "error"
+        );
+
+        log(
+            "AppKit account error: " +
+            (error?.message || error)
+        );
+
+        return {
+            connected: false,
+            address: null,
+            chainId: null,
+            error
+        };
     }
 }
 
-async function checkWallet() {
+/* =========================================
+   EVM PROVIDER DIAGNOSTIC
+========================================= */
+
+async function checkEvmProvider() {
     if (!walletProvider) {
-        setStatus("providerStatus", "NOT AVAILABLE", "warning");
-        setStatus("addressStatus", "NOT CONNECTED", "warning");
-        setStatus("networkStatus", "UNKNOWN", "warning");
+        setStatus(
+            "providerStatus",
+            "NOT AVAILABLE",
+            "warning"
+        );
 
-        $("walletInfo").textContent =
-            "No EIP-155 provider object received.";
+        log("EVM provider is not available.");
 
-        log("Wallet check stopped: provider unavailable.");
-        return;
+        return {
+            available: false,
+            valid: false
+        };
     }
 
     try {
-        log(
-            "Provider type: " +
-            Object.prototype.toString.call(walletProvider)
-        );
+        const providerType =
+            Object.prototype.toString.call(walletProvider);
 
-        log(
-            "Provider.request type: " +
-            typeof walletProvider.request
-        );
+        const requestType =
+            typeof walletProvider.request;
 
-        if (typeof walletProvider.request !== "function") {
+        log("Provider type: " + providerType);
+        log("Provider.request: " + requestType);
+
+        if (requestType !== "function") {
             throw new Error(
-                "Received provider has no request() method."
+                "Provider does not expose request()."
             );
         }
 
@@ -465,76 +508,271 @@ async function checkWallet() {
             method: "eth_chainId"
         });
 
-        const address = accounts?.[0] || null;
-
         setStatus(
             "providerStatus",
             "VALID",
             "success"
         );
 
-        setStatus(
-            "addressStatus",
-            address ? shortenAddress(address) : "NOT CONNECTED",
-            address ? "success" : "warning"
-        );
+        log("EVM provider validated.");
+        log("Provider account: " + (accounts?.[0] || "None"));
+        log("Provider chain ID: " + chainId);
 
-        const numericChainId = Number(chainId);
-
-        setStatus(
-            "networkStatus",
-            numericChainId === 137
-                ? "POLYGON MAINNET"
-                : `WRONG NETWORK (${numericChainId})`,
-            numericChainId === 137 ? "success" : "error"
-        );
-
-        $("walletInfo").textContent =
-            `Address: ${address || "Not connected"}\n` +
-            `Chain ID: ${chainId || "Unknown"}\n` +
-            `Provider request: Available`;
-
-        log("Wallet check completed.");
-        log("Chain ID: " + chainId);
-        log("Account: " + (address || "No account"));
+        return {
+            available: true,
+            valid: true,
+            accounts,
+            chainId
+        };
 
     } catch (error) {
-        setStatus("providerStatus", "INVALID", "error");
-        setStatus("addressStatus", "CHECK FAILED", "error");
-
-        $("walletInfo").textContent =
-            error?.stack || error?.message || String(error);
+        setStatus(
+            "providerStatus",
+            "INVALID",
+            "error"
+        );
 
         log(
-            "Wallet check error: " +
+            "Provider diagnostic error: " +
+            (error?.message || error)
+        );
+
+        return {
+            available: true,
+            valid: false,
+            error
+        };
+    }
+}
+
+/* =========================================
+   COMBINED WALLET DIAGNOSTIC
+========================================= */
+
+async function checkWallet() {
+    if (walletCheckRunning) return;
+
+    walletCheckRunning = true;
+
+    try {
+        log("Checking AppKit wallet session...");
+
+        const account = checkAppKitAccount();
+
+        const provider = await checkEvmProvider();
+
+        const address = account.address;
+
+        $("walletInfo").textContent =
+            `AppKit Connected: ${account.connected}\n` +
+            `AppKit Address: ${address || "Not connected"}\n` +
+            `AppKit Chain ID: ${account.chainId ?? "Unknown"}\n` +
+            `EVM Provider: ${provider.available ? "Available" : "Not available"}\n` +
+            `Provider Valid: ${provider.valid}\n` +
+            `Provider Account: ${provider.accounts?.[0] || "Unavailable"}\n` +
+            `Provider Chain ID: ${provider.chainId || "Unknown"}`;
+
+        log(
+            "AppKit account: " +
+            (address || "Not connected")
+        );
+
+        log(
+            "Wallet check completed."
+        );
+
+    } catch (error) {
+        log(
+            "Wallet diagnostic error: " +
             (error?.stack || error?.message || error)
         );
 
-        console.error("Wallet check error:", error);
+        console.error(error);
+
+    } finally {
+        walletCheckRunning = false;
     }
 }
+
+/* =========================================
+   INITIALIZE APPKIT
+========================================= */
+
+async function initializeAppKit() {
+    try {
+        const configModule = await import(
+            "../../web3/web3-config.js"
+        );
+
+        appModal = configModule.modal;
+
+        if (!appModal) {
+            throw new Error("AppKit modal export not found.");
+        }
+
+        const requiredMethods = [
+            "open",
+            "getAddress",
+            "getChainId",
+            "subscribeAccount",
+            "subscribeProviders"
+        ];
+
+        for (const method of requiredMethods) {
+            if (typeof appModal[method] !== "function") {
+                throw new Error(
+                    `AppKit ${method}() is unavailable.`
+                );
+            }
+        }
+
+        setStatus(
+            "reownStatus",
+            "READY",
+            "success"
+        );
+
+        log("Reown AppKit initialized.");
+
+        /* Subscribe to account changes */
+
+        if (!accountSubscriptionStarted) {
+            accountSubscriptionStarted = true;
+
+            appModal.subscribeAccount((account) => {
+                log(
+                    "AppKit account updated: " +
+                    (
+                        account?.address ||
+                        appModal.getAddress() ||
+                        "No account"
+                    )
+                );
+
+                checkWallet();
+            });
+        }
+
+        /* Subscribe to EVM provider changes */
+
+        if (!providerSubscriptionStarted) {
+            providerSubscriptionStarted = true;
+
+            appModal.subscribeProviders((providers) => {
+                walletProvider =
+                    providers?.eip155 || null;
+
+                setStatus(
+                    "providerStatus",
+                    walletProvider
+                        ? "OBJECT RECEIVED"
+                        : "NOT AVAILABLE",
+                    walletProvider
+                        ? "success"
+                        : "warning"
+                );
+
+                log(
+                    walletProvider
+                        ? "EIP-155 provider received."
+                        : "EIP-155 provider not available."
+                );
+
+                checkWallet();
+            });
+        }
+
+        // Read existing AppKit session immediately.
+        checkAppKitAccount();
+
+        await checkWallet();
+
+    } catch (error) {
+        setStatus(
+            "reownStatus",
+            "FAILED",
+            "error"
+        );
+
+        log(
+            "AppKit initialization error: " +
+            (error?.stack || error?.message || error)
+        );
+
+        console.error(
+            "AppKit initialization error:",
+            error
+        );
+    }
+}
+
+/* =========================================
+   CONNECT WALLET
+========================================= */
+
+async function connectWallet() {
+    if (!appModal) {
+        log("AppKit is not initialized.");
+        return;
+    }
+
+    try {
+        log("Opening wallet connection modal...");
+
+        await appModal.open();
+
+        log("Wallet modal opened.");
+
+        await checkWallet();
+
+    } catch (error) {
+        log(
+            "Wallet modal error: " +
+            (error?.stack || error?.message || error)
+        );
+
+        console.error(error);
+    }
+}
+
+/* =========================================
+   CONTRACT DIAGNOSTIC
+========================================= */
 
 async function testContracts() {
     $("contractsInfo").textContent =
         "Running contracts diagnostics...";
 
     setStatus("rpcStatus", "CHECKING", "warning");
-    setStatus("rpcNetworkStatus", "CHECKING", "warning");
-    setStatus("stakingContractStatus", "CHECKING", "warning");
+
+    setStatus(
+        "rpcNetworkStatus",
+        "CHECKING",
+        "warning"
+    );
+
+    setStatus(
+        "stakingContractStatus",
+        "CHECKING",
+        "warning"
+    );
 
     try {
         if (!contractsModule) {
             throw new Error(
-                "Contracts module is not loaded. Check module import errors."
+                "Contracts module is not loaded."
             );
         }
 
         log("Starting contracts diagnostic...");
 
-        const provider = contractsModule.getRpcProvider();
+        const provider =
+            contractsModule.getRpcProvider();
 
         if (!provider) {
-            throw new Error("RPC provider is unavailable.");
+            throw new Error(
+                "RPC provider is unavailable."
+            );
         }
 
         const providerType =
@@ -544,13 +782,17 @@ async function testContracts() {
             `Provider type: ${providerType}\n` +
             `getNetwork: ${typeof provider.getNetwork}`;
 
-        setStatus("rpcStatus", "AVAILABLE", "success");
-
         if (typeof provider.getNetwork !== "function") {
             throw new Error(
                 "RPC provider does not expose getNetwork()."
             );
         }
+
+        setStatus(
+            "rpcStatus",
+            "AVAILABLE",
+            "success"
+        );
 
         const network = await provider.getNetwork();
 
@@ -561,7 +803,9 @@ async function testContracts() {
             chainId === 137
                 ? "POLYGON 137"
                 : `WRONG NETWORK (${chainId})`,
-            chainId === 137 ? "success" : "error"
+            chainId === 137
+                ? "success"
+                : "error"
         );
 
         log("RPC Chain ID: " + chainId);
@@ -590,33 +834,70 @@ async function testContracts() {
         log("Staking contract validation successful.");
 
     } catch (error) {
-        setStatus("rpcStatus", "FAILED", "error");
-        setStatus("stakingContractStatus", "FAILED", "error");
+        setStatus(
+            "rpcStatus",
+            "FAILED",
+            "error"
+        );
+
+        setStatus(
+            "stakingContractStatus",
+            "FAILED",
+            "error"
+        );
 
         $("contractsInfo").textContent =
-            error?.stack || error?.message || String(error);
+            error?.stack ||
+            error?.message ||
+            String(error);
 
         log(
             "Contracts diagnostic error: " +
             (error?.stack || error?.message || error)
         );
 
-        console.error("Contracts diagnostic error:", error);
+        console.error(
+            "Contracts diagnostic error:",
+            error
+        );
     }
 }
 
-$("connectBtn").addEventListener("click", connectWallet);
-$("checkBtn").addEventListener("click", checkWallet);
-$("contractsBtn").addEventListener("click", testContracts);
+/* =========================================
+   EVENT LISTENERS
+========================================= */
 
-$("clearLogBtn").addEventListener("click", () => {
-    logBox.textContent = "";
-});
+$("connectBtn").addEventListener(
+    "click",
+    connectWallet
+);
+
+$("checkBtn").addEventListener(
+    "click",
+    checkWallet
+);
+
+$("contractsBtn").addEventListener(
+    "click",
+    testContracts
+);
+
+$("clearLogBtn").addEventListener(
+    "click",
+    () => {
+        logBox.textContent = "";
+    }
+);
+
+/* =========================================
+   INITIALIZATION
+========================================= */
 
 async function initialize() {
     log("Starting JosJis Staking diagnostics...");
 
     await loadModules();
+
     await initializeAppKit();
 
     log("Diagnostic initialization completed.");
