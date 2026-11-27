@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#111827">
 
-    <title>JosJis Staking - System Test</title>
+    <title>JosJis Staking - System Test V6</title>
 
     <style>
         * {
@@ -131,7 +131,7 @@
     <h1>JosJis Staking Test</h1>
 
     <p class="subtitle">
-        Modular System Diagnostic - Polygon Mainnet
+        Modular System Diagnostic - Polygon Mainnet - V6
     </p>
 
     <div class="panel">
@@ -166,6 +166,16 @@
         <div class="test-item">
             <span>Wallet Provider</span>
             <span id="providerStatus" class="status">WAITING</span>
+        </div>
+
+        <div class="test-item">
+            <span>Adapter V6</span>
+            <span id="adapterStatus" class="status">WAITING</span>
+        </div>
+
+        <div class="test-item">
+            <span>Module Instance Match</span>
+            <span id="instanceStatus" class="status">WAITING</span>
         </div>
 
         <div class="test-item">
@@ -265,7 +275,7 @@ function log(message) {
     logBox.textContent +=
         `[${time}] ${message}\n`;
 
-    console.log("[JosJis Test]", message);
+    console.log("[JosJis Test V6]", message);
 }
 
 function setStatus(id, message, type = "") {
@@ -285,6 +295,12 @@ function shortenAddress(address) {
         address.slice(-4);
 }
 
+function errorMessage(error) {
+    return error?.stack ||
+        error?.message ||
+        String(error);
+}
+
 /* =========================================
    APPLICATION STATE
 ========================================= */
@@ -301,17 +317,19 @@ let providerSubscriptionStarted = false;
 let walletCheckRunning = false;
 let providerCallbackReceived = false;
 
+let latestWalletResult = null;
+
+const loadedModules = {};
+
 const moduleList = [
     ["config", "./modules/config.js"],
     ["helpers", "./modules/helpers.js"],
     ["contracts", "./modules/contracts.js"],
-    ["wallet", "./modules/wallet.js?v=5"],
+    ["wallet", "./modules/wallet.js?v=6"],
     ["staking-actions", "./modules/staking-actions.js"],
     ["positions", "./modules/positions.js"],
     ["dashboard", "./modules/dashboard.js"]
 ];
-
-const loadedModules = {};
 
 /* =========================================
    MODULE LOADING
@@ -345,14 +363,11 @@ async function loadModules() {
             results.push({
                 name,
                 success: false,
-                error: error?.stack ||
-                    error?.message ||
-                    String(error)
+                error: errorMessage(error)
             });
 
             log(
-                `Module error: ${name} - ` +
-                (error?.message || error)
+                `Module error: ${name} - ${error?.message || error}`
             );
 
             console.error(
@@ -455,8 +470,7 @@ function checkAppKitAccount() {
         );
 
         log(
-            "AppKit account error: " +
-            (error?.message || error)
+            "AppKit account error: " + errorMessage(error)
         );
 
         return {
@@ -483,16 +497,22 @@ async function checkWalletModuleProvider() {
     }
 
     try {
-        /*
-         * Use the provider received through the module
-         * subscription callback.
-         * Do not replace it with a raw provider.
-         */
-
         if (!walletProvider) {
             setStatus(
                 "providerStatus",
-                "WAITING FOR PROVIDER",
+                "WAITING",
+                "warning"
+            );
+
+            setStatus(
+                "adapterStatus",
+                "NOT RECEIVED",
+                "warning"
+            );
+
+            setStatus(
+                "instanceStatus",
+                "NOT CHECKED",
                 "warning"
             );
 
@@ -508,22 +528,51 @@ async function checkWalletModuleProvider() {
 
         log("Wallet module provider received.");
 
+        /*
+         * Compare callback provider with the
+         * provider returned by the same module.
+         */
+
+        const moduleProvider =
+            walletModule.getWalletProvider?.() || null;
+
+        const sameInstance =
+            walletProvider === moduleProvider;
+
+        setStatus(
+            "instanceStatus",
+            sameInstance ? "MATCH" : "MISMATCH",
+            sameInstance ? "success" : "error"
+        );
+
         log(
-            "Provider constructor: " +
-            (
-                walletProvider.constructor?.name ||
-                "Unknown"
-            )
+            "Callback provider matches module provider: " +
+            sameInstance
+        );
+
+        if (!sameInstance) {
+            throw new Error(
+                "Provider instance mismatch. Check module caching or subscription."
+            );
+        }
+
+        const constructorName =
+            walletProvider.constructor?.name || "Unknown";
+
+        const providerKeys =
+            Object.keys(walletProvider);
+
+        log(
+            "Provider constructor: " + constructorName
+        );
+
+        log(
+            "Provider keys: " + providerKeys.join(", ")
         );
 
         log(
             "Provider.request type: " +
             typeof walletProvider.request
-        );
-
-        log(
-            "Provider keys: " +
-            Object.keys(walletProvider).join(", ")
         );
 
         if (
@@ -533,6 +582,33 @@ async function checkWalletModuleProvider() {
                 "Provider does not expose request()."
             );
         }
+
+        /*
+         * The V6 adapter should be a plain object.
+         * It should not expose raw Universal Provider keys
+         * such as client, namespaces and rpcProviders.
+         */
+
+        const adapterShape =
+            constructorName === "Object" &&
+            providerKeys.includes("request") &&
+            providerKeys.includes("on");
+
+        setStatus(
+            "adapterStatus",
+            adapterShape ? "ADAPTER SHAPE OK" : "CHECK REQUIRED",
+            adapterShape ? "success" : "warning"
+        );
+
+        if (!adapterShape) {
+            log(
+                "Provider does not have the expected adapter shape."
+            );
+        }
+
+        /*
+         * Read-only EIP-1193 requests.
+         */
 
         const accounts = await walletProvider.request({
             method: "eth_accounts"
@@ -583,6 +659,12 @@ async function checkWalletModuleProvider() {
             );
         }
 
+        if (!adapterShape) {
+            throw new Error(
+                "Provider responded, but adapter structure is unexpected."
+            );
+        }
+
         setStatus(
             "providerStatus",
             "VALID",
@@ -594,7 +676,9 @@ async function checkWalletModuleProvider() {
             valid: true,
             accounts,
             chainId,
-            addressMatches
+            addressMatches,
+            sameInstance,
+            adapterShape
         };
 
     } catch (error) {
@@ -606,7 +690,7 @@ async function checkWalletModuleProvider() {
 
         log(
             "Provider diagnostic error: " +
-            (error?.stack || error?.message || error)
+            errorMessage(error)
         );
 
         return {
@@ -637,15 +721,24 @@ async function checkWallet() {
         const session =
             walletModule?.getWalletSession?.() || {};
 
+        latestWalletResult = {
+            account,
+            provider,
+            session
+        };
+
         $("walletInfo").textContent =
             `AppKit Connected: ${account.connected}\n` +
             `AppKit Address: ${account.address || "Not connected"}\n` +
             `AppKit Chain ID: ${account.chainId ?? "Unknown"}\n` +
+            `Provider Callback Received: ${providerCallbackReceived}\n` +
             `Wallet Module Provider: ${provider.available}\n` +
             `Provider Valid: ${provider.valid}\n` +
             `Provider Account: ${provider.accounts?.[0] || "Unavailable"}\n` +
             `Provider Chain ID: ${provider.chainId || "Unknown"}\n` +
             `Provider Address Matches: ${provider.addressMatches ?? false}\n` +
+            `Same Module Instance: ${provider.sameInstance ?? false}\n` +
+            `Adapter Structure: ${provider.adapterShape ?? false}\n` +
             `Module Wallet Address: ${session.walletAddress || "Not initialized"}\n` +
             `Module Connected: ${Boolean(session.connected)}`;
 
@@ -658,8 +751,7 @@ async function checkWallet() {
 
     } catch (error) {
         log(
-            "Wallet diagnostic error: " +
-            (error?.stack || error?.message || error)
+            "Wallet diagnostic error: " + errorMessage(error)
         );
 
         console.error(error);
@@ -675,6 +767,11 @@ async function checkWallet() {
 
 async function initializeAppKit() {
     try {
+        /*
+         * Import the same shared configuration.
+         * Do not create another AppKit instance.
+         */
+
         const configModule = await import(
             "../../web3/web3-config.js"
         );
@@ -710,7 +807,9 @@ async function initializeAppKit() {
 
         log("Reown AppKit initialized.");
 
-        /* Subscribe to account changes */
+        /*
+         * Subscribe to account changes once.
+         */
 
         if (!accountSubscriptionStarted) {
             accountSubscriptionStarted = true;
@@ -729,7 +828,9 @@ async function initializeAppKit() {
             });
         }
 
-        /* Subscribe to wallet provider */
+        /*
+         * Register wallet module provider subscription.
+         */
 
         if (!providerSubscriptionStarted) {
             if (
@@ -753,25 +854,31 @@ async function initializeAppKit() {
                 "Registering wallet module provider subscription..."
             );
 
-            walletModule.subscribeWalletProvider(
-                (provider, error) => {
-                    walletProvider = provider || null;
+            const unsubscribe =
+                walletModule.subscribeWalletProvider(
+                    (provider, error) => {
+                        if (error) {
+                            walletProvider = null;
 
-                    providerCallbackReceived = Boolean(provider);
+                            setStatus(
+                                "subscriptionStatus",
+                                "CALLBACK ERROR",
+                                "error"
+                            );
 
-                    if (error) {
-                        setStatus(
-                            "subscriptionStatus",
-                            "CALLBACK ERROR",
-                            "error"
-                        );
+                            log(
+                                "Wallet module callback error: " +
+                                errorMessage(error)
+                            );
 
-                        log(
-                            "Wallet module callback error: " +
-                            (error?.message || error)
-                        );
+                            return;
+                        }
 
-                    } else {
+                        walletProvider = provider || null;
+
+                        providerCallbackReceived =
+                            Boolean(provider);
+
                         setStatus(
                             "subscriptionStatus",
                             provider
@@ -785,11 +892,29 @@ async function initializeAppKit() {
                                 ? "Wallet module callback received a provider."
                                 : "Wallet module callback received no provider."
                         );
-                    }
 
-                    checkWallet();
-                }
-            );
+                        log(
+                            "Callback provider constructor: " +
+                            (
+                                provider?.constructor?.name ||
+                                "Unknown"
+                            )
+                        );
+
+                        log(
+                            "Callback provider keys: " +
+                            Object.keys(provider || {}).join(", ")
+                        );
+
+                        checkWallet();
+                    }
+                );
+
+            if (typeof unsubscribe === "function") {
+                log(
+                    "Provider unsubscribe function registered."
+                );
+            }
 
             log(
                 "Wallet module provider subscription registered."
@@ -809,7 +934,7 @@ async function initializeAppKit() {
 
         log(
             "AppKit initialization error: " +
-            (error?.stack || error?.message || error)
+            errorMessage(error)
         );
 
         console.error(
@@ -840,8 +965,7 @@ async function connectWallet() {
 
     } catch (error) {
         log(
-            "Wallet modal error: " +
-            (error?.stack || error?.message || error)
+            "Wallet modal error: " + errorMessage(error)
         );
 
         console.error(error);
@@ -887,9 +1011,6 @@ async function testContracts() {
                 "RPC provider is unavailable."
             );
         }
-
-        const providerType =
-            Object.prototype.toString.call(provider);
 
         if (
             typeof provider.getNetwork !== "function"
@@ -944,7 +1065,6 @@ async function testContracts() {
         );
 
         $("contractsInfo").textContent =
-            `Provider type: ${providerType}\n` +
             `Chain ID: ${chainId}\n` +
             `JJS token: ${validation.tokenAddress}\n` +
             `Staking token: ${validation.stakingTokenAddress}\n` +
@@ -969,13 +1089,11 @@ async function testContracts() {
         );
 
         $("contractsInfo").textContent =
-            error?.stack ||
-            error?.message ||
-            String(error);
+            errorMessage(error);
 
         log(
             "Contracts diagnostic error: " +
-            (error?.stack || error?.message || error)
+            errorMessage(error)
         );
 
         console.error(
@@ -1016,9 +1134,17 @@ $("clearLogBtn").addEventListener(
 ========================================= */
 
 async function initialize() {
-    log("Starting JosJis Staking diagnostics...");
+    log("Starting JosJis Staking diagnostics V6...");
 
     await loadModules();
+
+    if (!walletModule) {
+        log(
+            "Wallet module failed to load. AppKit initialization stopped."
+        );
+
+        return;
+    }
 
     await initializeAppKit();
 
