@@ -2,7 +2,7 @@
 /**
  * JosJis Staking
  * Module: Wallet
- * Version: V5 Universal Provider Fix
+ * Version: V6 Universal Provider Adapter
  * Network: Polygon Mainnet
  */
 
@@ -42,9 +42,30 @@ let providerInitialization = null;
 
 const providerAdapters = new WeakMap();
 
-const ADAPTER_MARKER = Symbol("JJS_EIP1193_ADAPTER");
+const ADAPTER_MARKER = Symbol.for(
+    "JOSJIS_EIP1193_ADAPTER_V6"
+);
 
-const POLYGON_CAIP2 = `eip155:${CONFIG.chainId}`;
+const POLYGON_CAIP2 =
+    `eip155:${CONFIG.chainId}`;
+
+/* =========================================
+   PROVIDER TYPE DETECTION
+========================================= */
+
+function isUniversalProvider(provider) {
+    if (!provider) return false;
+
+    /*
+     * WalletConnect Universal Provider exposes
+     * rpcProviders and a request() method.
+     */
+
+    return Boolean(
+        provider.rpcProviders &&
+        typeof provider.request === "function"
+    );
+}
 
 /* =========================================
    PROVIDER ADAPTER
@@ -52,8 +73,14 @@ const POLYGON_CAIP2 = `eip155:${CONFIG.chainId}`;
 
 function createProviderAdapter(provider) {
     if (!provider) {
-        throw new Error("Wallet provider is unavailable.");
+        throw new Error(
+            "Wallet provider is unavailable."
+        );
     }
+
+    /*
+     * Avoid wrapping an existing adapter.
+     */
 
     if (provider[ADAPTER_MARKER]) {
         return provider;
@@ -69,30 +96,45 @@ function createProviderAdapter(provider) {
         return providerAdapters.get(provider);
     }
 
-    /*
-     * WalletConnect Universal Provider requires
-     * an explicit CAIP-2 chain argument.
-     */
-    const isUniversalProvider =
-        Boolean(
-            provider.rpcProviders &&
-            typeof provider.setDefaultChain === "function"
-        );
+    const universal = isUniversalProvider(provider);
+
+    console.log(
+        "[JJS Wallet] Creating provider adapter."
+    );
+
+    console.log(
+        "[JJS Wallet] Universal Provider detected:",
+        universal
+    );
 
     const adapter = {
         [ADAPTER_MARKER]: true,
 
         request(args) {
-            if (!args || typeof args.method !== "string") {
-                throw new Error("Invalid JSON-RPC request.");
+            if (
+                !args ||
+                typeof args.method !== "string"
+            ) {
+                throw new Error(
+                    "Invalid JSON-RPC request."
+                );
             }
 
-            if (isUniversalProvider) {
+            /*
+             * WalletConnect Universal Provider
+             * requires the CAIP-2 chain argument.
+             */
+
+            if (universal) {
                 return provider.request(
                     args,
                     POLYGON_CAIP2
                 );
             }
+
+            /*
+             * Standard EIP-1193 provider.
+             */
 
             return provider.request(args);
         },
@@ -106,9 +148,14 @@ function createProviderAdapter(provider) {
         },
 
         removeListener(event, listener) {
-            if (typeof provider.removeListener === "function") {
+            if (
+                typeof provider.removeListener === "function"
+            ) {
                 provider.removeListener(event, listener);
-            } else if (typeof provider.off === "function") {
+
+            } else if (
+                typeof provider.off === "function"
+            ) {
                 provider.off(event, listener);
             }
 
@@ -118,7 +165,10 @@ function createProviderAdapter(provider) {
         off(event, listener) {
             if (typeof provider.off === "function") {
                 provider.off(event, listener);
-            } else if (typeof provider.removeListener === "function") {
+
+            } else if (
+                typeof provider.removeListener === "function"
+            ) {
                 provider.removeListener(event, listener);
             }
 
@@ -126,7 +176,9 @@ function createProviderAdapter(provider) {
         },
 
         isConnected() {
-            if (typeof provider.isConnected === "function") {
+            if (
+                typeof provider.isConnected === "function"
+            ) {
                 return provider.isConnected();
             }
 
@@ -135,6 +187,11 @@ function createProviderAdapter(provider) {
     };
 
     providerAdapters.set(provider, adapter);
+
+    console.log(
+        "[JJS Wallet] Adapter created:",
+        true
+    );
 
     return adapter;
 }
@@ -171,18 +228,27 @@ export function setWalletProvider(provider) {
 
     validateWalletProvider(provider);
 
+    const alreadyAdapter =
+        Boolean(provider[ADAPTER_MARKER]);
+
+    const rawProvider = alreadyAdapter
+        ? rawWalletProvider
+        : provider;
+
     const adapter = createProviderAdapter(provider);
 
-    if (walletProvider !== adapter) {
+    const providerChanged =
+        walletProvider !== adapter;
+
+    if (providerChanged) {
         browserProvider = null;
         walletSigner = null;
         walletAddress = null;
     }
 
-    rawWalletProvider =
-        provider[ADAPTER_MARKER]
-            ? rawWalletProvider
-            : provider;
+    if (!alreadyAdapter) {
+        rawWalletProvider = rawProvider;
+    }
 
     walletProvider = adapter;
 
@@ -191,11 +257,13 @@ export function setWalletProvider(provider) {
     );
 
     console.log(
+        "[JJS Wallet] Adapter active:",
+        Boolean(walletProvider[ADAPTER_MARKER])
+    );
+
+    console.log(
         "[JJS Wallet] Universal Provider:",
-        Boolean(
-            rawWalletProvider?.rpcProviders &&
-            typeof rawWalletProvider?.setDefaultChain === "function"
-        )
+        isUniversalProvider(rawWalletProvider)
     );
 
     return true;
@@ -272,16 +340,15 @@ export async function initializeWalletProvider() {
 
     providerInitialization = (async () => {
         try {
-            /*
-             * Reuse an existing provider first.
-             */
             if (walletProvider) {
                 return walletProvider;
             }
 
             /*
-             * Fallback to an injected provider.
+             * Use injected provider only when its
+             * account matches the AppKit account.
              */
+
             if (typeof window !== "undefined") {
                 const injectedProvider =
                     window.ethereum;
@@ -305,7 +372,9 @@ export async function initializeWalletProvider() {
                         accounts[0].toLowerCase() ===
                         appKitAddress.toLowerCase()
                     ) {
-                        setWalletProvider(injectedProvider);
+                        setWalletProvider(
+                            injectedProvider
+                        );
 
                         console.log(
                             "[JJS Wallet] Matching injected provider found."
@@ -342,37 +411,88 @@ export async function initializeWalletProvider() {
    SUBSCRIBE APPKIT PROVIDER
 ========================================= */
 
-export function subscribeWalletProvider(callback = () => {}) {
+export function subscribeWalletProvider(
+    callback = () => {}
+) {
     if (providerUnsubscribe) {
         return providerUnsubscribe;
     }
 
     if (
-        typeof modal.subscribeProviders === "function"
+        typeof modal.subscribeProviders !== "function"
     ) {
-        providerUnsubscribe =
-            modal.subscribeProviders((providers) => {
-                const provider =
-                    providers?.eip155 ||
-                    providers?.["eip155"] ||
-                    null;
+        console.error(
+            "[JJS Wallet] subscribeProviders() unavailable."
+        );
 
-                if (!provider) return;
-
-                try {
-                    setWalletProvider(provider);
-
-                    callback(walletProvider, null);
-
-                } catch (error) {
-                    callback(null, error);
-                }
-            });
+        return null;
     }
 
+    let subscriptionActive = true;
+
+    const unsubscribe =
+        modal.subscribeProviders((providers) => {
+            const provider =
+                providers?.eip155 ||
+                providers?.["eip155"] ||
+                null;
+
+            if (!provider || !subscriptionActive) {
+                return;
+            }
+
+            try {
+                /*
+                 * Store raw provider and create adapter.
+                 */
+
+                setWalletProvider(provider);
+
+                console.log(
+                    "[JJS Wallet] Callback receives adapter:",
+                    Boolean(
+                        walletProvider?.[ADAPTER_MARKER]
+                    )
+                );
+
+                /*
+                 * The callback receives the adapter,
+                 * never the raw Universal Provider.
+                 */
+
+                callback(walletProvider, null);
+
+            } catch (error) {
+                console.error(
+                    "[JJS Wallet] Provider subscription error:",
+                    error
+                );
+
+                callback(null, error);
+            }
+        });
+
+    providerUnsubscribe = () => {
+        subscriptionActive = false;
+
+        if (typeof unsubscribe === "function") {
+            unsubscribe();
+        }
+
+        providerUnsubscribe = null;
+    };
+
+    /*
+     * Check for an existing injected provider.
+     */
+
     initializeWalletProvider().then(provider => {
-        if (provider) {
-            callback(provider, null);
+        if (
+            provider &&
+            subscriptionActive &&
+            walletProvider
+        ) {
+            callback(walletProvider, null);
         }
     });
 
@@ -383,12 +503,16 @@ export function subscribeWalletProvider(callback = () => {}) {
    SUBSCRIBE APPKIT ACCOUNT
 ========================================= */
 
-export function subscribeWalletAccount(callback = () => {}) {
+export function subscribeWalletAccount(
+    callback = () => {}
+) {
     if (accountUnsubscribe) {
         return accountUnsubscribe;
     }
 
-    if (typeof modal.subscribeAccount !== "function") {
+    if (
+        typeof modal.subscribeAccount !== "function"
+    ) {
         return null;
     }
 
@@ -405,7 +529,9 @@ export function subscribeWalletAccount(callback = () => {}) {
                     });
                 });
 
-            } else if (account?.isConnected === false) {
+            } else if (
+                account?.isConnected === false
+            ) {
                 clearWalletSession();
 
                 callback({
@@ -423,12 +549,16 @@ export function subscribeWalletAccount(callback = () => {}) {
    SUBSCRIBE APPKIT NETWORK
 ========================================= */
 
-export function subscribeWalletNetwork(callback = () => {}) {
+export function subscribeWalletNetwork(
+    callback = () => {}
+) {
     if (networkUnsubscribe) {
         return networkUnsubscribe;
     }
 
-    if (typeof modal.subscribeNetwork !== "function") {
+    if (
+        typeof modal.subscribeNetwork !== "function"
+    ) {
         return null;
     }
 
@@ -440,6 +570,14 @@ export function subscribeWalletNetwork(callback = () => {}) {
                 chainId !== undefined && chainId !== null
                     ? Number(chainId)
                     : null;
+
+            /*
+             * Invalidate signer/provider cache
+             * when network changes.
+             */
+
+            browserProvider = null;
+            walletSigner = null;
 
             callback({
                 ...network,
@@ -454,12 +592,16 @@ export function subscribeWalletNetwork(callback = () => {}) {
    SUBSCRIBE APPKIT STATE
 ========================================= */
 
-export function subscribeWalletState(callback = () => {}) {
+export function subscribeWalletState(
+    callback = () => {}
+) {
     if (stateUnsubscribe) {
         return stateUnsubscribe;
     }
 
-    if (typeof modal.subscribeState !== "function") {
+    if (
+        typeof modal.subscribeState !== "function"
+    ) {
         return null;
     }
 
@@ -477,7 +619,9 @@ export function subscribeWalletState(callback = () => {}) {
    INITIALIZE APPKIT LISTENERS
 ========================================= */
 
-export function initializeWalletListeners(callbacks = {}) {
+export function initializeWalletListeners(
+    callbacks = {}
+) {
     subscribeWalletState(
         callbacks.onState || (() => {})
     );
@@ -510,10 +654,12 @@ export async function createBrowserProvider(
 ) {
     validateWalletProvider(provider);
 
-    if (
-        !browserProvider ||
-        walletProvider !== provider
-    ) {
+    if (provider !== walletProvider) {
+        setWalletProvider(provider);
+        provider = walletProvider;
+    }
+
+    if (!browserProvider) {
         browserProvider = new BrowserProvider(
             provider,
             "any"
@@ -583,7 +729,9 @@ export async function getWalletSigner(
     const network =
         await currentBrowserProvider.getNetwork();
 
-    if (Number(network.chainId) !== CONFIG.chainId) {
+    if (
+        Number(network.chainId) !== CONFIG.chainId
+    ) {
         throw new Error(
             "Please switch your wallet to Polygon Mainnet."
         );
@@ -749,7 +897,9 @@ export async function checkWalletConnection() {
         const network =
             await browser.getNetwork();
 
-        if (Number(network.chainId) !== CONFIG.chainId) {
+        if (
+            Number(network.chainId) !== CONFIG.chainId
+        ) {
             throw new Error(
                 "Provider is not connected to Polygon Mainnet."
             );
