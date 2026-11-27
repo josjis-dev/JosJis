@@ -159,6 +159,11 @@
         </div>
 
         <div class="test-item">
+            <span>Wallet Module Subscription</span>
+            <span id="subscriptionStatus" class="status">WAITING</span>
+        </div>
+
+        <div class="test-item">
             <span>Wallet Provider</span>
             <span id="providerStatus" class="status">WAITING</span>
         </div>
@@ -285,8 +290,10 @@ function shortenAddress(address) {
 ========================================= */
 
 let appModal = null;
-let walletProvider = null;
+let walletModule = null;
 let contractsModule = null;
+
+let walletProvider = null;
 
 let accountSubscriptionStarted = false;
 let providerSubscriptionStarted = false;
@@ -314,9 +321,15 @@ async function loadModules() {
 
     for (const [name, path] of moduleList) {
         try {
-            const module = await import(path);
+            const module = await import(
+                `${path}?v=4`
+            );
 
             loadedModules[name] = module;
+
+            if (name === "wallet") {
+                walletModule = module;
+            }
 
             if (name === "contracts") {
                 contractsModule = module;
@@ -398,11 +411,9 @@ function checkAppKitAccount() {
 
     try {
         const address = appModal.getAddress();
-
         const chainId = appModal.getChainId();
 
         const connected = Boolean(address);
-
         const numericChainId = Number(chainId);
 
         setStatus(
@@ -444,12 +455,6 @@ function checkAppKitAccount() {
             "error"
         );
 
-        setStatus(
-            "addressStatus",
-            "CHECK FAILED",
-            "error"
-        );
-
         log(
             "AppKit account error: " +
             (error?.message || error)
@@ -465,18 +470,12 @@ function checkAppKitAccount() {
 }
 
 /* =========================================
-   EVM PROVIDER DIAGNOSTIC
+   WALLET MODULE PROVIDER DIAGNOSTIC
 ========================================= */
 
-async function checkEvmProvider() {
-    if (!walletProvider) {
-        setStatus(
-            "providerStatus",
-            "NOT AVAILABLE",
-            "warning"
-        );
-
-        log("EVM provider is not available.");
+async function checkWalletModuleProvider() {
+    if (!walletModule) {
+        log("Wallet module is unavailable.");
 
         return {
             available: false,
@@ -485,16 +484,51 @@ async function checkEvmProvider() {
     }
 
     try {
-        const providerType =
-            Object.prototype.toString.call(walletProvider);
+        walletProvider =
+            walletModule.getWalletProvider();
 
-        const requestType =
-            typeof walletProvider.request;
+        if (!walletProvider) {
+            setStatus(
+                "providerStatus",
+                "NOT AVAILABLE",
+                "warning"
+            );
 
-        log("Provider type: " + providerType);
-        log("Provider.request: " + requestType);
+            log(
+                "Wallet module has no EVM provider."
+            );
 
-        if (requestType !== "function") {
+            return {
+                available: false,
+                valid: false
+            };
+        }
+
+        log(
+            "Wallet module provider received."
+        );
+
+        log(
+            "Provider constructor: " +
+            (
+                walletProvider.constructor?.name ||
+                "Unknown"
+            )
+        );
+
+        log(
+            "Provider.request type: " +
+            typeof walletProvider.request
+        );
+
+        log(
+            "Provider keys: " +
+            Object.keys(walletProvider).join(", ")
+        );
+
+        if (
+            typeof walletProvider.request !== "function"
+        ) {
             throw new Error(
                 "Provider does not expose request()."
             );
@@ -514,9 +548,14 @@ async function checkEvmProvider() {
             "success"
         );
 
-        log("EVM provider validated.");
-        log("Provider account: " + (accounts?.[0] || "None"));
-        log("Provider chain ID: " + chainId);
+        log(
+            "Provider account: " +
+            (accounts?.[0] || "None")
+        );
+
+        log(
+            "Provider chain ID: " + chainId
+        );
 
         return {
             available: true,
@@ -534,7 +573,7 @@ async function checkEvmProvider() {
 
         log(
             "Provider diagnostic error: " +
-            (error?.message || error)
+            (error?.stack || error?.message || error)
         );
 
         return {
@@ -555,31 +594,33 @@ async function checkWallet() {
     walletCheckRunning = true;
 
     try {
-        log("Checking AppKit wallet session...");
+        log("Checking wallet session...");
 
         const account = checkAppKitAccount();
 
-        const provider = await checkEvmProvider();
+        const provider =
+            await checkWalletModuleProvider();
 
-        const address = account.address;
+        const session =
+            walletModule?.getWalletSession?.() || {};
 
         $("walletInfo").textContent =
             `AppKit Connected: ${account.connected}\n` +
-            `AppKit Address: ${address || "Not connected"}\n` +
+            `AppKit Address: ${account.address || "Not connected"}\n` +
             `AppKit Chain ID: ${account.chainId ?? "Unknown"}\n` +
-            `EVM Provider: ${provider.available ? "Available" : "Not available"}\n` +
+            `Wallet Module Provider: ${provider.available}\n` +
             `Provider Valid: ${provider.valid}\n` +
             `Provider Account: ${provider.accounts?.[0] || "Unavailable"}\n` +
-            `Provider Chain ID: ${provider.chainId || "Unknown"}`;
+            `Provider Chain ID: ${provider.chainId || "Unknown"}\n` +
+            `Module Wallet Address: ${session.walletAddress || "Not initialized"}\n` +
+            `Module Connected: ${Boolean(session.connected)}`;
 
         log(
             "AppKit account: " +
-            (address || "Not connected")
+            (account.address || "Not connected")
         );
 
-        log(
-            "Wallet check completed."
-        );
+        log("Wallet check completed.");
 
     } catch (error) {
         log(
@@ -607,15 +648,16 @@ async function initializeAppKit() {
         appModal = configModule.modal;
 
         if (!appModal) {
-            throw new Error("AppKit modal export not found.");
+            throw new Error(
+                "AppKit modal export not found."
+            );
         }
 
         const requiredMethods = [
             "open",
             "getAddress",
             "getChainId",
-            "subscribeAccount",
-            "subscribeProviders"
+            "subscribeAccount"
         ];
 
         for (const method of requiredMethods) {
@@ -653,36 +695,72 @@ async function initializeAppKit() {
             });
         }
 
-        /* Subscribe to EVM provider changes */
+        /*
+         * Subscribe through the actual wallet module.
+         * This is the provider path used by Staking.
+         */
 
         if (!providerSubscriptionStarted) {
             providerSubscriptionStarted = true;
 
-            appModal.subscribeProviders((providers) => {
-                walletProvider =
-                    providers?.eip155 || null;
-
-                setStatus(
-                    "providerStatus",
-                    walletProvider
-                        ? "OBJECT RECEIVED"
-                        : "NOT AVAILABLE",
-                    walletProvider
-                        ? "success"
-                        : "warning"
+            if (
+                typeof walletModule?.subscribeWalletProvider !==
+                "function"
+            ) {
+                throw new Error(
+                    "subscribeWalletProvider() is unavailable."
                 );
+            }
 
-                log(
-                    walletProvider
-                        ? "EIP-155 provider received."
-                        : "EIP-155 provider not available."
-                );
+            setStatus(
+                "subscriptionStatus",
+                "REGISTERING",
+                "warning"
+            );
 
-                checkWallet();
-            });
+            log(
+                "Registering wallet module provider subscription..."
+            );
+
+            walletModule.subscribeWalletProvider(
+                (provider, error) => {
+                    walletProvider = provider || null;
+
+                    if (error) {
+                        setStatus(
+                            "subscriptionStatus",
+                            "CALLBACK ERROR",
+                            "error"
+                        );
+
+                        log(
+                            "Wallet module callback error: " +
+                            (error?.message || error)
+                        );
+
+                    } else {
+                        setStatus(
+                            "subscriptionStatus",
+                            "CALLBACK RECEIVED",
+                            "success"
+                        );
+
+                        log(
+                            provider
+                                ? "Wallet module callback received an EVM provider."
+                                : "Wallet module callback received no provider."
+                        );
+                    }
+
+                    checkWallet();
+                }
+            );
+
+            log(
+                "Wallet module provider subscription registered."
+            );
         }
 
-        // Read existing AppKit session immediately.
         checkAppKitAccount();
 
         await checkWallet();
@@ -778,11 +856,9 @@ async function testContracts() {
         const providerType =
             Object.prototype.toString.call(provider);
 
-        $("contractsInfo").textContent =
-            `Provider type: ${providerType}\n` +
-            `getNetwork: ${typeof provider.getNetwork}`;
-
-        if (typeof provider.getNetwork !== "function") {
+        if (
+            typeof provider.getNetwork !== "function"
+        ) {
             throw new Error(
                 "RPC provider does not expose getNetwork()."
             );
@@ -810,11 +886,20 @@ async function testContracts() {
 
         log("RPC Chain ID: " + chainId);
 
+        if (chainId !== 137) {
+            throw new Error(
+                "RPC is not connected to Polygon Mainnet."
+            );
+        }
+
         const validation =
             await contractsModule.validateStakingContract();
 
         if (!validation.valid) {
-            throw new Error(validation.error);
+            throw new Error(
+                validation.error ||
+                "Staking contract validation failed."
+            );
         }
 
         setStatus(
@@ -831,7 +916,9 @@ async function testContracts() {
             `Paused: ${validation.paused}\n` +
             `Available rewards (raw): ${validation.availableRewards.toString()}`;
 
-        log("Staking contract validation successful.");
+        log(
+            "Staking contract validation successful."
+        );
 
     } catch (error) {
         setStatus(
