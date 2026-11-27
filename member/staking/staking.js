@@ -1,7 +1,7 @@
 
 /* =========================================
    JOSJIS STAKING
-   Version: V7
+   Version: V8
    Mode: Polygon Mainnet
 ========================================= */
 
@@ -146,6 +146,7 @@ const DURATION_LABELS = {
 
 const UNIT = 10n ** BigInt(CONFIG.decimals);
 
+
 function formatJJS(rawValue) {
     try {
         const value = BigInt(rawValue);
@@ -228,14 +229,34 @@ function setBusy(value) {
 }
 
 
+/* =========================================
+   ERROR HANDLING
+========================================= */
+
 function getErrorMessage(error) {
-    return (
-        error?.shortMessage ||
-        error?.reason ||
-        error?.info?.error?.message ||
-        error?.message ||
-        "An unexpected error occurred."
-    );
+    console.error("FULL TRANSACTION ERROR:", error);
+
+    const candidates = [
+        error?.info?.error?.message,
+        error?.error?.message,
+        error?.data?.message,
+        error?.info?.message,
+        error?.reason,
+        error?.shortMessage,
+        error?.message
+    ];
+
+    for (const message of candidates) {
+        if (
+            typeof message === "string" &&
+            message.trim() &&
+            message !== "could not coalesce error"
+        ) {
+            return message;
+        }
+    }
+
+    return "Transaction failed. Check browser console for details.";
 }
 
 
@@ -552,6 +573,40 @@ async function getSignerContracts() {
         address,
         version
     };
+}
+
+
+/* =========================================
+   APPROVAL GAS ESTIMATION
+========================================= */
+
+async function estimateApprovalGas(amount, address) {
+    try {
+        const estimate = await readToken.approve.estimateGas(
+            CONFIG.stakingAddress,
+            amount,
+            {
+                from: address
+            }
+        );
+
+        if (estimate <= 0n) {
+            throw new Error(
+                "Invalid approval gas estimation."
+            );
+        }
+
+        // Add a 25% safety margin.
+        return (estimate * 125n) / 100n;
+
+    } catch (error) {
+        console.error("Approval gas estimation failed:", error);
+
+        throw new Error(
+            "Unable to estimate JJS approval gas: " +
+            getErrorMessage(error)
+        );
+    }
 }
 
 
@@ -1114,14 +1169,32 @@ async function stakeTokens() {
 
         assertCurrentWallet(address, version);
 
+        /* =====================================
+           APPROVE JJS
+        ===================================== */
+
         if (allowance < amount) {
             setStakeMessage(
-                "Please approve JJS spending in your wallet..."
+                "Estimating approval gas through Polygon RPC..."
+            );
+
+            const gasLimit = await estimateApprovalGas(
+                amount,
+                address
+            );
+
+            assertCurrentWallet(address, version);
+
+            setStakeMessage(
+                "Please confirm JJS approval in MetaMask..."
             );
 
             const approveTx = await token.approve(
                 CONFIG.stakingAddress,
-                amount
+                amount,
+                {
+                    gasLimit
+                }
             );
 
             assertCurrentWallet(address, version);
@@ -1137,7 +1210,26 @@ async function stakeTokens() {
                     "JJS approval transaction failed."
                 );
             }
+
+            const confirmedAllowance = await readToken.allowance(
+                address,
+                CONFIG.stakingAddress
+            );
+
+            if (confirmedAllowance < amount) {
+                throw new Error(
+                    "Approval transaction confirmed, but allowance is insufficient."
+                );
+            }
+
+            setStakeMessage(
+                "JJS approval successful. Preparing staking transaction..."
+            );
         }
+
+        /* =====================================
+           STAKE JJS
+        ===================================== */
 
         assertCurrentWallet(address, version);
 
