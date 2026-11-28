@@ -1,21 +1,54 @@
+
 /**
  * JosJis Staking
  * Module: Staking Actions
- * Version: V1
+ * Version: V2
  * Network: Polygon Mainnet
  */
 
 import {
+    Contract,
     parseUnits
 } from "https://esm.sh/ethers@6.15.0";
 
 import {
-    CONFIG
+    CONFIG,
+    TOKEN_ABI,
+    STAKING_ABI
 } from "./config.js";
 
 import {
-    getSignerContracts
-} from "./wallet.js";
+    getWalletSigner
+} from "../../../assets/js/core/transaction-manager.js";
+
+/* =========================================
+   CONTRACT INSTANCES
+========================================= */
+
+async function getSignerContracts() {
+    const signer = await getWalletSigner();
+
+    const address = await signer.getAddress();
+
+    const tokenContract = new Contract(
+        CONFIG.tokenAddress,
+        TOKEN_ABI,
+        signer
+    );
+
+    const stakingContract = new Contract(
+        CONFIG.stakingAddress,
+        STAKING_ABI,
+        signer
+    );
+
+    return {
+        signer,
+        address,
+        tokenContract,
+        stakingContract
+    };
+}
 
 /* =========================================
    VALIDATE AMOUNT
