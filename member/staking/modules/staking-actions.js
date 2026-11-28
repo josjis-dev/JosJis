@@ -8,11 +8,11 @@
  * Public Polygon RPC
  *
  * WRITE:
- * MetaMask Signer through Core Transaction Manager
+ * Core Transaction Manager + AppKit Wallet Provider
  *
  * APPROVE:
- * Public RPC gas estimation, nonce and gas price
- * BrowserProvider direct eth_sendTransaction
+ * Public RPC for gas estimation, nonce and gas price
+ * Direct EIP-1193 wallet transaction request
  * Public RPC receipt confirmation
  */
 
@@ -30,7 +30,8 @@ import {
 } from "./config.js";
 
 import {
-    getWalletSigner
+    getWalletSigner,
+    getWalletProvider
 } from "../../../assets/js/core/transaction-manager.js";
 
 /* =========================================
@@ -388,8 +389,8 @@ export async function approveJJS(amount) {
 
         const {
             signer,
-            tokenContract,
-            address
+            address,
+            tokenContract
         } = await getSignerContracts();
 
         stage = "CHECK_WALLET_ADDRESS";
@@ -405,31 +406,32 @@ export async function approveJJS(amount) {
             );
         }
 
-        stage = "CHECK_WALLET_NETWORK";
+        stage = "GET_APPKIT_PROVIDER";
 
-        const signerProvider = signer.provider;
-
-        if (!signerProvider) {
-            throw new Error(
-                "Wallet signer provider is unavailable."
-            );
-        }
-
-        const signerNetwork =
-            await signerProvider.getNetwork();
+        const walletProvider = getWalletProvider();
 
         if (
-            Number(signerNetwork.chainId) !==
-            CONFIG.chainId
+            !walletProvider ||
+            typeof walletProvider.request !== "function"
         ) {
             throw new Error(
-                "Wallet is not connected to Polygon."
+                "AppKit wallet provider is unavailable."
             );
         }
 
-        if (typeof signerProvider.send !== "function") {
+        stage = "CHECK_WALLET_NETWORK";
+
+        const walletChainId = await walletProvider.request({
+            method: "eth_chainId"
+        });
+
+        const chainId = Number(
+            BigInt(walletChainId)
+        );
+
+        if (chainId !== CONFIG.chainId) {
             throw new Error(
-                "Wallet provider does not support direct RPC requests."
+                "Wallet is not connected to Polygon Mainnet."
             );
         }
 
@@ -584,7 +586,7 @@ export async function approveJJS(amount) {
         );
 
         /* =================================
-           DIRECT WALLET TRANSACTION
+           DIRECT APPKIT WALLET REQUEST
         ================================= */
 
         stage = "SEND_APPROVE_TO_WALLET";
@@ -602,22 +604,13 @@ export async function approveJJS(amount) {
         };
 
         console.log(
-            "[JJS APPROVE] Requesting MetaMask confirmation..."
+            "[JJS APPROVE] Requesting wallet confirmation..."
         );
 
-        /*
-         * Send raw eth_sendTransaction through
-         * the signer's BrowserProvider.
-         *
-         * This avoids ethers signer.sendTransaction()
-         * performing its own automatic transaction
-         * preparation and eth_blockNumber lookup.
-         */
-
-        const transactionHash = await signerProvider.send(
-            "eth_sendTransaction",
-            [walletTransaction]
-        );
+        const transactionHash = await walletProvider.request({
+            method: "eth_sendTransaction",
+            params: [walletTransaction]
+        });
 
         if (
             typeof transactionHash !== "string" ||
