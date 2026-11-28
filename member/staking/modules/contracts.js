@@ -1,11 +1,15 @@
+
 /**
  * JosJis Staking
  * Module: Contracts
- * Version: V2
+ * Version: V3
  * Network: Polygon Mainnet
  */
 
-import { Contract } from "https://esm.sh/ethers@6.15.0";
+import {
+    Contract,
+    JsonRpcProvider
+} from "https://esm.sh/ethers@6.15.0";
 
 import {
     CONFIG,
@@ -13,9 +17,17 @@ import {
     STAKING_ABI
 } from "./config.js";
 
-import {
-    rpcProvider
-} from "../../../web3/web3-config.js";
+/* =========================================
+   PUBLIC READ-ONLY RPC
+========================================= */
+
+const PUBLIC_RPC_URL =
+    "https://polygon-bor-rpc.publicnode.com";
+
+const rpcProvider = new JsonRpcProvider(
+    PUBLIC_RPC_URL,
+    CONFIG.chainId
+);
 
 /* =========================================
    PROVIDER VALIDATION
