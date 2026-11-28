@@ -2,7 +2,7 @@
 /**
  * JosJis Staking
  * Module: Staking Actions
- * Version: V6
+ * Version: V7
  * Network: Polygon Mainnet
  *
  * READ:
@@ -58,8 +58,7 @@ const stakingReadContract = new Contract(
 );
 
 /* =========================================
-   CONTRACT INSTANCES
-   SIGNER USED ONLY FOR TRANSACTIONS
+   SIGNER CONTRACTS
 ========================================= */
 
 async function getSignerContracts() {
@@ -187,7 +186,6 @@ async function validateReadNetwork() {
 
 /* =========================================
    READ JJS BALANCE & ALLOWANCE
-   READ-ONLY: NO TRANSACTION
 ========================================= */
 
 export async function getJJSWalletStatus() {
@@ -245,10 +243,8 @@ export async function getJJSWalletStatus() {
 
         return {
             address,
-
             tokenAddress: CONFIG.tokenAddress,
             stakingAddress: CONFIG.stakingAddress,
-
             balance,
             allowance,
 
@@ -278,7 +274,8 @@ export async function getJJSWalletStatus() {
             "[JJS WALLET STATUS DIAGNOSTIC]",
             {
                 stage,
-                error
+                error,
+                serialized: serializeError(error)
             }
         );
 
@@ -292,52 +289,146 @@ export async function getJJSWalletStatus() {
 }
 
 /* =========================================
-   APPROVE JJS
+   APPROVE JJS - V7 DIAGNOSTIC
 ========================================= */
 
 export async function approveJJS(amount) {
-    const parsedAmount = validateAmount(amount);
+    let stage = "VALIDATE_AMOUNT";
 
-    const {
-        tokenContract,
-        address
-    } = await getSignerContracts();
+    try {
+        const parsedAmount = validateAmount(amount);
 
-    // Read allowance through public RPC.
-    const currentAllowance =
-        await tokenReadContract.allowance(
-            address,
-            CONFIG.stakingAddress
+        stage = "GET_SIGNER_CONTRACTS";
+
+        const {
+            tokenContract,
+            address
+        } = await getSignerContracts();
+
+        stage = "READ_ALLOWANCE";
+
+        const currentAllowance =
+            await tokenReadContract.allowance(
+                address,
+                CONFIG.stakingAddress
+            );
+
+        if (currentAllowance >= parsedAmount) {
+            console.log(
+                "[JJS APPROVE] Already approved."
+            );
+
+            return {
+                approved: true,
+                alreadyApproved: true,
+                allowance: currentAllowance
+            };
+        }
+
+        stage = "CHECK_SIGNER_NETWORK";
+
+        const signer = await tokenContract.runner;
+
+        if (!signer || typeof signer.sendTransaction !== "function") {
+            throw new Error(
+                "Transaction signer cannot send transactions."
+            );
+        }
+
+        const signerAddress = await signer.getAddress();
+
+        if (
+            signerAddress.toLowerCase() !==
+            address.toLowerCase()
+        ) {
+            throw new Error(
+                "Transaction signer address mismatch."
+            );
+        }
+
+        const signerNetwork =
+            await signer.provider.getNetwork();
+
+        if (
+            Number(signerNetwork.chainId) !==
+            CONFIG.chainId
+        ) {
+            throw new Error(
+                "Transaction signer is not connected to Polygon."
+            );
+        }
+
+        stage = "PREPARE_APPROVE";
+
+        const approveMethod = tokenContract.getFunction(
+            "approve"
         );
 
-    if (currentAllowance >= parsedAmount) {
+        const transactionRequest =
+            await approveMethod.populateTransaction(
+                CONFIG.stakingAddress,
+                parsedAmount
+            );
+
+        console.log(
+            "[JJS APPROVE] Transaction request prepared:",
+            transactionRequest
+        );
+
+        stage = "SEND_APPROVE_TO_WALLET";
+
+        console.log(
+            "[JJS APPROVE] Requesting MetaMask confirmation..."
+        );
+
+        const transaction = await signer.sendTransaction(
+            transactionRequest
+        );
+
+        console.log(
+            "[JJS APPROVE] Transaction submitted:",
+            transaction.hash
+        );
+
+        stage = "WAIT_APPROVAL_CONFIRMATION";
+
+        const receipt = await transaction.wait();
+
+        if (!receipt || receipt.status !== 1) {
+            throw new Error(
+                "JJS approval transaction failed."
+            );
+        }
+
+        console.log(
+            "[JJS APPROVE] Approval confirmed:",
+            transaction.hash
+        );
+
         return {
             approved: true,
-            alreadyApproved: true,
-            allowance: currentAllowance
+            alreadyApproved: false,
+            transactionHash: transaction.hash,
+            receipt
         };
-    }
 
-    // Transaction through MetaMask signer.
-    const transaction = await tokenContract.approve(
-        CONFIG.stakingAddress,
-        parsedAmount
-    );
+    } catch (error) {
+        console.error(
+            "[JJS APPROVE DIAGNOSTIC]",
+            {
+                stage,
+                error,
+                serialized: serializeError(error)
+            }
+        );
 
-    const receipt = await transaction.wait();
-
-    if (!receipt || receipt.status !== 1) {
         throw new Error(
-            "JJS approval transaction failed."
+            "APPROVE FAILED [" +
+            stage +
+            "]: " +
+            serializeError(error)
         );
     }
-
-    return {
-        approved: true,
-        alreadyApproved: false,
-        transactionHash: transaction.hash,
-        receipt
-    };
 }
 
 /* =========================================
@@ -368,7 +459,6 @@ export async function stakeJJS(amount, duration) {
         address
     } = await getSignerContracts();
 
-    // Read allowance through public RPC.
     const currentAllowance =
         await tokenReadContract.allowance(
             address,
@@ -381,7 +471,6 @@ export async function stakeJJS(amount, duration) {
         );
     }
 
-    // Read staking configuration through public RPC.
     const durationConfig =
         await stakingReadContract.durationConfigs(
             parsedDuration
@@ -402,7 +491,6 @@ export async function stakeJJS(amount, duration) {
         );
     }
 
-    // Transaction through MetaMask signer.
     const transaction = await stakingContract.stake(
         parsedAmount,
         parsedDuration
@@ -457,7 +545,6 @@ export async function withdrawPrincipal(positionId) {
         address
     } = await getSignerContracts();
 
-    // Read position through public RPC.
     const position = await stakingReadContract.positions(id);
 
     if (
@@ -485,7 +572,6 @@ export async function withdrawPrincipal(positionId) {
         );
     }
 
-    // Transaction through MetaMask signer.
     const transaction =
         await stakingContract.withdrawPrincipal(id);
 
@@ -517,7 +603,6 @@ export async function claimReward(positionId) {
         address
     } = await getSignerContracts();
 
-    // Read position through public RPC.
     const position = await stakingReadContract.positions(id);
 
     if (
@@ -541,7 +626,6 @@ export async function claimReward(positionId) {
         );
     }
 
-    // Transaction through MetaMask signer.
     const transaction =
         await stakingContract.claimReward(id);
 
