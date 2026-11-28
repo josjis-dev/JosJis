@@ -1,7 +1,8 @@
+
 /**
  * JosJis Staking
  * Module: Positions
- * Version: V1
+ * Version: V2
  * Network: Polygon Mainnet
  */
 
@@ -18,6 +19,21 @@ import {
     formatDate,
     formatCountdown
 } from "./helpers.js";
+
+/* =========================================
+   SCAN CONFIGURATION
+========================================= */
+
+const EVENT_SCAN_CHUNK_SIZE = 2000;
+
+/*
+ * Cache event scan results to reduce repeated RPC requests.
+ * Cache is separated by wallet address and starting block.
+ */
+
+const positionIdsCache = new Map();
+
+const CACHE_DURATION = 15000;
 
 /* =========================================
    VALIDATE ADDRESS
@@ -102,12 +118,6 @@ export function formatPosition(position) {
    GET USER POSITION IDS FROM EVENTS
 ========================================= */
 
-/**
- * Scans Staked events for a wallet address.
- * Set fromBlock to the staking contract deployment block
- * when known to reduce RPC requests.
- */
-
 export async function getUserPositionIds(
     walletAddress,
     fromBlock = 0
@@ -116,16 +126,39 @@ export async function getUserPositionIds(
 
     const { provider, stakingContract } = getReadContracts();
 
-    const latestBlock = await provider.getBlockNumber();
-
     const startBlock = Number(fromBlock);
 
     if (
         !Number.isSafeInteger(startBlock) ||
-        startBlock < 0 ||
-        startBlock > latestBlock
+        startBlock < 0
     ) {
         throw new Error("Invalid starting block.");
+    }
+
+    const latestBlock = await provider.getBlockNumber();
+
+    if (startBlock > latestBlock) {
+        throw new Error("Invalid starting block.");
+    }
+
+    const normalizedAddress = walletAddress.toLowerCase();
+
+    const cacheKey =
+        `${normalizedAddress}:${startBlock}`;
+
+    const cached = positionIdsCache.get(cacheKey);
+
+    /*
+     * Use cached results only when the latest block
+     * has not changed and cache has not expired.
+     */
+
+    if (
+        cached &&
+        cached.latestBlock === latestBlock &&
+        Date.now() - cached.timestamp < CACHE_DURATION
+    ) {
+        return cached.ids.map(id => BigInt(id));
     }
 
     const filter = stakingContract.filters.Staked(
@@ -135,15 +168,13 @@ export async function getUserPositionIds(
 
     const positionIds = new Set();
 
-    const chunkSize = CONFIG.logChunkSize;
-
     for (
         let start = startBlock;
         start <= latestBlock;
-        start += chunkSize
+        start += EVENT_SCAN_CHUNK_SIZE
     ) {
         const end = Math.min(
-            start + chunkSize - 1,
+            start + EVENT_SCAN_CHUNK_SIZE - 1,
             latestBlock
         );
 
@@ -154,15 +185,25 @@ export async function getUserPositionIds(
         );
 
         for (const event of events) {
-            positionIds.add(
-                event.args.id.toString()
-            );
+            if (event.args?.id !== undefined) {
+                positionIds.add(
+                    event.args.id.toString()
+                );
+            }
         }
     }
 
-    return Array.from(positionIds)
+    const sortedIds = Array.from(positionIds)
         .map(id => BigInt(id))
         .sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
+
+    positionIdsCache.set(cacheKey, {
+        ids: sortedIds.map(id => id.toString()),
+        latestBlock,
+        timestamp: Date.now()
+    });
+
+    return sortedIds;
 }
 
 /* =========================================
