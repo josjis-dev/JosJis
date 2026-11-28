@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JosJis Staking Diagnostic V9</title>
+    <title>JosJis Staking Diagnostic V10</title>
 
     <style>
         * {
@@ -109,10 +109,10 @@
 <body>
 <div class="container">
 
-    <h2>JosJis Staking Diagnostic V9</h2>
+    <h2>JosJis Staking Diagnostic V10</h2>
 
     <div class="subtitle">
-        Core Transaction Manager · Polygon Mainnet · Chain ID 137
+        Core Transaction Manager · Staking Actions V3 · Polygon Mainnet · Chain ID 137
     </div>
 
     <div class="panel">
@@ -162,6 +162,11 @@
     </div>
 
     <div class="panel">
+        <h3>JJS Wallet Status</h3>
+        <pre id="jjsInfo">Not checked.</pre>
+    </div>
+
+    <div class="panel">
         <h3>Final Diagnostic Summary</h3>
         <pre id="summaryInfo">Not checked.</pre>
     </div>
@@ -180,6 +185,7 @@ const $ = id => document.getElementById(id);
 
 let modal = null;
 let core = null;
+let stakingActions = null;
 
 let initialized = false;
 let running = false;
@@ -266,7 +272,7 @@ async function initialize() {
 
     $("log").textContent = "";
 
-    log("Starting JosJis Staking Diagnostic V9...");
+    log("Starting JosJis Staking Diagnostic V10...");
     log("Loading shared AppKit configuration...");
 
     try {
@@ -293,7 +299,7 @@ async function initialize() {
 
         log("Core Transaction Manager loaded.", "OK");
 
-        const requiredFunctions = [
+        const requiredCoreFunctions = [
             "setWalletProvider",
             "getWalletProvider",
             "getBrowserProvider",
@@ -303,29 +309,51 @@ async function initialize() {
             "clearWalletSession"
         ];
 
-        const functions = {};
+        const coreFunctions = {};
 
-        for (const name of requiredFunctions) {
+        for (const name of requiredCoreFunctions) {
 
-            functions[name] =
+            coreFunctions[name] =
                 typeof core[name] === "function";
         }
 
-        print("coreInfo", {
-            requiredFunctions: functions
-        });
-
-        const missing = requiredFunctions.filter(
-            name => !functions[name]
+        const missingCore = requiredCoreFunctions.filter(
+            name => !coreFunctions[name]
         );
 
-        if (missing.length) {
+        if (missingCore.length) {
 
             throw new Error(
                 "Missing Core functions: " +
-                missing.join(", ")
+                missingCore.join(", ")
             );
         }
+
+        log("All required Core functions are available.", "OK");
+
+        log("Loading Staking Actions V3...");
+
+        stakingActions = await import(
+            "/josjis/member/staking/modules/staking-actions.js?v=3"
+        );
+
+        if (
+            typeof stakingActions.getJJSWalletStatus !== "function"
+        ) {
+            throw new Error(
+                "getJJSWalletStatus() not found in staking-actions.js"
+            );
+        }
+
+        log("Staking Actions V3 loaded.", "OK");
+
+        print("coreInfo", {
+            requiredFunctions: coreFunctions,
+            stakingActions: {
+                getJJSWalletStatus:
+                    typeof stakingActions.getJJSWalletStatus === "function"
+            }
+        });
 
         initialized = true;
 
@@ -336,8 +364,7 @@ async function initialize() {
             "green"
         );
 
-        log("All required Core functions are available.", "OK");
-
+        log("All required modules are available.", "OK");
         log("Diagnostic initialization completed.", "OK");
 
     } catch (error) {
@@ -447,18 +474,10 @@ async function checkProvider(appkit) {
     };
 
     let provider = null;
-    let browserProvider = null;
-
-    /*
-     * IMPORTANT:
-     * getWalletProvider() only reads cached provider.
-     * getBrowserProvider() calls findWalletProvider()
-     * and resolves the provider when necessary.
-     */
 
     try {
 
-        browserProvider =
+        const browserProvider =
             await core.getBrowserProvider();
 
         if (!browserProvider) {
@@ -772,6 +791,104 @@ async function checkCoreDiagnostic() {
 }
 
 // =====================================
+// JJS BALANCE & ALLOWANCE CHECK
+// READ ONLY - NO TRANSACTION
+// =====================================
+
+async function checkJJSWalletStatus() {
+
+    log("Reading JJS wallet balance and allowance...");
+
+    const result = {
+        success: false,
+        address: null,
+        tokenAddress: null,
+        stakingAddress: null,
+        balance: null,
+        allowance: null,
+        formattedBalance: null,
+        formattedAllowance: null,
+        hasBalance: false,
+        hasAllowance: false,
+        errors: []
+    };
+
+    try {
+
+        const status =
+            await stakingActions.getJJSWalletStatus();
+
+        result.address = status.address;
+        result.tokenAddress = status.tokenAddress;
+        result.stakingAddress = status.stakingAddress;
+
+        result.balance = status.balance;
+        result.allowance = status.allowance;
+
+        result.formattedBalance =
+            status.formattedBalance;
+
+        result.formattedAllowance =
+            status.formattedAllowance;
+
+        result.hasBalance = status.hasBalance;
+        result.hasAllowance = status.hasAllowance;
+
+        result.success =
+            isAddress(result.address) &&
+            isAddress(result.tokenAddress) &&
+            isAddress(result.stakingAddress) &&
+            typeof result.formattedBalance === "string" &&
+            typeof result.formattedAllowance === "string";
+
+        if (!result.success) {
+
+            throw new Error(
+                "JJS wallet status returned incomplete data."
+            );
+        }
+
+        log("JJS balance read: SUCCESS", "OK");
+
+        log(
+            "JJS balance: " +
+            result.formattedBalance + " JJS",
+            "OK"
+        );
+
+        log(
+            "JJS allowance: " +
+            result.formattedAllowance + " JJS",
+            "OK"
+        );
+
+        log(
+            "Token contract: " +
+            result.tokenAddress
+        );
+
+        log(
+            "Staking contract: " +
+            result.stakingAddress
+        );
+
+    } catch (error) {
+
+        result.errors.push(errorText(error));
+
+        log(
+            "JJS wallet status failed: " +
+            errorText(error),
+            "ERROR"
+        );
+    }
+
+    print("jjsInfo", result);
+
+    return result;
+}
+
+// =====================================
 // COMPLETE DIAGNOSTIC
 // =====================================
 
@@ -790,6 +907,7 @@ async function runDiagnostic() {
         "providerInfo",
         "browserInfo",
         "signerInfo",
+        "jjsInfo",
         "summaryInfo"
     ]) {
 
@@ -797,7 +915,7 @@ async function runDiagnostic() {
     }
 
     log("------------------------------------");
-    log("STARTING COMPLETE DIAGNOSTIC");
+    log("STARTING COMPLETE DIAGNOSTIC V10");
     log("------------------------------------");
 
     try {
@@ -814,6 +932,39 @@ async function runDiagnostic() {
 
         const coreDiagnostic =
             await checkCoreDiagnostic();
+
+        const walletConnectionReady =
+            appkit.connected &&
+            appkit.polygon &&
+            provider.providerAvailable &&
+            provider.chainId === EXPECTED_CHAIN_ID &&
+            provider.addressMatchesAppKit &&
+            browser.available &&
+            browser.polygon &&
+            signer.signerAvailable &&
+            signer.addressMatchesAppKit &&
+            session.available;
+
+        let jjsStatus = {
+            success: false,
+            errors: [
+                "Wallet connection checks did not pass."
+            ]
+        };
+
+        if (walletConnectionReady) {
+
+            jjsStatus = await checkJJSWalletStatus();
+
+        } else {
+
+            log(
+                "Skipping JJS read because wallet checks failed.",
+                "ERROR"
+            );
+
+            print("jjsInfo", jjsStatus);
+        }
 
         const summary = {
 
@@ -848,27 +999,26 @@ async function runDiagnostic() {
                 session.available,
 
             coreDiagnosticPassed:
-                coreDiagnostic.success === true
+                coreDiagnostic.success === true,
+
+            jjsWalletStatusRead:
+                jjsStatus.success === true,
+
+            jjsBalanceRead:
+                jjsStatus.success === true &&
+                typeof jjsStatus.formattedBalance === "string",
+
+            jjsAllowanceRead:
+                jjsStatus.success === true &&
+                typeof jjsStatus.formattedAllowance === "string"
         };
 
-        /*
-         * Transaction readiness is based on
-         * the resolved provider and verified signer.
-         */
+        summary.walletConnectionReady =
+            walletConnectionReady;
 
-        const transactionReady =
-            summary.appKitConnected &&
-            summary.appKitOnPolygon &&
-            summary.providerAvailable &&
-            summary.providerOnPolygon &&
-            summary.providerMatchesAppKit &&
-            summary.browserProviderAvailable &&
-            summary.browserProviderOnPolygon &&
-            summary.signerAvailable &&
-            summary.signerMatchesAppKit &&
-            summary.signerSessionAvailable;
-
-        summary.transactionReady = transactionReady;
+        summary.readOnlyIntegrationPassed =
+            walletConnectionReady &&
+            jjsStatus.success === true;
 
         print("summaryInfo", summary);
 
@@ -885,35 +1035,52 @@ async function runDiagnostic() {
             );
         }
 
-        if (transactionReady) {
+        print("coreInfo", {
+            requiredFunctions: "Available",
+            coreDiagnostic
+        });
+
+        if (summary.readOnlyIntegrationPassed) {
 
             setStatus(
-                "Provider and signer checks passed. Transaction path appears ready.",
+                "V10 PASSED. Wallet, signer, JJS balance and allowance reads are working.",
                 "green"
             );
 
             log(
-                "TRANSACTION READINESS CHECK: PASSED",
+                "READ-ONLY INTEGRATION CHECK: PASSED",
                 "OK"
+            );
+
+        } else if (walletConnectionReady) {
+
+            setStatus(
+                "Wallet checks passed, but JJS balance/allowance read failed.",
+                "red"
+            );
+
+            log(
+                "READ-ONLY INTEGRATION CHECK: FAILED",
+                "ERROR"
             );
 
         } else {
 
             setStatus(
-                "Transaction readiness check failed. Review diagnostic results.",
+                "Wallet readiness check failed. Review diagnostic results.",
                 "red"
             );
 
             log(
-                "TRANSACTION READINESS CHECK: NOT PASSED",
+                "WALLET CONNECTION CHECK: NOT PASSED",
                 "ERROR"
             );
         }
 
-        print("coreInfo", {
-            requiredFunctions: "Available",
-            coreDiagnostic
-        });
+        log(
+            "No blockchain transaction was sent.",
+            "OK"
+        );
 
         log("Diagnostic completed.", "OK");
 
