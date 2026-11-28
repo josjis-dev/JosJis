@@ -2,1153 +2,685 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#111827">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111827">
 
-    <title>JosJis Staking - System Test V6</title>
+<title>JosJis Staking Diagnostic V7</title>
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+<style>
+* { box-sizing: border-box; }
 
-        body {
-            margin: 0;
-            padding: 20px;
-            background: #0f172a;
-            color: #e5e7eb;
-            font-family: Arial, sans-serif;
-        }
+body {
+    margin: 0;
+    padding: 20px;
+    background: #0f172a;
+    color: #e5e7eb;
+    font-family: Arial, sans-serif;
+}
 
-        .container {
-            max-width: 700px;
-            margin: 30px auto;
-        }
+.container {
+    max-width: 700px;
+    margin: 25px auto;
+}
 
-        h1 {
-            color: #facc15;
-            margin-bottom: 8px;
-        }
+h1 { color: #facc15; }
 
-        .subtitle {
-            color: #94a3b8;
-            margin-bottom: 25px;
-        }
+.subtitle {
+    color: #94a3b8;
+    margin-bottom: 24px;
+}
 
-        .panel {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 12px;
-            padding: 18px;
-            margin-bottom: 16px;
-        }
+.panel {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 16px;
+}
 
-        .panel h2 {
-            font-size: 17px;
-            margin-top: 0;
-            color: #facc15;
-        }
+.panel h2 {
+    font-size: 17px;
+    color: #facc15;
+    margin-top: 0;
+}
 
-        .test-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 0;
-            border-bottom: 1px solid #334155;
-        }
+.test-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #334155;
+}
 
-        .test-item:last-child {
-            border-bottom: none;
-        }
+.test-item:last-child { border-bottom: none; }
 
-        .status {
-            font-size: 12px;
-            font-weight: bold;
-            color: #94a3b8;
-            text-align: right;
-            overflow-wrap: anywhere;
-        }
+.status {
+    font-size: 12px;
+    font-weight: bold;
+    text-align: right;
+    overflow-wrap: anywhere;
+}
 
-        .success {
-            color: #4ade80;
-        }
+.success { color: #4ade80; }
+.error { color: #f87171; }
+.warning { color: #facc15; }
 
-        .error {
-            color: #f87171;
-        }
+button {
+    width: 100%;
+    padding: 14px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 8px;
+    background: #eab308;
+    color: #111827;
+    font-size: 15px;
+    font-weight: bold;
+}
 
-        .warning {
-            color: #facc15;
-        }
+button.secondary {
+    background: #334155;
+    color: white;
+}
 
-        button {
-            width: 100%;
-            padding: 14px;
-            margin-top: 10px;
-            border: none;
-            border-radius: 8px;
-            background: #eab308;
-            color: #111827;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
-        }
+button:disabled {
+    opacity: .5;
+}
 
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+.details {
+    background: #0f172a;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 12px;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
 
-        .secondary {
-            background: #334155;
-            color: white;
-        }
-
-        .details {
-            background: #0f172a;
-            border-radius: 8px;
-            padding: 12px;
-            font-size: 12px;
-            line-height: 1.7;
-            overflow-wrap: anywhere;
-            white-space: pre-wrap;
-        }
-
-        .notice {
-            color: #facc15;
-            font-size: 13px;
-            line-height: 1.6;
-        }
-    </style>
+.notice {
+    color: #facc15;
+    font-size: 13px;
+    line-height: 1.6;
+}
+</style>
 </head>
 
 <body>
 
 <div class="container">
 
-    <h1>JosJis Staking Test</h1>
+<h1>JosJis Staking Diagnostic V7</h1>
 
-    <p class="subtitle">
-        Modular System Diagnostic - Polygon Mainnet - V6
-    </p>
+<p class="subtitle">
+Core Transaction Manager Test - Polygon Mainnet
+</p>
 
-    <div class="panel">
-        <h2>1. Module Loading</h2>
+<div class="panel">
+<h2>1. AppKit Connection</h2>
 
-        <div id="moduleResults">
-            <div class="test-item">
-                <span>Module initialization</span>
-                <span class="status">CHECKING...</span>
-            </div>
-        </div>
-    </div>
+<div class="test-item">
+<span>AppKit Status</span>
+<span id="appStatus" class="status">WAITING</span>
+</div>
 
-    <div class="panel">
-        <h2>2. Wallet Connection</h2>
+<div class="test-item">
+<span>Wallet Address</span>
+<span id="addressStatus" class="status">WAITING</span>
+</div>
 
-        <div class="test-item">
-            <span>Reown AppKit</span>
-            <span id="reownStatus" class="status">WAITING</span>
-        </div>
+<div class="test-item">
+<span>Network</span>
+<span id="networkStatus" class="status">WAITING</span>
+</div>
 
-        <div class="test-item">
-            <span>AppKit Account</span>
-            <span id="accountStatus" class="status">WAITING</span>
-        </div>
+<button id="connectBtn">Connect Wallet</button>
+</div>
 
-        <div class="test-item">
-            <span>Wallet Module Subscription</span>
-            <span id="subscriptionStatus" class="status">WAITING</span>
-        </div>
+<div class="panel">
+<h2>2. Core Transaction Manager</h2>
 
-        <div class="test-item">
-            <span>Wallet Provider</span>
-            <span id="providerStatus" class="status">WAITING</span>
-        </div>
+<div class="test-item">
+<span>Core Module</span>
+<span id="coreStatus" class="status">WAITING</span>
+</div>
 
-        <div class="test-item">
-            <span>Adapter V6</span>
-            <span id="adapterStatus" class="status">WAITING</span>
-        </div>
+<div class="test-item">
+<span>Wallet Provider</span>
+<span id="providerStatus" class="status">WAITING</span>
+</div>
 
-        <div class="test-item">
-            <span>Module Instance Match</span>
-            <span id="instanceStatus" class="status">WAITING</span>
-        </div>
+<div class="test-item">
+<span>EIP-1193 Request</span>
+<span id="requestStatus" class="status">WAITING</span>
+</div>
 
-        <div class="test-item">
-            <span>Wallet Address</span>
-            <span id="addressStatus" class="status">WAITING</span>
-        </div>
+<div class="test-item">
+<span>BrowserProvider</span>
+<span id="browserStatus" class="status">WAITING</span>
+</div>
 
-        <div class="test-item">
-            <span>Network</span>
-            <span id="networkStatus" class="status">WAITING</span>
-        </div>
+<div class="test-item">
+<span>Wallet Signer</span>
+<span id="signerStatus" class="status">WAITING</span>
+</div>
 
-        <button id="connectBtn">
-            Connect Wallet
-        </button>
+<div class="test-item">
+<span>Address Match</span>
+<span id="matchStatus" class="status">WAITING</span>
+</div>
 
-        <button id="checkBtn" class="secondary">
-            Check Wallet Again
-        </button>
-    </div>
+<button id="testBtn">Run Core Wallet Test</button>
+</div>
 
-    <div class="panel">
-        <h2>3. Wallet Information</h2>
+<div class="panel">
+<h2>3. Wallet Information</h2>
+<div id="walletInfo" class="details">
+Test has not started.
+</div>
+</div>
 
-        <div class="details" id="walletInfo">
-            Wallet has not been checked.
-        </div>
-    </div>
+<div class="panel">
+<h2>4. Diagnostic Log</h2>
+<div id="logs" class="details">System initializing...</div>
+<button id="clearBtn" class="secondary">Clear Logs</button>
+</div>
 
-    <div class="panel">
-        <h2>4. Contracts Diagnostic</h2>
-
-        <div class="test-item">
-            <span>Contracts Module</span>
-            <span id="contractsStatus" class="status">WAITING</span>
-        </div>
-
-        <div class="test-item">
-            <span>RPC Provider</span>
-            <span id="rpcStatus" class="status">WAITING</span>
-        </div>
-
-        <div class="test-item">
-            <span>RPC Network</span>
-            <span id="rpcNetworkStatus" class="status">WAITING</span>
-        </div>
-
-        <div class="test-item">
-            <span>Staking Contract</span>
-            <span id="stakingContractStatus" class="status">WAITING</span>
-        </div>
-
-        <button id="contractsBtn" class="secondary">
-            Run Contracts Test
-        </button>
-
-        <div class="details" id="contractsInfo">
-            Contracts test has not started.
-        </div>
-    </div>
-
-    <div class="panel">
-        <h2>5. Diagnostic Log</h2>
-
-        <div class="details" id="logs">
-            System initializing...
-        </div>
-
-        <button id="clearLogBtn" class="secondary">
-            Clear Logs
-        </button>
-    </div>
-
-    <div class="panel">
-        <p class="notice">
-            SECURITY NOTICE: This page is for read-only diagnostics.
-            It does not send transactions or request token approvals.
-            Never enter your seed phrase or private key here.
-        </p>
-    </div>
+<div class="panel">
+<p class="notice">
+SECURITY NOTICE: Read-only diagnostic.
+This page does not send transactions, approve tokens,
+or request seed phrases or private keys.
+</p>
+</div>
 
 </div>
 
 <script type="module">
 
-/* =========================================
-   DOM HELPERS
-========================================= */
+/* =====================================
+   HELPERS
+===================================== */
 
-const $ = (id) => document.getElementById(id);
-
-const logBox = $("logs");
+const $ = id => document.getElementById(id);
 
 function log(message) {
     const time = new Date().toLocaleTimeString();
 
-    logBox.textContent +=
+    $("logs").textContent +=
         `[${time}] ${message}\n`;
 
-    console.log("[JosJis Test V6]", message);
+    console.log("[JosJis V7]", message);
 }
 
-function setStatus(id, message, type = "") {
+function status(id, message, type = "") {
     const element = $(id);
-
-    if (!element) return;
 
     element.textContent = message;
     element.className = "status " + type;
 }
 
-function shortenAddress(address) {
-    if (!address) return "-";
+function shortAddress(address) {
+    if (!address) return "Unavailable";
 
     return address.slice(0, 6) +
         "..." +
         address.slice(-4);
 }
 
-function errorMessage(error) {
-    return error?.stack ||
+function errorText(error) {
+    return error?.shortMessage ||
+        error?.reason ||
         error?.message ||
         String(error);
 }
 
-/* =========================================
-   APPLICATION STATE
-========================================= */
+/* =====================================
+   STATE
+===================================== */
 
-let appModal = null;
-let walletModule = null;
-let contractsModule = null;
+let modal = null;
+let core = null;
 
-let walletProvider = null;
+let initialized = false;
+let testing = false;
 
-let accountSubscriptionStarted = false;
-let providerSubscriptionStarted = false;
+/* =====================================
+   LOAD CORE
+===================================== */
 
-let walletCheckRunning = false;
-let providerCallbackReceived = false;
+async function loadCore() {
+    try {
+        log("Loading shared AppKit configuration...");
 
-let latestWalletResult = null;
+        const config = await import(
+            "../../web3/web3-config.js"
+        );
 
-const loadedModules = {};
+        modal = config.modal;
 
-const moduleList = [
-    ["config", "./modules/config.js"],
-    ["helpers", "./modules/helpers.js"],
-    ["contracts", "./modules/contracts.js"],
-    ["wallet", "./modules/wallet.js?v=6"],
-    ["staking-actions", "./modules/staking-actions.js"],
-    ["positions", "./modules/positions.js"],
-    ["dashboard", "./modules/dashboard.js"]
-];
-
-/* =========================================
-   MODULE LOADING
-========================================= */
-
-async function loadModules() {
-    const results = [];
-
-    for (const [name, path] of moduleList) {
-        try {
-            const module = await import(path);
-
-            loadedModules[name] = module;
-
-            if (name === "wallet") {
-                walletModule = module;
-            }
-
-            if (name === "contracts") {
-                contractsModule = module;
-            }
-
-            results.push({
-                name,
-                success: true
-            });
-
-            log(`Module loaded: ${name}`);
-
-        } catch (error) {
-            results.push({
-                name,
-                success: false,
-                error: errorMessage(error)
-            });
-
-            log(
-                `Module error: ${name} - ${error?.message || error}`
-            );
-
-            console.error(
-                `Module error: ${name}`,
-                error
+        if (!modal) {
+            throw new Error(
+                "AppKit modal export unavailable."
             );
         }
-    }
 
-    $("moduleResults").replaceChildren();
+        log("Shared AppKit configuration loaded.");
 
-    for (const result of results) {
-        const item = document.createElement("div");
-        item.className = "test-item";
+        log("Loading Core Transaction Manager...");
 
-        const name = document.createElement("span");
-        name.textContent = result.name;
-
-        const status = document.createElement("span");
-
-        status.className =
-            "status " +
-            (result.success ? "success" : "error");
-
-        status.textContent = result.success
-            ? "LOADED"
-            : "FAILED";
-
-        item.append(name, status);
-
-        $("moduleResults").appendChild(item);
-    }
-
-    setStatus(
-        "contractsStatus",
-        contractsModule ? "LOADED" : "FAILED",
-        contractsModule ? "success" : "error"
-    );
-
-    return results;
-}
-
-/* =========================================
-   APPKIT ACCOUNT DIAGNOSTIC
-========================================= */
-
-function checkAppKitAccount() {
-    if (!appModal) {
-        return {
-            connected: false,
-            address: null,
-            chainId: null
-        };
-    }
-
-    try {
-        const address = appModal.getAddress();
-        const chainId = appModal.getChainId();
-
-        const connected = Boolean(address);
-        const numericChainId = Number(chainId);
-
-        setStatus(
-            "accountStatus",
-            connected ? "CONNECTED" : "DISCONNECTED",
-            connected ? "success" : "warning"
+        core = await import(
+            "../../../assets/js/core/transaction-manager.js"
         );
 
-        setStatus(
-            "addressStatus",
-            connected
-                ? shortenAddress(address)
-                : "NOT CONNECTED",
-            connected ? "success" : "warning"
-        );
+        const required = [
+            "getWalletProvider",
+            "getBrowserProvider",
+            "getWalletSigner",
+            "getSignerSession",
+            "diagnoseWalletSigner"
+        ];
 
-        setStatus(
-            "networkStatus",
-            numericChainId === 137
-                ? "POLYGON MAINNET"
-                : chainId
-                    ? `WRONG NETWORK (${chainId})`
-                    : "UNKNOWN",
-            numericChainId === 137
-                ? "success"
-                : "warning"
-        );
+        for (const name of required) {
+            if (typeof core[name] !== "function") {
+                throw new Error(
+                    `Core function missing: ${name}`
+                );
+            }
+        }
 
-        return {
-            connected,
-            address: address || null,
-            chainId: chainId ?? null
-        };
+        status("coreStatus", "LOADED", "success");
+
+        log("Core Transaction Manager loaded.");
+
+        initialized = true;
+
+        status("appStatus", "READY", "success");
+
+        return true;
 
     } catch (error) {
-        setStatus(
-            "accountStatus",
-            "CHECK FAILED",
-            "error"
-        );
+        status("coreStatus", "FAILED", "error");
 
-        log(
-            "AppKit account error: " + errorMessage(error)
-        );
+        log("Initialization error: " + errorText(error));
 
-        return {
-            connected: false,
-            address: null,
-            chainId: null,
-            error
-        };
+        $("walletInfo").textContent =
+            error?.stack || errorText(error);
+
+        return false;
     }
 }
 
-/* =========================================
-   WALLET MODULE PROVIDER DIAGNOSTIC
-========================================= */
+/* =====================================
+   APPKIT ACCOUNT
+===================================== */
 
-async function checkWalletModuleProvider() {
-    if (!walletModule) {
-        log("Wallet module is unavailable.");
-
-        return {
-            available: false,
-            valid: false
-        };
+function getAppKitInfo() {
+    if (!modal) {
+        throw new Error("AppKit unavailable.");
     }
 
+    const address = modal.getAddress();
+
+    const chainId = modal.getChainId();
+
+    const connected = Boolean(address);
+
+    status(
+        "appStatus",
+        connected ? "CONNECTED" : "DISCONNECTED",
+        connected ? "success" : "warning"
+    );
+
+    status(
+        "addressStatus",
+        connected ? shortAddress(address) : "NOT CONNECTED",
+        connected ? "success" : "warning"
+    );
+
+    status(
+        "networkStatus",
+        Number(chainId) === 137
+            ? "POLYGON 137"
+            : `WRONG NETWORK (${chainId ?? "Unknown"})`,
+        Number(chainId) === 137
+            ? "success"
+            : "error"
+    );
+
+    return {
+        connected,
+        address,
+        chainId: chainId ?? null
+    };
+}
+
+/* =====================================
+   CONNECT WALLET
+===================================== */
+
+async function connectWallet() {
     try {
-        if (!walletProvider) {
-            setStatus(
-                "providerStatus",
-                "WAITING",
-                "warning"
-            );
-
-            setStatus(
-                "adapterStatus",
-                "NOT RECEIVED",
-                "warning"
-            );
-
-            setStatus(
-                "instanceStatus",
-                "NOT CHECKED",
-                "warning"
-            );
-
-            log(
-                "Waiting for wallet provider callback..."
-            );
-
-            return {
-                available: false,
-                valid: false
-            };
+        if (!modal) {
+            throw new Error("AppKit is not initialized.");
         }
 
-        log("Wallet module provider received.");
+        log("Opening AppKit wallet modal...");
+
+        await modal.open();
+
+        log("AppKit modal opened.");
+
+        getAppKitInfo();
+
+    } catch (error) {
+        log("Connect error: " + errorText(error));
+    }
+}
+
+/* =====================================
+   CORE WALLET TEST
+===================================== */
+
+async function runCoreTest() {
+    if (testing) return;
+
+    testing = true;
+
+    $("testBtn").disabled = true;
+
+    const resetItems = [
+        "providerStatus",
+        "requestStatus",
+        "browserStatus",
+        "signerStatus",
+        "matchStatus"
+    ];
+
+    resetItems.forEach(id => {
+        status(id, "CHECKING", "warning");
+    });
+
+    try {
+        if (!initialized) {
+            throw new Error("Core module is not initialized.");
+        }
+
+        log("--------------------------------");
+        log("Starting Core Wallet Test V7...");
+
+        const account = getAppKitInfo();
+
+        if (!account.connected) {
+            throw new Error("AppKit wallet is not connected.");
+        }
+
+        if (Number(account.chainId) !== 137) {
+            throw new Error("Please switch to Polygon Mainnet.");
+        }
+
+        log("AppKit address: " + account.address);
+        log("AppKit Chain ID: " + account.chainId);
 
         /*
-         * Compare callback provider with the
-         * provider returned by the same module.
+         * STEP 1
+         * Run Core's own signer diagnostic.
          */
 
-        const moduleProvider =
-            walletModule.getWalletProvider?.() || null;
+        log("Running diagnoseWalletSigner()...");
 
-        const sameInstance =
-            walletProvider === moduleProvider;
+        const diagnosis =
+            await core.diagnoseWalletSigner();
 
-        setStatus(
-            "instanceStatus",
-            sameInstance ? "MATCH" : "MISMATCH",
-            sameInstance ? "success" : "error"
-        );
-
-        log(
-            "Callback provider matches module provider: " +
-            sameInstance
-        );
-
-        if (!sameInstance) {
+        if (!diagnosis.success) {
             throw new Error(
-                "Provider instance mismatch. Check module caching or subscription."
+                "Core signer diagnostic failed: " +
+                diagnosis.error
             );
         }
 
-        const constructorName =
-            walletProvider.constructor?.name || "Unknown";
+        log("Core signer diagnostic successful.");
 
-        const providerKeys =
-            Object.keys(walletProvider);
+        /*
+         * STEP 2
+         * Check provider acquired by Core.
+         */
+
+        const provider = core.getWalletProvider();
+
+        if (!provider) {
+            throw new Error(
+                "Core wallet provider is unavailable."
+            );
+        }
+
+        status("providerStatus", "AVAILABLE", "success");
 
         log(
-            "Provider constructor: " + constructorName
+            "Provider constructor: " +
+            (provider.constructor?.name || "Unknown")
         );
 
-        log(
-            "Provider keys: " + providerKeys.join(", ")
-        );
+        /*
+         * STEP 3
+         * Test EIP-1193 read-only request.
+         */
 
-        log(
-            "Provider.request type: " +
-            typeof walletProvider.request
-        );
-
-        if (
-            typeof walletProvider.request !== "function"
-        ) {
+        if (typeof provider.request !== "function") {
             throw new Error(
                 "Provider does not expose request()."
             );
         }
 
-        /*
-         * The V6 adapter should be a plain object.
-         * It should not expose raw Universal Provider keys
-         * such as client, namespaces and rpcProviders.
-         */
-
-        const adapterShape =
-            constructorName === "Object" &&
-            providerKeys.includes("request") &&
-            providerKeys.includes("on");
-
-        setStatus(
-            "adapterStatus",
-            adapterShape ? "ADAPTER SHAPE OK" : "CHECK REQUIRED",
-            adapterShape ? "success" : "warning"
-        );
-
-        if (!adapterShape) {
-            log(
-                "Provider does not have the expected adapter shape."
-            );
-        }
-
-        /*
-         * Read-only EIP-1193 requests.
-         */
-
-        const accounts = await walletProvider.request({
+        const accounts = await provider.request({
             method: "eth_accounts"
         });
 
-        const chainId = await walletProvider.request({
+        const chainId = await provider.request({
             method: "eth_chainId"
         });
 
-        const numericChainId = Number(chainId);
-
-        const appKitAddress =
-            appModal?.getAddress()?.toLowerCase() || null;
-
-        const providerAddress =
-            accounts?.[0]?.toLowerCase() || null;
-
-        const addressMatches =
-            Boolean(
-                appKitAddress &&
-                providerAddress &&
-                appKitAddress === providerAddress
-            );
-
-        log(
-            "Provider account: " +
-            (accounts?.[0] || "None")
-        );
-
-        log(
-            "Provider chain ID: " + chainId
-        );
-
-        log(
-            "Provider address matches AppKit: " +
-            addressMatches
-        );
-
-        if (numericChainId !== 137) {
+        if (!Array.isArray(accounts) || !accounts[0]) {
             throw new Error(
-                `Wrong wallet network. Expected 137, received ${numericChainId}.`
+                "Provider returned no wallet account."
             );
         }
 
-        if (!addressMatches) {
+        status("requestStatus", "SUCCESS", "success");
+
+        log("Provider account: " + accounts[0]);
+        log("Provider chain ID: " + chainId);
+
+        /*
+         * STEP 4
+         * BrowserProvider
+         */
+
+        const browserProvider =
+            await core.getBrowserProvider();
+
+        const network =
+            await browserProvider.getNetwork();
+
+        if (Number(network.chainId) !== 137) {
             throw new Error(
-                "Provider account does not match the AppKit account."
+                "BrowserProvider is not on Polygon."
             );
         }
 
-        if (!adapterShape) {
-            throw new Error(
-                "Provider responded, but adapter structure is unexpected."
-            );
-        }
-
-        setStatus(
-            "providerStatus",
-            "VALID",
-            "success"
-        );
-
-        return {
-            available: true,
-            valid: true,
-            accounts,
-            chainId,
-            addressMatches,
-            sameInstance,
-            adapterShape
-        };
-
-    } catch (error) {
-        setStatus(
-            "providerStatus",
-            "INVALID",
-            "error"
-        );
+        status("browserStatus", "VALID", "success");
 
         log(
-            "Provider diagnostic error: " +
-            errorMessage(error)
+            "BrowserProvider chain ID: " +
+            network.chainId.toString()
         );
 
-        return {
-            available: true,
-            valid: false,
-            error
-        };
-    }
-}
-
-/* =========================================
-   COMBINED WALLET DIAGNOSTIC
-========================================= */
-
-async function checkWallet() {
-    if (walletCheckRunning) return;
-
-    walletCheckRunning = true;
-
-    try {
-        log("Checking wallet session...");
-
-        const account = checkAppKitAccount();
-
-        const provider =
-            await checkWalletModuleProvider();
+        /*
+         * STEP 5
+         * Signer
+         */
 
         const session =
-            walletModule?.getWalletSession?.() || {};
+            await core.getSignerSession();
 
-        latestWalletResult = {
-            account,
-            provider,
-            session
-        };
+        const signerAddress =
+            await session.signer.getAddress();
+
+        if (!signerAddress) {
+            throw new Error("Signer address unavailable.");
+        }
+
+        status("signerStatus", "AVAILABLE", "success");
+
+        log("Signer address: " + signerAddress);
+
+        /*
+         * STEP 6
+         * Compare all wallet addresses.
+         */
+
+        const appAddress =
+            account.address.toLowerCase();
+
+        const providerAddress =
+            accounts[0].toLowerCase();
+
+        const actualSigner =
+            signerAddress.toLowerCase();
+
+        const allMatch =
+            appAddress === providerAddress &&
+            appAddress === actualSigner;
+
+        if (!allMatch) {
+            status("matchStatus", "MISMATCH", "error");
+
+            throw new Error(
+                "AppKit, provider, and signer addresses do not match."
+            );
+        }
+
+        status("matchStatus", "MATCH", "success");
+
+        log("All wallet addresses match.");
+        log("Polygon network verified.");
+        log("Core wallet test successful.");
 
         $("walletInfo").textContent =
             `AppKit Connected: ${account.connected}\n` +
-            `AppKit Address: ${account.address || "Not connected"}\n` +
-            `AppKit Chain ID: ${account.chainId ?? "Unknown"}\n` +
-            `Provider Callback Received: ${providerCallbackReceived}\n` +
-            `Wallet Module Provider: ${provider.available}\n` +
-            `Provider Valid: ${provider.valid}\n` +
-            `Provider Account: ${provider.accounts?.[0] || "Unavailable"}\n` +
-            `Provider Chain ID: ${provider.chainId || "Unknown"}\n` +
-            `Provider Address Matches: ${provider.addressMatches ?? false}\n` +
-            `Same Module Instance: ${provider.sameInstance ?? false}\n` +
-            `Adapter Structure: ${provider.adapterShape ?? false}\n` +
-            `Module Wallet Address: ${session.walletAddress || "Not initialized"}\n` +
-            `Module Connected: ${Boolean(session.connected)}`;
-
-        log(
-            "AppKit account: " +
-            (account.address || "Not connected")
-        );
-
-        log("Wallet check completed.");
+            `AppKit Address: ${account.address}\n` +
+            `AppKit Chain ID: ${account.chainId}\n` +
+            `Provider Available: true\n` +
+            `Provider Account: ${accounts[0]}\n` +
+            `Provider Chain ID: ${chainId}\n` +
+            `BrowserProvider Chain ID: ${network.chainId}\n` +
+            `Signer Address: ${signerAddress}\n` +
+            `Address Match: ${allMatch}\n` +
+            `Core Diagnostic: SUCCESS\n` +
+            `Transaction Sent: NO`;
 
     } catch (error) {
-        log(
-            "Wallet diagnostic error: " + errorMessage(error)
-        );
+        log("CORE TEST FAILED: " + errorText(error));
 
-        console.error(error);
-
-    } finally {
-        walletCheckRunning = false;
-    }
-}
-
-/* =========================================
-   INITIALIZE APPKIT
-========================================= */
-
-async function initializeAppKit() {
-    try {
-        /*
-         * Import the same shared configuration.
-         * Do not create another AppKit instance.
-         */
-
-        const configModule = await import(
-            "../../web3/web3-config.js"
-        );
-
-        appModal = configModule.modal;
-
-        if (!appModal) {
-            throw new Error(
-                "AppKit modal export not found."
-            );
-        }
-
-        const requiredMethods = [
-            "open",
-            "getAddress",
-            "getChainId",
-            "subscribeAccount"
-        ];
-
-        for (const method of requiredMethods) {
-            if (typeof appModal[method] !== "function") {
-                throw new Error(
-                    `AppKit ${method}() is unavailable.`
-                );
-            }
-        }
-
-        setStatus(
-            "reownStatus",
-            "READY",
-            "success"
-        );
-
-        log("Reown AppKit initialized.");
+        $("walletInfo").textContent =
+            `Diagnostic Result: FAILED\n\n` +
+            `Error: ${errorText(error)}\n\n` +
+            `Details:\n${error?.stack || "Not available"}`;
 
         /*
-         * Subscribe to account changes once.
+         * Keep the failed step visible.
+         * Do not mark successful steps as failed.
          */
 
-        if (!accountSubscriptionStarted) {
-            accountSubscriptionStarted = true;
-
-            appModal.subscribeAccount((account) => {
-                log(
-                    "AppKit account updated: " +
-                    (
-                        account?.address ||
-                        appModal.getAddress() ||
-                        "No account"
-                    )
-                );
-
-                checkWallet();
-            });
-        }
-
-        /*
-         * Register wallet module provider subscription.
-         */
-
-        if (!providerSubscriptionStarted) {
-            if (
-                typeof walletModule?.subscribeWalletProvider !==
-                "function"
-            ) {
-                throw new Error(
-                    "subscribeWalletProvider() is unavailable."
-                );
-            }
-
-            providerSubscriptionStarted = true;
-
-            setStatus(
-                "subscriptionStatus",
-                "REGISTERING",
-                "warning"
-            );
-
-            log(
-                "Registering wallet module provider subscription..."
-            );
-
-            const unsubscribe =
-                walletModule.subscribeWalletProvider(
-                    (provider, error) => {
-                        if (error) {
-                            walletProvider = null;
-
-                            setStatus(
-                                "subscriptionStatus",
-                                "CALLBACK ERROR",
-                                "error"
-                            );
-
-                            log(
-                                "Wallet module callback error: " +
-                                errorMessage(error)
-                            );
-
-                            return;
-                        }
-
-                        walletProvider = provider || null;
-
-                        providerCallbackReceived =
-                            Boolean(provider);
-
-                        setStatus(
-                            "subscriptionStatus",
-                            provider
-                                ? "CALLBACK RECEIVED"
-                                : "NO PROVIDER",
-                            provider ? "success" : "warning"
-                        );
-
-                        log(
-                            provider
-                                ? "Wallet module callback received a provider."
-                                : "Wallet module callback received no provider."
-                        );
-
-                        log(
-                            "Callback provider constructor: " +
-                            (
-                                provider?.constructor?.name ||
-                                "Unknown"
-                            )
-                        );
-
-                        log(
-                            "Callback provider keys: " +
-                            Object.keys(provider || {}).join(", ")
-                        );
-
-                        checkWallet();
-                    }
-                );
-
-            if (typeof unsubscribe === "function") {
-                log(
-                    "Provider unsubscribe function registered."
-                );
-            }
-
-            log(
-                "Wallet module provider subscription registered."
-            );
-        }
-
-        checkAppKitAccount();
-
-        await checkWallet();
-
-    } catch (error) {
-        setStatus(
-            "reownStatus",
-            "FAILED",
-            "error"
-        );
-
-        log(
-            "AppKit initialization error: " +
-            errorMessage(error)
-        );
-
-        console.error(
-            "AppKit initialization error:",
-            error
-        );
-    }
-}
-
-/* =========================================
-   CONNECT WALLET
-========================================= */
-
-async function connectWallet() {
-    if (!appModal) {
-        log("AppKit is not initialized.");
-        return;
-    }
-
-    try {
-        log("Opening wallet connection modal...");
-
-        await appModal.open();
-
-        log("Wallet modal opened.");
-
-        await checkWallet();
-
-    } catch (error) {
-        log(
-            "Wallet modal error: " + errorMessage(error)
-        );
-
-        console.error(error);
-    }
-}
-
-/* =========================================
-   CONTRACT DIAGNOSTIC
-========================================= */
-
-async function testContracts() {
-    $("contractsInfo").textContent =
-        "Running contracts diagnostics...";
-
-    setStatus("rpcStatus", "CHECKING", "warning");
-
-    setStatus(
-        "rpcNetworkStatus",
-        "CHECKING",
-        "warning"
-    );
-
-    setStatus(
-        "stakingContractStatus",
-        "CHECKING",
-        "warning"
-    );
-
-    try {
-        if (!contractsModule) {
-            throw new Error(
-                "Contracts module is not loaded."
-            );
-        }
-
-        log("Starting contracts diagnostic...");
-
-        const provider =
-            contractsModule.getRpcProvider();
-
-        if (!provider) {
-            throw new Error(
-                "RPC provider is unavailable."
-            );
+        if (
+            $("providerStatus").textContent === "CHECKING"
+        ) {
+            status("providerStatus", "FAILED", "error");
         }
 
         if (
-            typeof provider.getNetwork !== "function"
+            $("requestStatus").textContent === "CHECKING"
         ) {
-            throw new Error(
-                "RPC provider does not expose getNetwork()."
-            );
+            status("requestStatus", "NOT REACHED", "warning");
         }
 
-        setStatus(
-            "rpcStatus",
-            "AVAILABLE",
-            "success"
-        );
-
-        const network = await provider.getNetwork();
-
-        const chainId = Number(network.chainId);
-
-        setStatus(
-            "rpcNetworkStatus",
-            chainId === 137
-                ? "POLYGON 137"
-                : `WRONG NETWORK (${chainId})`,
-            chainId === 137
-                ? "success"
-                : "error"
-        );
-
-        log("RPC Chain ID: " + chainId);
-
-        if (chainId !== 137) {
-            throw new Error(
-                "RPC is not connected to Polygon Mainnet."
-            );
+        if (
+            $("browserStatus").textContent === "CHECKING"
+        ) {
+            status("browserStatus", "NOT REACHED", "warning");
         }
 
-        const validation =
-            await contractsModule.validateStakingContract();
-
-        if (!validation.valid) {
-            throw new Error(
-                validation.error ||
-                "Staking contract validation failed."
-            );
+        if (
+            $("signerStatus").textContent === "CHECKING"
+        ) {
+            status("signerStatus", "NOT REACHED", "warning");
         }
 
-        setStatus(
-            "stakingContractStatus",
-            "VALID",
-            "success"
-        );
+        if (
+            $("matchStatus").textContent === "CHECKING"
+        ) {
+            status("matchStatus", "NOT REACHED", "warning");
+        }
 
-        $("contractsInfo").textContent =
-            `Chain ID: ${chainId}\n` +
-            `JJS token: ${validation.tokenAddress}\n` +
-            `Staking token: ${validation.stakingTokenAddress}\n` +
-            `Paused: ${validation.paused}\n` +
-            `Available rewards (raw): ${validation.availableRewards.toString()}`;
-
-        log(
-            "Staking contract validation successful."
-        );
-
-    } catch (error) {
-        setStatus(
-            "rpcStatus",
-            "FAILED",
-            "error"
-        );
-
-        setStatus(
-            "stakingContractStatus",
-            "FAILED",
-            "error"
-        );
-
-        $("contractsInfo").textContent =
-            errorMessage(error);
-
-        log(
-            "Contracts diagnostic error: " +
-            errorMessage(error)
-        );
-
-        console.error(
-            "Contracts diagnostic error:",
-            error
-        );
+    } finally {
+        testing = false;
+        $("testBtn").disabled = false;
     }
 }
 
-/* =========================================
-   EVENT LISTENERS
-========================================= */
+/* =====================================
+   EVENTS
+===================================== */
 
 $("connectBtn").addEventListener(
     "click",
     connectWallet
 );
 
-$("checkBtn").addEventListener(
+$("testBtn").addEventListener(
     "click",
-    checkWallet
+    runCoreTest
 );
 
-$("contractsBtn").addEventListener(
-    "click",
-    testContracts
-);
-
-$("clearLogBtn").addEventListener(
+$("clearBtn").addEventListener(
     "click",
     () => {
-        logBox.textContent = "";
+        $("logs").textContent = "";
     }
 );
 
-/* =========================================
+/* =====================================
    INITIALIZATION
-========================================= */
+===================================== */
 
 async function initialize() {
-    log("Starting JosJis Staking diagnostics V6...");
+    log("Starting JosJis Staking Diagnostic V7...");
 
-    await loadModules();
+    const loaded = await loadCore();
 
-    if (!walletModule) {
-        log(
-            "Wallet module failed to load. AppKit initialization stopped."
-        );
+    if (!loaded) return;
 
-        return;
+    try {
+        getAppKitInfo();
+
+        if (typeof modal.subscribeAccount === "function") {
+            modal.subscribeAccount(() => {
+                log("AppKit account changed.");
+
+                try {
+                    getAppKitInfo();
+                } catch (error) {
+                    log(errorText(error));
+                }
+            });
+        }
+
+        log("V7 initialization completed.");
+        log("Press Run Core Wallet Test.");
+
+    } catch (error) {
+        log("AppKit initialization error: " + errorText(error));
     }
-
-    await initializeAppKit();
-
-    log("Diagnostic initialization completed.");
 }
 
 initialize();
