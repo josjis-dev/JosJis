@@ -334,7 +334,7 @@ async function initialize() {
         log("Loading Staking Actions V3...");
 
         stakingActions = await import(
-            "/josjis/member/staking/modules/staking-actions.js?v=3"
+            "/josjis/member/staking/modules/staking-actions.js?v=4"
         );
 
         if (
@@ -345,7 +345,7 @@ async function initialize() {
             );
         }
 
-        log("Staking Actions V3 loaded.", "OK");
+        log("Staking Actions V4 loaded.", "OK");
 
         print("coreInfo", {
             requiredFunctions: coreFunctions,
