@@ -1,12 +1,14 @@
+
 /**
  * JosJis Staking
  * Module: Configuration
- * Version: V2
+ * Version: V3
  * Network: Polygon Mainnet
  */
 
 export const CONFIG = {
     chainId: 137,
+    deploymentBlock: 98053621,
     decimals: 18,
     autoRefresh: 15000,
     logChunkSize: 10000,
