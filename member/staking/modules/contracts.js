@@ -2,7 +2,7 @@
 /**
  * JosJis Staking
  * Module: Contracts
- * Version: V3
+ * Version: V4
  * Network: Polygon Mainnet
  */
 
@@ -30,6 +30,36 @@ const rpcProvider = new JsonRpcProvider(
 );
 
 /* =========================================
+   ERROR HANDLER
+========================================= */
+
+function getRpcErrorMessage(error) {
+    return (
+        error?.info?.error?.message ||
+        error?.error?.message ||
+        error?.shortMessage ||
+        error?.reason ||
+        error?.message ||
+        "Unknown RPC error."
+    );
+}
+
+async function readWithLabel(label, callback) {
+    try {
+        return await callback();
+    } catch (error) {
+        console.error(
+            `[Contracts V4] ${label} failed:`,
+            error
+        );
+
+        throw new Error(
+            `${label}: ${getRpcErrorMessage(error)}`
+        );
+    }
+}
+
+/* =========================================
    PROVIDER VALIDATION
 ========================================= */
 
@@ -40,9 +70,11 @@ export function getRpcProvider() {
         );
     }
 
-    if (typeof rpcProvider.getNetwork !== "function") {
+    if (
+        typeof rpcProvider.getNetwork !== "function"
+    ) {
         throw new Error(
-            "Invalid RPC provider: getNetwork() is unavailable."
+            "Invalid RPC provider: getNetwork() unavailable."
         );
     }
 
@@ -87,33 +119,60 @@ export async function validateStakingContract() {
             stakingContract
         } = getReadContracts();
 
-        const [
-            network,
-            stakingTokenAddress,
-            paused,
-            availableRewards
-        ] = await Promise.all([
-            provider.getNetwork(),
-            stakingContract.stakingToken(),
-            stakingContract.stakingPaused(),
-            stakingContract.availableRewards()
-        ]);
+        const network = await readWithLabel(
+            "RPC network",
+            () => provider.getNetwork()
+        );
 
         if (Number(network.chainId) !== CONFIG.chainId) {
             throw new Error(
-                "RPC provider is connected to the wrong network."
+                "RPC provider is not connected to Polygon Mainnet."
             );
         }
 
-        const expectedToken =
-            CONFIG.tokenAddress.toLowerCase();
+        const tokenCode = await readWithLabel(
+            "JJS contract bytecode",
+            () => provider.getCode(CONFIG.tokenAddress)
+        );
 
-        const actualToken =
-            stakingTokenAddress.toLowerCase();
-
-        if (actualToken !== expectedToken) {
+        if (!tokenCode || tokenCode === "0x") {
             throw new Error(
-                "Staking contract is connected to an unexpected token."
+                "JJS token contract was not found at the configured address."
+            );
+        }
+
+        const stakingCode = await readWithLabel(
+            "Staking contract bytecode",
+            () => provider.getCode(CONFIG.stakingAddress)
+        );
+
+        if (!stakingCode || stakingCode === "0x") {
+            throw new Error(
+                "Staking contract was not found at the configured address."
+            );
+        }
+
+        const stakingTokenAddress = await readWithLabel(
+            "stakingToken()",
+            () => stakingContract.stakingToken()
+        );
+
+        const paused = await readWithLabel(
+            "stakingPaused()",
+            () => stakingContract.stakingPaused()
+        );
+
+        const availableRewards = await readWithLabel(
+            "availableRewards()",
+            () => stakingContract.availableRewards()
+        );
+
+        if (
+            stakingTokenAddress.toLowerCase() !==
+            CONFIG.tokenAddress.toLowerCase()
+        ) {
+            throw new Error(
+                "Staking contract is connected to an unexpected JJS token."
             );
         }
 
@@ -128,14 +187,13 @@ export async function validateStakingContract() {
 
     } catch (error) {
         console.error(
-            "Staking contract validation failed:",
+            "[Contracts V4] Contract validation failed:",
             error
         );
 
         return {
             valid: false,
-            error: error?.message ||
-                "Contract validation failed."
+            error: getRpcErrorMessage(error)
         };
     }
 }
@@ -150,7 +208,10 @@ export async function getStakingStatus() {
         stakingContract
     } = getReadContracts();
 
-    const network = await provider.getNetwork();
+    const network = await readWithLabel(
+        "Staking status network",
+        () => provider.getNetwork()
+    );
 
     if (Number(network.chainId) !== CONFIG.chainId) {
         throw new Error(
@@ -158,19 +219,30 @@ export async function getStakingStatus() {
         );
     }
 
-    const [
-        paused,
-        availableRewards,
-        totalStaked,
-        totalReservedRewards,
-        nextPositionId
-    ] = await Promise.all([
-        stakingContract.stakingPaused(),
-        stakingContract.availableRewards(),
-        stakingContract.totalStaked(),
-        stakingContract.totalReservedRewards(),
-        stakingContract.nextPositionId()
-    ]);
+    const paused = await readWithLabel(
+        "stakingPaused()",
+        () => stakingContract.stakingPaused()
+    );
+
+    const availableRewards = await readWithLabel(
+        "availableRewards()",
+        () => stakingContract.availableRewards()
+    );
+
+    const totalStaked = await readWithLabel(
+        "totalStaked()",
+        () => stakingContract.totalStaked()
+    );
+
+    const totalReservedRewards = await readWithLabel(
+        "totalReservedRewards()",
+        () => stakingContract.totalReservedRewards()
+    );
+
+    const nextPositionId = await readWithLabel(
+        "nextPositionId()",
+        () => stakingContract.nextPositionId()
+    );
 
     return {
         paused,
@@ -188,8 +260,11 @@ export async function getStakingStatus() {
 export async function getDurationConfig(duration) {
     const { stakingContract } = getReadContracts();
 
-    const result = await stakingContract.durationConfigs(
-        BigInt(duration)
+    const result = await readWithLabel(
+        `durationConfigs(${duration})`,
+        () => stakingContract.durationConfigs(
+            BigInt(duration)
+        )
     );
 
     return {
@@ -205,8 +280,11 @@ export async function getDurationConfig(duration) {
 export async function getPosition(positionId) {
     const { stakingContract } = getReadContracts();
 
-    const position = await stakingContract.positions(
-        BigInt(positionId)
+    const position = await readWithLabel(
+        `positions(${positionId})`,
+        () => stakingContract.positions(
+            BigInt(positionId)
+        )
     );
 
     return {
@@ -232,7 +310,10 @@ export async function getJJSBalance(walletAddress) {
 
     const { tokenContract } = getReadContracts();
 
-    return await tokenContract.balanceOf(walletAddress);
+    return await readWithLabel(
+        "JJS balanceOf()",
+        () => tokenContract.balanceOf(walletAddress)
+    );
 }
 
 /* =========================================
@@ -248,8 +329,11 @@ export async function getJJSAllowance(walletAddress) {
 
     const { tokenContract } = getReadContracts();
 
-    return await tokenContract.allowance(
-        walletAddress,
-        CONFIG.stakingAddress
+    return await readWithLabel(
+        "JJS allowance()",
+        () => tokenContract.allowance(
+            walletAddress,
+            CONFIG.stakingAddress
+        )
     );
 }
