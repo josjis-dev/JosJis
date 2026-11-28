@@ -2,7 +2,6 @@
 /**
  * JosJis Staking
  * Module: Staking Actions
- * Version: V8
  * Network: Polygon Mainnet
  *
  * READ:
@@ -12,8 +11,9 @@
  * MetaMask Signer through Core Transaction Manager
  *
  * APPROVE:
- * Public RPC gas estimation
- * MetaMask signer transaction submission
+ * Public RPC gas estimation, nonce and gas price
+ * BrowserProvider direct eth_sendTransaction
+ * Public RPC receipt confirmation
  */
 
 import {
@@ -91,7 +91,21 @@ async function getSignerContracts() {
 }
 
 /* =========================================
-   ERROR SERIALIZER V8
+   RPC QUANTITY CONVERTER
+========================================= */
+
+function toRpcQuantity(value) {
+    const number = BigInt(value);
+
+    if (number < 0n) {
+        throw new Error("Invalid RPC quantity.");
+    }
+
+    return "0x" + number.toString(16);
+}
+
+/* =========================================
+   ERROR SERIALIZER
 ========================================= */
 
 function serializeError(error) {
@@ -343,7 +357,7 @@ export async function getJJSWalletStatus() {
 
     } catch (error) {
         console.error(
-            "[JJS WALLET STATUS V8]",
+            "[JJS WALLET STATUS]",
             {
                 stage,
                 error,
@@ -361,7 +375,7 @@ export async function getJJSWalletStatus() {
 }
 
 /* =========================================
-   APPROVE JJS - V8 DIAGNOSTIC
+   APPROVE JJS
 ========================================= */
 
 export async function approveJJS(amount) {
@@ -413,6 +427,12 @@ export async function approveJJS(amount) {
             );
         }
 
+        if (typeof signerProvider.send !== "function") {
+            throw new Error(
+                "Wallet provider does not support direct RPC requests."
+            );
+        }
+
         stage = "CHECK_READ_RPC_NETWORK";
 
         await validateReadNetwork();
@@ -427,7 +447,7 @@ export async function approveJJS(amount) {
 
         if (currentAllowance >= parsedAmount) {
             console.log(
-                "[JJS APPROVE V8] Already approved."
+                "[JJS APPROVE] Already approved."
             );
 
             return {
@@ -478,12 +498,11 @@ export async function approveJJS(amount) {
         }
 
         console.log(
-            "[JJS APPROVE V8] Transaction prepared:",
+            "[JJS APPROVE] Transaction prepared:",
             {
                 from: address,
                 to: transactionRequest.to,
                 data: transactionRequest.data,
-                value: transactionRequest.value || "0",
                 amount: formatUnits(
                     parsedAmount,
                     CONFIG.decimals
@@ -497,13 +516,11 @@ export async function approveJJS(amount) {
 
         stage = "ESTIMATE_APPROVE_GAS";
 
-        console.log(
-            "[JJS APPROVE V8] Estimating gas through public RPC..."
-        );
-
         const estimatedGas =
             await readProvider.estimateGas({
-                ...transactionRequest,
+                to: transactionRequest.to,
+                data: transactionRequest.data,
+                value: transactionRequest.value ?? 0n,
                 from: address
             });
 
@@ -513,12 +530,11 @@ export async function approveJJS(amount) {
             );
         }
 
-        // 20% buffer + 10,000 gas units.
         const gasLimit =
             estimatedGas * 120n / 100n + 10000n;
 
         console.log(
-            "[JJS APPROVE V8] Gas estimation successful:",
+            "[JJS APPROVE] Gas estimation:",
             {
                 estimatedGas: estimatedGas.toString(),
                 gasLimit: gasLimit.toString()
@@ -526,56 +542,139 @@ export async function approveJJS(amount) {
         );
 
         /* =================================
-           SEND APPROVE TO METAMASK
+           PUBLIC RPC GAS PRICE
+        ================================= */
+
+        stage = "GET_PUBLIC_GAS_PRICE";
+
+        const feeData = await readProvider.getFeeData();
+
+        const gasPrice = feeData.gasPrice;
+
+        if (!gasPrice || gasPrice <= 0n) {
+            throw new Error(
+                "Public RPC did not return a valid gas price."
+            );
+        }
+
+        /* =================================
+           PUBLIC RPC NONCE
+        ================================= */
+
+        stage = "GET_PUBLIC_NONCE";
+
+        const nonce = await readProvider.getTransactionCount(
+            address,
+            "pending"
+        );
+
+        if (!Number.isSafeInteger(nonce) || nonce < 0) {
+            throw new Error(
+                "Public RPC returned an invalid wallet nonce."
+            );
+        }
+
+        console.log(
+            "[JJS APPROVE] Transaction parameters:",
+            {
+                nonce,
+                gasPrice: gasPrice.toString(),
+                gasLimit: gasLimit.toString()
+            }
+        );
+
+        /* =================================
+           DIRECT WALLET TRANSACTION
         ================================= */
 
         stage = "SEND_APPROVE_TO_WALLET";
 
+        const walletTransaction = {
+            from: address,
+            to: transactionRequest.to,
+            data: transactionRequest.data,
+            value: toRpcQuantity(
+                transactionRequest.value ?? 0n
+            ),
+            gas: toRpcQuantity(gasLimit),
+            gasPrice: toRpcQuantity(gasPrice),
+            nonce: toRpcQuantity(BigInt(nonce))
+        };
+
         console.log(
-            "[JJS APPROVE V8] Requesting wallet confirmation..."
+            "[JJS APPROVE] Requesting MetaMask confirmation..."
         );
 
-        const transaction = await signer.sendTransaction({
-            ...transactionRequest,
-            gasLimit
-        });
+        /*
+         * Send raw eth_sendTransaction through
+         * the signer's BrowserProvider.
+         *
+         * This avoids ethers signer.sendTransaction()
+         * performing its own automatic transaction
+         * preparation and eth_blockNumber lookup.
+         */
+
+        const transactionHash = await signerProvider.send(
+            "eth_sendTransaction",
+            [walletTransaction]
+        );
+
+        if (
+            typeof transactionHash !== "string" ||
+            !/^0x[a-fA-F0-9]{64}$/.test(transactionHash)
+        ) {
+            throw new Error(
+                "Wallet did not return a valid transaction hash."
+            );
+        }
 
         console.log(
-            "[JJS APPROVE V8] Transaction submitted:",
-            transaction.hash
+            "[JJS APPROVE] Transaction submitted:",
+            transactionHash
         );
 
         /* =================================
-           WAIT RECEIPT
+           WAIT PUBLIC RPC RECEIPT
         ================================= */
 
         stage = "WAIT_APPROVAL_CONFIRMATION";
 
-        const receipt = await transaction.wait();
+        const receipt = await readProvider.waitForTransaction(
+            transactionHash,
+            1,
+            180000
+        );
 
-        if (!receipt || receipt.status !== 1) {
+        if (!receipt) {
+            throw new Error(
+                "Approval receipt was not found within 180 seconds. Check the transaction hash before retrying."
+            );
+        }
+
+        if (receipt.status !== 1) {
             throw new Error(
                 "Approval transaction failed on Polygon."
             );
         }
 
         console.log(
-            "[JJS APPROVE V8] Approval confirmed:",
-            transaction.hash
+            "[JJS APPROVE] Approval confirmed:",
+            transactionHash
         );
 
         return {
             approved: true,
             alreadyApproved: false,
-            transactionHash: transaction.hash,
+            transactionHash,
             estimatedGas,
             gasLimit,
+            gasPrice,
+            nonce,
             receipt
         };
 
     } catch (error) {
         const diagnostic = {
-            version: "V8",
             stage,
             timestamp: new Date().toISOString(),
             tokenAddress: CONFIG.tokenAddress,
@@ -585,12 +684,12 @@ export async function approveJJS(amount) {
         };
 
         console.error(
-            "[JJS APPROVE DIAGNOSTIC V8]",
+            "[JJS APPROVE DIAGNOSTIC]",
             diagnostic
         );
 
         throw new Error(
-            "APPROVE FAILED [V8 - " +
+            "APPROVE FAILED [" +
             stage +
             "]: " +
             serializeError(error)
