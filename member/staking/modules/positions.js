@@ -2,7 +2,7 @@
 /**
  * JosJis Staking
  * Module: Positions
- * Version: V2
+ * Version: V3
  * Network: Polygon Mainnet
  */
 
@@ -26,6 +26,8 @@ import {
 
 const EVENT_SCAN_CHUNK_SIZE = 2000;
 
+const DEFAULT_FROM_BLOCK = CONFIG.deploymentBlock;
+
 /*
  * Cache event scan results to reduce repeated RPC requests.
  * Cache is separated by wallet address and starting block.
@@ -46,6 +48,23 @@ function validateAddress(address) {
     ) {
         throw new Error("Invalid wallet address.");
     }
+}
+
+/* =========================================
+   VALIDATE STARTING BLOCK
+========================================= */
+
+function validateStartingBlock(fromBlock) {
+    const startBlock = Number(fromBlock);
+
+    if (
+        !Number.isSafeInteger(startBlock) ||
+        startBlock < DEFAULT_FROM_BLOCK
+    ) {
+        throw new Error("Invalid starting block.");
+    }
+
+    return startBlock;
 }
 
 /* =========================================
@@ -120,20 +139,13 @@ export function formatPosition(position) {
 
 export async function getUserPositionIds(
     walletAddress,
-    fromBlock = 0
+    fromBlock = DEFAULT_FROM_BLOCK
 ) {
     validateAddress(walletAddress);
 
     const { provider, stakingContract } = getReadContracts();
 
-    const startBlock = Number(fromBlock);
-
-    if (
-        !Number.isSafeInteger(startBlock) ||
-        startBlock < 0
-    ) {
-        throw new Error("Invalid starting block.");
-    }
+    const startBlock = validateStartingBlock(fromBlock);
 
     const latestBlock = await provider.getBlockNumber();
 
@@ -212,7 +224,7 @@ export async function getUserPositionIds(
 
 export async function getUserPositions(
     walletAddress,
-    fromBlock = 0
+    fromBlock = DEFAULT_FROM_BLOCK
 ) {
     validateAddress(walletAddress);
 
@@ -239,7 +251,7 @@ export async function getUserPositions(
 
 export async function getActivePositions(
     walletAddress,
-    fromBlock = 0
+    fromBlock = DEFAULT_FROM_BLOCK
 ) {
     const positions = await getUserPositions(
         walletAddress,
@@ -258,7 +270,7 @@ export async function getActivePositions(
 
 export async function getWithdrawablePositions(
     walletAddress,
-    fromBlock = 0
+    fromBlock = DEFAULT_FROM_BLOCK
 ) {
     const positions = await getUserPositions(
         walletAddress,
@@ -276,7 +288,7 @@ export async function getWithdrawablePositions(
 
 export async function getClaimablePositions(
     walletAddress,
-    fromBlock = 0
+    fromBlock = DEFAULT_FROM_BLOCK
 ) {
     const positions = await getUserPositions(
         walletAddress,
@@ -294,7 +306,7 @@ export async function getClaimablePositions(
 
 export async function getPositionSummary(
     walletAddress,
-    fromBlock = 0
+    fromBlock = DEFAULT_FROM_BLOCK
 ) {
     const positions = await getUserPositions(
         walletAddress,
