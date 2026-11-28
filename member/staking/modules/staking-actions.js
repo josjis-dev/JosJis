@@ -2,13 +2,14 @@
 /**
  * JosJis Staking
  * Module: Staking Actions
- * Version: V2
+ * Version: V3
  * Network: Polygon Mainnet
  */
 
 import {
     Contract,
-    parseUnits
+    parseUnits,
+    formatUnits
 } from "https://esm.sh/ethers@6.15.0";
 
 import {
@@ -98,6 +99,54 @@ function validatePositionId(positionId) {
     }
 
     return id;
+}
+
+/* =========================================
+   READ JJS BALANCE & ALLOWANCE
+   READ-ONLY: NO TRANSACTION
+========================================= */
+
+export async function getJJSWalletStatus() {
+    const {
+        tokenContract,
+        address
+    } = await getSignerContracts();
+
+    const [
+        balance,
+        allowance
+    ] = await Promise.all([
+        tokenContract.balanceOf(address),
+
+        tokenContract.allowance(
+            address,
+            CONFIG.stakingAddress
+        )
+    ]);
+
+    return {
+        address,
+
+        tokenAddress: CONFIG.tokenAddress,
+        stakingAddress: CONFIG.stakingAddress,
+
+        balance,
+        allowance,
+
+        formattedBalance: formatUnits(
+            balance,
+            CONFIG.decimals
+        ),
+
+        formattedAllowance: formatUnits(
+            allowance,
+            CONFIG.decimals
+        ),
+
+        hasBalance: balance > 0n,
+
+        hasAllowance: allowance > 0n
+    };
 }
 
 /* =========================================
@@ -247,7 +296,9 @@ export async function withdrawPrincipal(positionId) {
     const position = await stakingContract.positions(id);
 
     if (position.user.toLowerCase() !== address.toLowerCase()) {
-        throw new Error("This staking position does not belong to your wallet.");
+        throw new Error(
+            "This staking position does not belong to your wallet."
+        );
     }
 
     if (position.principalWithdrawn) {
@@ -293,7 +344,9 @@ export async function claimReward(positionId) {
     const position = await stakingContract.positions(id);
 
     if (position.user.toLowerCase() !== address.toLowerCase()) {
-        throw new Error("This staking position does not belong to your wallet.");
+        throw new Error(
+            "This staking position does not belong to your wallet."
+        );
     }
 
     if (position.rewardClaimed) {
