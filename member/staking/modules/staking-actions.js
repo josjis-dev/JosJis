@@ -2,12 +2,19 @@
 /**
  * JosJis Staking
  * Module: Staking Actions
- * Version: V5
+ * Version: V6
  * Network: Polygon Mainnet
+ *
+ * READ:
+ * Public Polygon RPC
+ *
+ * WRITE:
+ * MetaMask Signer through Core Transaction Manager
  */
 
 import {
     Contract,
+    JsonRpcProvider,
     parseUnits,
     formatUnits
 } from "https://esm.sh/ethers@6.15.0";
@@ -23,7 +30,36 @@ import {
 } from "../../../assets/js/core/transaction-manager.js";
 
 /* =========================================
+   PUBLIC READ RPC
+========================================= */
+
+const READ_RPC_URL =
+    "https://polygon-bor-rpc.publicnode.com";
+
+const readProvider = new JsonRpcProvider(
+    READ_RPC_URL,
+    CONFIG.chainId
+);
+
+/* =========================================
+   READ-ONLY CONTRACT INSTANCES
+========================================= */
+
+const tokenReadContract = new Contract(
+    CONFIG.tokenAddress,
+    TOKEN_ABI,
+    readProvider
+);
+
+const stakingReadContract = new Contract(
+    CONFIG.stakingAddress,
+    STAKING_ABI,
+    readProvider
+);
+
+/* =========================================
    CONTRACT INSTANCES
+   SIGNER USED ONLY FOR TRANSACTIONS
 ========================================= */
 
 async function getSignerContracts() {
@@ -134,6 +170,22 @@ function validatePositionId(positionId) {
 }
 
 /* =========================================
+   CHECK READ RPC NETWORK
+========================================= */
+
+async function validateReadNetwork() {
+    const network = await readProvider.getNetwork();
+
+    if (Number(network.chainId) !== CONFIG.chainId) {
+        throw new Error(
+            "Wrong read RPC network: " + network.chainId
+        );
+    }
+
+    return network;
+}
+
+/* =========================================
    READ JJS BALANCE & ALLOWANCE
    READ-ONLY: NO TRANSACTION
 ========================================= */
@@ -142,78 +194,49 @@ export async function getJJSWalletStatus() {
     let stage = "START";
 
     try {
-        stage = "GET_SIGNER_CONTRACTS";
+        stage = "GET_WALLET_SIGNER";
 
-        const {
-            signer,
-            address
-        } = await getSignerContracts();
+        const signer = await getWalletSigner();
 
-        const provider = signer.provider;
+        const address = await signer.getAddress();
 
-        if (!provider) {
-            throw new Error(
-                "Signer provider unavailable."
-            );
-        }
-
-        // Check network
         stage = "CHECK_NETWORK";
 
-        const network = await provider.getNetwork();
+        const network = await validateReadNetwork();
 
-        if (
-            Number(network.chainId) !== CONFIG.chainId
-        ) {
-            throw new Error(
-                "Wrong network: " + network.chainId
-            );
-        }
-
-        // Check token bytecode
         stage = "CHECK_TOKEN_CODE";
 
-        const tokenCode = await provider.getCode(
+        const tokenCode = await readProvider.getCode(
             CONFIG.tokenAddress
         );
 
-        if (tokenCode === "0x") {
+        if (!tokenCode || tokenCode === "0x") {
             throw new Error(
                 "JJS token contract code not found."
             );
         }
 
-        // Check staking bytecode
         stage = "CHECK_STAKING_CODE";
 
-        const stakingCode = await provider.getCode(
+        const stakingCode = await readProvider.getCode(
             CONFIG.stakingAddress
         );
 
-        if (stakingCode === "0x") {
+        if (!stakingCode || stakingCode === "0x") {
             throw new Error(
                 "Staking contract code not found."
             );
         }
 
-        // Read-only token contract
-        const tokenRead = new Contract(
-            CONFIG.tokenAddress,
-            TOKEN_ABI,
-            provider
-        );
-
-        // Read JJS balance
         stage = "READ_BALANCE";
 
-        const balance = await tokenRead.balanceOf(
+        const balance = await tokenReadContract.balanceOf(
             address
         );
 
-        // Read JJS allowance
         stage = "READ_ALLOWANCE";
 
-        const allowance = await tokenRead.allowance(
+        const allowance = await tokenReadContract.allowance(
             address,
             CONFIG.stakingAddress
         );
@@ -241,6 +264,11 @@ export async function getJJSWalletStatus() {
 
             hasBalance: balance > 0n,
             hasAllowance: allowance > 0n,
+
+            network: Number(network.chainId),
+
+            tokenCodeValid: true,
+            stakingCodeValid: true,
 
             diagnosticStage: stage
         };
@@ -275,10 +303,12 @@ export async function approveJJS(amount) {
         address
     } = await getSignerContracts();
 
-    const currentAllowance = await tokenContract.allowance(
-        address,
-        CONFIG.stakingAddress
-    );
+    // Read allowance through public RPC.
+    const currentAllowance =
+        await tokenReadContract.allowance(
+            address,
+            CONFIG.stakingAddress
+        );
 
     if (currentAllowance >= parsedAmount) {
         return {
@@ -288,6 +318,7 @@ export async function approveJJS(amount) {
         };
     }
 
+    // Transaction through MetaMask signer.
     const transaction = await tokenContract.approve(
         CONFIG.stakingAddress,
         parsedAmount
@@ -333,15 +364,16 @@ export async function stakeJJS(amount, duration) {
     }
 
     const {
-        tokenContract,
         stakingContract,
         address
     } = await getSignerContracts();
 
-    const currentAllowance = await tokenContract.allowance(
-        address,
-        CONFIG.stakingAddress
-    );
+    // Read allowance through public RPC.
+    const currentAllowance =
+        await tokenReadContract.allowance(
+            address,
+            CONFIG.stakingAddress
+        );
 
     if (currentAllowance < parsedAmount) {
         throw new Error(
@@ -349,9 +381,11 @@ export async function stakeJJS(amount, duration) {
         );
     }
 
-    const durationConfig = await stakingContract.durationConfigs(
-        parsedDuration
-    );
+    // Read staking configuration through public RPC.
+    const durationConfig =
+        await stakingReadContract.durationConfigs(
+            parsedDuration
+        );
 
     if (!durationConfig.enabled) {
         throw new Error(
@@ -359,7 +393,8 @@ export async function stakeJJS(amount, duration) {
         );
     }
 
-    const paused = await stakingContract.stakingPaused();
+    const paused =
+        await stakingReadContract.stakingPaused();
 
     if (paused) {
         throw new Error(
@@ -367,6 +402,7 @@ export async function stakeJJS(amount, duration) {
         );
     }
 
+    // Transaction through MetaMask signer.
     const transaction = await stakingContract.stake(
         parsedAmount,
         parsedDuration
@@ -384,9 +420,8 @@ export async function stakeJJS(amount, duration) {
 
     for (const log of receipt.logs) {
         try {
-            const parsedLog = stakingContract.interface.parseLog(
-                log
-            );
+            const parsedLog =
+                stakingContract.interface.parseLog(log);
 
             if (
                 parsedLog &&
@@ -422,7 +457,8 @@ export async function withdrawPrincipal(positionId) {
         address
     } = await getSignerContracts();
 
-    const position = await stakingContract.positions(id);
+    // Read position through public RPC.
+    const position = await stakingReadContract.positions(id);
 
     if (
         position.user.toLowerCase() !==
@@ -449,9 +485,9 @@ export async function withdrawPrincipal(positionId) {
         );
     }
 
-    const transaction = await stakingContract.withdrawPrincipal(
-        id
-    );
+    // Transaction through MetaMask signer.
+    const transaction =
+        await stakingContract.withdrawPrincipal(id);
 
     const receipt = await transaction.wait();
 
@@ -481,7 +517,8 @@ export async function claimReward(positionId) {
         address
     } = await getSignerContracts();
 
-    const position = await stakingContract.positions(id);
+    // Read position through public RPC.
+    const position = await stakingReadContract.positions(id);
 
     if (
         position.user.toLowerCase() !==
@@ -504,9 +541,9 @@ export async function claimReward(positionId) {
         );
     }
 
-    const transaction = await stakingContract.claimReward(
-        id
-    );
+    // Transaction through MetaMask signer.
+    const transaction =
+        await stakingContract.claimReward(id);
 
     const receipt = await transaction.wait();
 
