@@ -2,7 +2,7 @@
 /**
  * JosJis Staking
  * Main Controller
- * Version: V2
+ * Version: V3
  * Network: Polygon Mainnet
  */
 
@@ -29,9 +29,9 @@ import {
 
 import {
     setWalletProvider,
-    subscribeWalletProvider,
-    clearWalletSession
-} from "./modules/wallet.js";
+    clearWalletSession,
+    getWalletSigner
+} from "../../assets/js/core/transaction-manager.js";
 
 import {
     approveJJS,
@@ -39,10 +39,6 @@ import {
     withdrawPrincipal,
     claimReward
 } from "./modules/staking-actions.js";
-
-import {
-    getUserPositions
-} from "./modules/positions.js";
 
 import {
     loadDashboardData,
@@ -237,7 +233,7 @@ function clearWalletUI() {
 }
 
 /* =========================================
-   WALLET PROVIDER VALIDATION
+   INJECTED PROVIDER
 ========================================= */
 
 function getInjectedProvider() {
@@ -251,6 +247,10 @@ function getInjectedProvider() {
 
     return null;
 }
+
+/* =========================================
+   PROVIDER VALIDATION
+========================================= */
 
 async function validateTransactionProvider(
     provider,
@@ -273,23 +273,18 @@ async function validateTransactionProvider(
             return false;
         }
 
-        const providerAddress = accounts[0];
-
         if (
-            providerAddress.toLowerCase() !==
+            accounts[0].toLowerCase() !==
             expectedAddress.toLowerCase()
         ) {
             return false;
         }
 
-        const providerChainId = await provider.request({
+        const chainId = await provider.request({
             method: "eth_chainId"
         });
 
-        const numericChainId =
-            Number.parseInt(providerChainId, 16);
-
-        return numericChainId === CONFIG.chainId;
+        return Number.parseInt(chainId, 16) === CONFIG.chainId;
 
     } catch (error) {
         console.warn(
@@ -403,6 +398,24 @@ async function syncAppKitWallet(providerCandidate = null) {
         ) {
             setWalletProvider(provider);
 
+            /*
+             * Verify that Core can create a signer
+             * for the currently connected AppKit account.
+             */
+            const signer = await getWalletSigner();
+            const signerAddress = await signer.getAddress();
+
+            if (
+                signerAddress.toLowerCase() !==
+                address.toLowerCase()
+            ) {
+                throw new Error(
+                    "Signer address does not match the connected wallet."
+                );
+            }
+
+            if (sequence !== walletSyncSequence) return;
+
             state.walletProvider = provider;
             state.providerReady = true;
 
@@ -429,7 +442,7 @@ async function syncAppKitWallet(providerCandidate = null) {
             } else {
                 setMessage(
                     elements.stakingMessage,
-                    "Wallet connected. Transaction provider is not available yet. You can still view your staking data.",
+                    "Wallet connected. Transaction provider is unavailable. You can still view staking data.",
                     "warning"
                 );
             }
@@ -446,6 +459,13 @@ async function syncAppKitWallet(providerCandidate = null) {
         );
 
         if (sequence !== walletSyncSequence) return;
+
+        state.walletProvider = null;
+        state.providerReady = false;
+
+        clearWalletSession();
+
+        updateActionButtons();
 
         setMessage(
             elements.stakingMessage,
@@ -492,32 +512,6 @@ function setupAppKitListeners() {
             syncAppKitWallet();
         });
     }
-
-    /*
-     * Provider subscription is kept as an additional source.
-     * AppKit account synchronization does not depend on it.
-     */
-    try {
-        subscribeWalletProvider((provider, error) => {
-            if (error) {
-                console.error(
-                    "Wallet provider subscription error:",
-                    error
-                );
-
-                return;
-            }
-
-            if (provider) {
-                syncAppKitWallet(provider);
-            }
-        });
-    } catch (error) {
-        console.warn(
-            "Provider subscription unavailable:",
-            error
-        );
-    }
 }
 
 /* =========================================
@@ -539,9 +533,6 @@ async function connectWallet() {
 
         await modal.open();
 
-        /*
-         * Check the current AppKit session after opening.
-         */
         await syncAppKitWallet();
 
     } catch (error) {
@@ -920,7 +911,7 @@ function updateCountdowns() {
    TRANSACTION READINESS
 ========================================= */
 
-function requireTransactionReady() {
+async function requireTransactionReady() {
     if (!state.connected || !state.walletAddress) {
         throw new Error("Connect your wallet first.");
     }
@@ -942,6 +933,18 @@ function requireTransactionReady() {
             "Staking contract is not ready."
         );
     }
+
+    const signer = await getWalletSigner();
+    const signerAddress = await signer.getAddress();
+
+    if (
+        signerAddress.toLowerCase() !==
+        state.walletAddress.toLowerCase()
+    ) {
+        throw new Error(
+            "Wallet signer does not match the connected account."
+        );
+    }
 }
 
 /* =========================================
@@ -952,7 +955,7 @@ async function handleStake() {
     if (state.busy) return;
 
     try {
-        requireTransactionReady();
+        await requireTransactionReady();
     } catch (error) {
         setMessage(
             elements.stakeMessage,
@@ -1091,7 +1094,7 @@ async function handlePositionAction(
     if (state.busy) return;
 
     try {
-        requireTransactionReady();
+        await requireTransactionReady();
     } catch (error) {
         setMessage(
             elements.stakingMessage,
@@ -1304,7 +1307,7 @@ function setupEventListeners() {
 
 async function initialize() {
     console.log(
-        "JosJis Staking V2 initializing..."
+        "JosJis Staking V3 initializing..."
     );
 
     setupEventListeners();
@@ -1318,14 +1321,8 @@ async function initialize() {
 
     setupAppKitListeners();
 
-    /*
-     * Restore an existing AppKit session.
-     */
     await syncAppKitWallet();
 
-    /*
-     * Automatic dashboard refresh.
-     */
     if (!refreshInterval) {
         refreshInterval = setInterval(
             refreshAll,
@@ -1341,7 +1338,7 @@ async function initialize() {
     }
 
     console.log(
-        "JosJis Staking V2 initialized."
+        "JosJis Staking V3 initialized."
     );
 }
 
