@@ -2,7 +2,7 @@
 /**
  * JosJis Staking
  * Module: Wallet
- * Version: V7 Core Integrated
+ * Version: V8 Core Integrated
  * Network: Polygon Mainnet
  *
  * Purpose:
@@ -10,9 +10,9 @@
  * for the JosJis Staking module through JosJis Core.
  *
  * Core Integration:
- * - Wallet Manager handles AppKit wallet state and subscriptions.
- * - Transaction Manager handles EIP-1193 providers,
- *   BrowserProvider instances, and wallet signers.
+ * - Wallet Manager handles the shared AppKit wallet session.
+ * - Transaction Manager discovers and manages EVM providers.
+ * - Transaction Manager creates BrowserProvider instances and signers.
  *
  * Responsibilities:
  * - Synchronize the AppKit wallet session.
@@ -20,6 +20,11 @@
  * - Retrieve the connected wallet provider and signer.
  * - Create staking-specific token and staking contracts.
  * - Validate the connected account and Polygon network.
+ * - Keep local wallet references synchronized with JosJis Core.
+ *
+ * Important:
+ * This module does not create an independent wallet connection.
+ * It reuses the shared Reown AppKit instance and JosJis Core.
  */
 
 import {
@@ -41,19 +46,36 @@ import {
    WALLET STATE
 ========================================= */
 
+/**
+ * Stores the current wallet provider references.
+ */
 let walletProvider = null;
 let rawWalletProvider = null;
 
+/**
+ * Stores the local references to the Core-managed
+ * BrowserProvider and wallet signer.
+ */
 let browserProvider = null;
 let walletSigner = null;
+
+/**
+ * Stores the synchronized wallet account information.
+ */
 let walletAddress = null;
 let walletChainId = null;
 
+/**
+ * Stores AppKit subscription cleanup functions.
+ */
 let providerUnsubscribe = null;
 let accountUnsubscribe = null;
 let networkUnsubscribe = null;
 let stateUnsubscribe = null;
 
+/**
+ * Prevents duplicate provider initialization operations.
+ */
 let providerInitialization = null;
 
 /* =========================================
@@ -67,7 +89,9 @@ let providerInitialization = null;
  * @returns {boolean} True if the provider is a Universal Provider.
  */
 function isUniversalProvider(provider) {
-    if (!provider) return false;
+    if (!provider) {
+        return false;
+    }
 
     return Boolean(
         provider.rpcProviders &&
@@ -80,10 +104,11 @@ function isUniversalProvider(provider) {
 ========================================= */
 
 /**
- * Validates the wallet provider managed by JosJis Core.
+ * Validates an EIP-1193-compatible wallet provider.
  *
  * @param {object} provider - Wallet provider to validate.
  * @returns {boolean} True if the provider is valid.
+ * @throws {Error} If the provider is unavailable or invalid.
  */
 export function validateWalletProvider(provider) {
     if (!provider) {
@@ -102,15 +127,41 @@ export function validateWalletProvider(provider) {
 }
 
 /* =========================================
+   SYNCHRONIZE LOCAL CORE REFERENCES
+========================================= */
+
+/**
+ * Synchronizes local provider references with JosJis Core.
+ *
+ * Transaction Manager remains the owner of the actual provider,
+ * BrowserProvider, and signer instances.
+ */
+function syncCoreProviderReferences() {
+    walletProvider = Transaction.getWalletProvider();
+
+    return walletProvider;
+}
+
+/**
+ * Invalidates local BrowserProvider and signer references.
+ *
+ * The actual provider lifecycle remains managed by Transaction Manager.
+ */
+function invalidateLocalSignerReferences() {
+    browserProvider = null;
+    walletSigner = null;
+}
+
+/* =========================================
    SET WALLET PROVIDER
 ========================================= */
 
 /**
- * Registers the wallet provider through JosJis Core.
+ * Registers an AppKit or EIP-1193 provider through JosJis Core.
  *
- * Transaction Manager handles provider adaptation and caching.
+ * Transaction Manager handles provider normalization and caching.
  *
- * @param {object} provider - Original or adapted EIP-1193 provider.
+ * @param {object} provider - Original or Core-managed provider.
  * @returns {boolean} True if the provider was registered.
  */
 export function setWalletProvider(provider) {
@@ -121,14 +172,13 @@ export function setWalletProvider(provider) {
 
     validateWalletProvider(provider);
 
-    const previousProvider = walletProvider;
+    const currentCoreProvider =
+        Transaction.getWalletProvider();
 
     const alreadyCoreProvider =
-        provider === Transaction.getWalletProvider();
+        provider === currentCoreProvider;
 
-    const rawProvider = alreadyCoreProvider
-        ? rawWalletProvider
-        : provider;
+    const previousProvider = currentCoreProvider;
 
     Transaction.setWalletProvider(provider);
 
@@ -141,13 +191,12 @@ export function setWalletProvider(provider) {
     }
 
     if (previousProvider !== walletProvider) {
-        browserProvider = null;
-        walletSigner = null;
+        invalidateLocalSignerReferences();
         walletAddress = null;
     }
 
     if (!alreadyCoreProvider) {
-        rawWalletProvider = rawProvider;
+        rawWalletProvider = provider;
     }
 
     console.log(
@@ -174,12 +223,10 @@ export function setWalletProvider(provider) {
 /**
  * Retrieves the wallet provider managed by JosJis Core.
  *
- * @returns {object|null} Core wallet provider.
+ * @returns {object|null} Core-managed wallet provider.
  */
 export function getWalletProvider() {
-    walletProvider = Transaction.getWalletProvider();
-
-    return walletProvider;
+    return syncCoreProviderReferences();
 }
 
 /* =========================================
@@ -187,7 +234,7 @@ export function getWalletProvider() {
 ========================================= */
 
 /**
- * Synchronizes the local staking wallet state with AppKit.
+ * Synchronizes local wallet information with the shared AppKit session.
  *
  * @param {string|null} accountAddress - Optional account address.
  * @returns {object|null} Synchronized wallet information.
@@ -201,18 +248,30 @@ export function syncAppKitAccount(accountAddress = null) {
 
         if (!address) {
             walletAddress = null;
-            walletSigner = null;
+            walletChainId = chainId != null
+                ? Number(chainId)
+                : null;
+
+            invalidateLocalSignerReferences();
 
             return null;
         }
 
+        const previousAddress = walletAddress;
+
         walletAddress = address;
 
+        walletChainId =
+            chainId !== undefined && chainId !== null
+                ? Number(chainId)
+                : null;
+
         if (
-            chainId !== undefined &&
-            chainId !== null
+            previousAddress &&
+            previousAddress.toLowerCase() !==
+                address.toLowerCase()
         ) {
-            walletChainId = Number(chainId);
+            invalidateLocalSignerReferences();
         }
 
         console.log(
@@ -245,12 +304,14 @@ export function syncAppKitAccount(accountAddress = null) {
 ========================================= */
 
 /**
- * Initializes the wallet provider using JosJis Core.
+ * Initializes the wallet provider through JosJis Core.
  *
- * If Core does not yet have a provider, a matching injected
- * provider may be registered as a fallback.
+ * Provider discovery order is managed by Transaction Manager:
+ * 1. Reuse an existing Core wallet provider.
+ * 2. Request the EVM provider directly from Reown AppKit.
+ * 3. Use a matching injected provider as a fallback.
  *
- * @returns {Promise<object|null>} Initialized wallet provider.
+ * @returns {Promise<object|null>} Initialized Core wallet provider.
  */
 export async function initializeWalletProvider() {
     if (providerInitialization) {
@@ -259,61 +320,43 @@ export async function initializeWalletProvider() {
 
     providerInitialization = (async () => {
         try {
-            const coreProvider =
+            /*
+             * First reuse an existing Core provider.
+             */
+
+            const existingProvider =
                 Transaction.getWalletProvider();
 
-            if (coreProvider) {
-                walletProvider = coreProvider;
+            if (existingProvider) {
+                walletProvider = existingProvider;
 
                 return walletProvider;
             }
 
             /*
-             * Use an injected provider only when its
-             * account matches the AppKit account.
+             * Ask Transaction Manager to discover the provider.
+             *
+             * getBrowserProvider() internally calls the Core provider
+             * discovery process, including modal.getWalletProvider().
              */
 
-            if (typeof window !== "undefined") {
-                const injectedProvider =
-                    window.ethereum;
+            browserProvider =
+                await Transaction.getBrowserProvider();
 
-                if (
-                    injectedProvider &&
-                    typeof injectedProvider.request === "function"
-                ) {
-                    const accounts =
-                        await injectedProvider.request({
-                            method: "eth_accounts"
-                        });
+            walletProvider =
+                Transaction.getWalletProvider();
 
-                    const appKitAddress =
-                        Wallet.getAddress();
-
-                    if (
-                        Array.isArray(accounts) &&
-                        accounts.length > 0 &&
-                        appKitAddress &&
-                        accounts[0].toLowerCase() ===
-                        appKitAddress.toLowerCase()
-                    ) {
-                        setWalletProvider(
-                            injectedProvider
-                        );
-
-                        console.log(
-                            "[JJS Wallet] Matching injected provider registered."
-                        );
-
-                        return walletProvider;
-                    }
-                }
+            if (!walletProvider || !browserProvider) {
+                throw new Error(
+                    "AppKit EVM provider could not be initialized."
+                );
             }
 
-            console.warn(
-                "[JJS Wallet] No matching injected provider found."
+            console.log(
+                "[JJS Wallet] AppKit provider initialized through Core."
             );
 
-            return null;
+            return walletProvider;
 
         } catch (error) {
             console.error(
@@ -321,7 +364,10 @@ export async function initializeWalletProvider() {
                 error
             );
 
-            return null;
+            walletProvider =
+                Transaction.getWalletProvider();
+
+            return walletProvider || null;
 
         } finally {
             providerInitialization = null;
@@ -351,13 +397,17 @@ export function subscribeWalletProvider(
     let subscriptionActive = true;
 
     const unsubscribe = Wallet.subscribeProviders(
-        (providers) => {
+        providers => {
             const provider =
                 providers?.eip155 ||
                 providers?.["eip155"] ||
                 null;
 
-            if (!provider || !subscriptionActive) {
+            if (!subscriptionActive) {
+                return;
+            }
+
+            if (!provider) {
                 return;
             }
 
@@ -365,7 +415,7 @@ export function subscribeWalletProvider(
                 setWalletProvider(provider);
 
                 console.log(
-                    "[JJS Wallet] Provider received through Core."
+                    "[JJS Wallet] Provider received through AppKit."
                 );
 
                 callback(walletProvider, null);
@@ -392,16 +442,19 @@ export function subscribeWalletProvider(
     };
 
     /*
-     * Check whether a matching injected provider already exists.
+     * Initialize the provider already available in AppKit.
      */
 
     initializeWalletProvider().then(provider => {
         if (
             provider &&
-            subscriptionActive &&
-            walletProvider
+            subscriptionActive
         ) {
-            callback(walletProvider, null);
+            callback(provider, null);
+        }
+    }).catch(error => {
+        if (subscriptionActive) {
+            callback(null, error);
         }
     });
 
@@ -436,10 +489,20 @@ export function subscribeWalletAccount(
                         address: account.address,
                         provider
                     });
+                }).catch(error => {
+                    callback({
+                        ...account,
+                        address: account.address,
+                        provider: null,
+                        error: error?.message ||
+                            "Wallet provider initialization failed."
+                    });
                 });
 
             } else if (
-                account?.isConnected === false
+                account?.isConnected === false ||
+                account?.address === undefined ||
+                account?.address === null
             ) {
                 clearWalletSession();
 
@@ -482,12 +545,11 @@ export function subscribeWalletNetwork(
                     : null;
 
             /*
-             * Invalidate local references when the network changes.
-             * Transaction Manager owns the actual provider cache.
+             * Invalidate local signer references after a network change.
+             * Transaction Manager continues to manage its provider.
              */
 
-            browserProvider = null;
-            walletSigner = null;
+            invalidateLocalSignerReferences();
 
             callback({
                 ...network,
@@ -504,7 +566,7 @@ export function subscribeWalletNetwork(
 ========================================= */
 
 /**
- * Subscribes to general wallet state changes through Core.
+ * Subscribes to general AppKit state changes through Core.
  *
  * @param {Function} callback - Receives synchronized wallet state.
  * @returns {Function|null} Unsubscribe function.
@@ -568,6 +630,10 @@ export function initializeWalletListeners(
 /**
  * Retrieves the shared BrowserProvider from JosJis Core.
  *
+ * If a provider is supplied, it is registered first.
+ * If no provider is available, Transaction Manager performs
+ * its own AppKit provider discovery.
+ *
  * @param {object} provider - Optional provider to register first.
  * @returns {Promise<object>} Core BrowserProvider.
  */
@@ -594,6 +660,9 @@ export async function createBrowserProvider(
         );
     }
 
+    walletProvider =
+        Transaction.getWalletProvider();
+
     return browserProvider;
 }
 
@@ -602,9 +671,10 @@ export async function createBrowserProvider(
 ========================================= */
 
 /**
- * Retrieves the connected wallet address from the provider.
+ * Retrieves the connected wallet address.
  *
- * AppKit address is used as a fallback when no provider is available.
+ * The EVM provider is preferred when available.
+ * The shared AppKit account is used as a fallback.
  *
  * @param {object} provider - Optional wallet provider.
  * @returns {Promise<string>} Connected wallet address.
@@ -647,7 +717,10 @@ export async function getConnectedAddress(
 ========================================= */
 
 /**
- * Retrieves the wallet signer from JosJis Core Transaction Manager.
+ * Retrieves the wallet signer through JosJis Core.
+ *
+ * Transaction Manager handles provider discovery,
+ * BrowserProvider creation, and signer validation.
  *
  * @param {object} provider - Optional provider to register first.
  * @returns {Promise<object>} Connected wallet signer.
@@ -657,6 +730,10 @@ export async function getWalletSigner(provider = null) {
         setWalletProvider(provider);
     }
 
+    /*
+     * Ensure a Core-managed EVM provider is available.
+     */
+
     walletProvider =
         Transaction.getWalletProvider();
 
@@ -664,14 +741,25 @@ export async function getWalletSigner(provider = null) {
         await initializeWalletProvider();
     }
 
+    /*
+     * Transaction Manager can discover the AppKit provider
+     * even if local wallet state was previously empty.
+     */
+
     walletSigner =
         await Transaction.getWalletSigner();
+
+    walletProvider =
+        Transaction.getWalletProvider();
+
+    browserProvider =
+        await Transaction.getBrowserProvider();
 
     walletAddress =
         await walletSigner.getAddress();
 
     const network =
-        await walletSigner.provider.getNetwork();
+        await browserProvider.getNetwork();
 
     walletChainId = Number(network.chainId);
 
@@ -685,17 +773,41 @@ export async function getWalletSigner(provider = null) {
 /**
  * Creates staking-specific contracts using the Core-managed signer.
  *
+ * Validation:
+ * - Requires a connected AppKit account.
+ * - Requires Polygon Mainnet.
+ * - Requires a valid EVM provider.
+ * - Requires the signer to match the AppKit account.
+ *
  * @returns {Promise<object>} Provider, signer, address, and contracts.
  */
 export async function getSignerContracts() {
-    const provider =
-        walletProvider ||
-        await initializeWalletProvider();
+    const appKitAddress = Wallet.getAddress();
 
-    validateWalletProvider(provider);
+    if (!appKitAddress) {
+        throw new Error(
+            "Wallet is not connected."
+        );
+    }
+
+    const appKitChainId = Number(
+        Wallet.getChainId()
+    );
+
+    if (appKitChainId !== CONFIG.chainId) {
+        throw new Error(
+            "Please switch your wallet to Polygon Mainnet."
+        );
+    }
+
+    /*
+     * Retrieve the signer through Transaction Manager.
+     */
+
+    const signer = await getWalletSigner();
 
     const currentBrowserProvider =
-        await createBrowserProvider(provider);
+        await createBrowserProvider();
 
     const network =
         await currentBrowserProvider.getNetwork();
@@ -704,21 +816,14 @@ export async function getSignerContracts() {
 
     if (chainId !== CONFIG.chainId) {
         throw new Error(
-            "Please switch your wallet to Polygon Mainnet."
+            "Provider is not connected to Polygon Mainnet."
         );
     }
-
-    const signer =
-        await Transaction.getWalletSigner();
 
     const address =
         await signer.getAddress();
 
-    const appKitAddress =
-        Wallet.getAddress();
-
     if (
-        appKitAddress &&
         appKitAddress.toLowerCase() !==
         address.toLowerCase()
     ) {
@@ -726,6 +831,10 @@ export async function getSignerContracts() {
             "Wallet account mismatch. Reconnect your wallet."
         );
     }
+
+    /*
+     * Create staking contracts using the validated signer.
+     */
 
     const tokenContract = new Contract(
         CONFIG.tokenAddress,
@@ -739,7 +848,12 @@ export async function getSignerContracts() {
         signer
     );
 
+    walletProvider =
+        Transaction.getWalletProvider();
+
     walletSigner = signer;
+    browserProvider = currentBrowserProvider;
+
     walletAddress = address;
     walletChainId = chainId;
 
@@ -767,17 +881,28 @@ export function getWalletSession() {
     walletProvider =
         Transaction.getWalletProvider();
 
+    const appKitAddress =
+        Wallet.getAddress();
+
+    const appKitChainId =
+        Wallet.getChainId();
+
     return {
         walletProvider,
         rawWalletProvider,
         browserProvider,
         walletSigner,
-        walletAddress,
-        walletChainId,
+
+        walletAddress:
+            appKitAddress || walletAddress,
+
+        walletChainId:
+            appKitChainId != null
+                ? Number(appKitChainId)
+                : walletChainId,
 
         connected: Boolean(
-            Wallet.getAddress() ||
-            walletAddress
+            appKitAddress || walletAddress
         ),
 
         providerReady: Boolean(walletProvider)
@@ -789,7 +914,9 @@ export function getWalletSession() {
 ========================================= */
 
 /**
- * Clears the staking wallet session and shared Core transaction session.
+ * Clears the staking wallet session and Core transaction references.
+ *
+ * This does not disconnect the wallet from Reown AppKit.
  */
 export function clearWalletSession() {
     Transaction.clearWalletSession();
@@ -802,6 +929,10 @@ export function clearWalletSession() {
 
     walletAddress = null;
     walletChainId = null;
+
+    console.info(
+        "[JJS Wallet] Local wallet session cleared."
+    );
 }
 
 /* =========================================
@@ -810,6 +941,9 @@ export function clearWalletSession() {
 
 /**
  * Validates the current wallet connection, account, and network.
+ *
+ * The provider is obtained through Transaction Manager,
+ * which can request the EVM provider directly from AppKit.
  *
  * @returns {Promise<object>} Wallet connection validation result.
  */
@@ -831,11 +965,25 @@ export async function checkWalletConnection() {
             );
         }
 
+        /*
+         * Initialize the EVM provider through Core.
+         */
+
         const provider =
             walletProvider ||
             await initializeWalletProvider();
 
+        if (!provider) {
+            throw new Error(
+                "EVM wallet provider is unavailable."
+            );
+        }
+
         validateWalletProvider(provider);
+
+        /*
+         * Verify the provider account against AppKit.
+         */
 
         const address =
             await getConnectedAddress(provider);
@@ -848,6 +996,10 @@ export async function checkWalletConnection() {
                 "Wallet account mismatch."
             );
         }
+
+        /*
+         * Verify the active provider network.
+         */
 
         const browser =
             await createBrowserProvider(provider);
@@ -863,6 +1015,7 @@ export async function checkWalletConnection() {
             );
         }
 
+        walletAddress = address;
         walletChainId = Number(network.chainId);
 
         return {
