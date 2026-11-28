@@ -4,16 +4,32 @@
  * Module: Staking Actions
  * Network: Polygon Mainnet
  *
+ * PURPOSE:
+ * Handles staking-related blockchain reads and transactions.
+ *
  * READ:
  * Public Polygon RPC
  *
  * WRITE:
- * Core Transaction Manager + AppKit Wallet Provider
+ * JosJis Core Transaction Manager + AppKit Wallet Provider
  *
  * APPROVE:
- * Direct AppKit wallet request
- * Wallet handles gas and nonce
- * Public RPC receipt confirmation
+ * Core Transaction Manager handles wallet authorization.
+ * Public RPC handles gas estimation and receipt confirmation.
+ *
+ * RESPONSIBILITIES:
+ * - Read JJS wallet balance and staking allowance.
+ * - Validate wallet, network, token, and staking contracts.
+ * - Submit JJS approval through JosJis Core.
+ * - Submit staking transactions.
+ * - Withdraw staking principal.
+ * - Claim staking rewards.
+ * - Validate transaction results and staking positions.
+ *
+ * DEPENDENCIES:
+ * - ethers.js 6.15.0
+ * - staking configuration module
+ * - JosJis Core Transaction Manager
  */
 
 import {
@@ -30,12 +46,8 @@ import {
 } from "./config.js";
 
 import {
-    getWalletSigner
-} from "../../../assets/js/core/transaction-manager.js";
-
-import {
-    modal
-} from "../../../web3/web3-config.js";
+    Transaction
+} from "../../../assets/js/core/index.js";
 
 
 /* =========================================
@@ -69,60 +81,17 @@ const stakingReadContract = new Contract(
 
 
 /* =========================================
-   GET APPKIT WALLET PROVIDER
-========================================= */
-
-async function getAppKitProvider() {
-    const provider = await modal.getWalletProvider();
-
-    if (
-        !provider ||
-        typeof provider.request !== "function"
-    ) {
-        throw new Error(
-            "AppKit wallet provider is unavailable."
-        );
-    }
-
-    return provider;
-}
-
-
-/* =========================================
-   WALLET PROVIDER REQUEST
-========================================= */
-
-async function requestWallet(
-    provider,
-    method,
-    params = []
-) {
-    const request = {
-        method,
-        params
-    };
-
-    const isUniversalProvider = Boolean(
-        provider.rpcProviders
-    );
-
-    if (isUniversalProvider) {
-        return await provider.request(
-            request,
-            "eip155:" + CONFIG.chainId
-        );
-    }
-
-    return await provider.request(request);
-}
-
-
-/* =========================================
    SIGNER CONTRACTS
 ========================================= */
 
+/**
+ * Creates staking contract instances connected to the
+ * validated JosJis Core wallet signer.
+ *
+ * @returns {Promise<object>} Signer and writable contracts.
+ */
 async function getSignerContracts() {
-    const signer = await getWalletSigner();
+    const signer = await Transaction.getWalletSigner();
 
     const address = await signer.getAddress();
 
@@ -341,7 +310,7 @@ export async function getJJSWalletStatus() {
     try {
         stage = "GET_WALLET_SIGNER";
 
-        const signer = await getWalletSigner();
+        const signer = await Transaction.getWalletSigner();
 
         const address = await signer.getAddress();
 
@@ -449,20 +418,29 @@ export async function approveJJS(amount) {
 
         stage = "GET_SIGNER";
 
-        const signer = await getWalletSigner();
+        const signer = await Transaction.getWalletSigner();
 
         const signerAddress = await signer.getAddress();
 
-        stage = "GET_APPKIT_PROVIDER";
+        stage = "GET_CORE_PROVIDER";
 
-        const walletProvider = await getAppKitProvider();
+        const walletProvider =
+            await Transaction.getWalletProvider();
+
+        if (
+            !walletProvider ||
+            typeof walletProvider.request !== "function"
+        ) {
+            throw new Error(
+                "JosJis Core wallet provider is unavailable."
+            );
+        }
 
         stage = "CHECK_WALLET_NETWORK";
 
-        const walletChainId = await requestWallet(
-            walletProvider,
-            "eth_chainId"
-        );
+        const walletChainId = await walletProvider.request({
+            method: "eth_chainId"
+        });
 
         const chainId = Number(
             BigInt(walletChainId)
@@ -478,10 +456,9 @@ export async function approveJJS(amount) {
 
         stage = "CHECK_WALLET_ACCOUNT";
 
-        const accounts = await requestWallet(
-            walletProvider,
-            "eth_accounts"
-        );
+        const accounts = await walletProvider.request({
+            method: "eth_accounts"
+        });
 
         if (
             !Array.isArray(accounts) ||
@@ -552,13 +529,6 @@ export async function approveJJS(amount) {
                 ]
             );
 
-        const walletTransaction = {
-            from: signerAddress,
-            to: CONFIG.tokenAddress,
-            data: approveData,
-            value: "0x0"
-        };
-
         console.log(
             "[JJS APPROVE] Transaction prepared:",
             {
@@ -599,11 +569,15 @@ export async function approveJJS(amount) {
             "[JJS APPROVE] Requesting wallet confirmation..."
         );
 
-        const transactionHash = await requestWallet(
-            walletProvider,
-            "eth_sendTransaction",
-            [walletTransaction]
-        );
+        // Submit approval through the JosJis Core Transaction Manager.
+        const approvalTransaction =
+            await Transaction.approveToken(
+                "JJS",
+                CONFIG.stakingAddress,
+                amount
+            );
+
+        const transactionHash = approvalTransaction.hash;
 
         if (
             typeof transactionHash !== "string" ||
