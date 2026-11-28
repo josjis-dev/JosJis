@@ -2,7 +2,7 @@
 /**
  * JosJis Staking
  * Module: Staking Actions
- * Version: V7
+ * Version: V8
  * Network: Polygon Mainnet
  *
  * READ:
@@ -10,6 +10,10 @@
  *
  * WRITE:
  * MetaMask Signer through Core Transaction Manager
+ *
+ * APPROVE:
+ * Public RPC gas estimation
+ * MetaMask signer transaction submission
  */
 
 import {
@@ -87,29 +91,97 @@ async function getSignerContracts() {
 }
 
 /* =========================================
-   ERROR FORMATTER
+   ERROR SERIALIZER V8
 ========================================= */
 
 function serializeError(error) {
-    const details = {
-        message: error?.message || null,
-        code: error?.code || null,
-        shortMessage: error?.shortMessage || null,
-        reason: error?.reason || null,
-        action: error?.action || null,
-        method: error?.method || null,
-        data: error?.data || null,
-        info: error?.info || null,
-        nestedError: error?.info?.error || null
-    };
+    const seen = new WeakSet();
 
-    return JSON.stringify(
-        details,
-        (_, value) =>
-            typeof value === "bigint"
-                ? value.toString()
-                : value
-    );
+    function clean(value, depth = 0) {
+        if (value === null || value === undefined) {
+            return value ?? null;
+        }
+
+        if (typeof value === "bigint") {
+            return value.toString();
+        }
+
+        if (
+            typeof value === "string" ||
+            typeof value === "number" ||
+            typeof value === "boolean"
+        ) {
+            return value;
+        }
+
+        if (typeof value !== "object") {
+            return String(value);
+        }
+
+        if (depth > 5) {
+            return "[MAX_DEPTH]";
+        }
+
+        if (seen.has(value)) {
+            return "[CIRCULAR]";
+        }
+
+        seen.add(value);
+
+        if (Array.isArray(value)) {
+            return value.map(item =>
+                clean(item, depth + 1)
+            );
+        }
+
+        const result = {};
+
+        const keys = [
+            "name",
+            "message",
+            "code",
+            "shortMessage",
+            "reason",
+            "action",
+            "method",
+            "data",
+            "error",
+            "info",
+            "cause",
+            "status",
+            "statusText",
+            "body",
+            "response",
+            "requestBody",
+            "transaction",
+            "args"
+        ];
+
+        for (const key of keys) {
+            try {
+                if (value[key] !== undefined) {
+                    result[key] = clean(
+                        value[key],
+                        depth + 1
+                    );
+                }
+            } catch {
+                result[key] = "[UNREADABLE]";
+            }
+        }
+
+        return result;
+    }
+
+    try {
+        return JSON.stringify(clean(error));
+    } catch (serializationError) {
+        return JSON.stringify({
+            message: error?.message || String(error),
+            serializationError:
+                serializationError?.message || String(serializationError)
+        });
+    }
 }
 
 /* =========================================
@@ -271,7 +343,7 @@ export async function getJJSWalletStatus() {
 
     } catch (error) {
         console.error(
-            "[JJS WALLET STATUS DIAGNOSTIC]",
+            "[JJS WALLET STATUS V8]",
             {
                 stage,
                 error,
@@ -289,7 +361,7 @@ export async function getJJSWalletStatus() {
 }
 
 /* =========================================
-   APPROVE JJS - V7 DIAGNOSTIC
+   APPROVE JJS - V8 DIAGNOSTIC
 ========================================= */
 
 export async function approveJJS(amount) {
@@ -301,9 +373,49 @@ export async function approveJJS(amount) {
         stage = "GET_SIGNER_CONTRACTS";
 
         const {
+            signer,
             tokenContract,
             address
         } = await getSignerContracts();
+
+        stage = "CHECK_WALLET_ADDRESS";
+
+        const signerAddress = await signer.getAddress();
+
+        if (
+            signerAddress.toLowerCase() !==
+            address.toLowerCase()
+        ) {
+            throw new Error(
+                "Signer address does not match wallet address."
+            );
+        }
+
+        stage = "CHECK_WALLET_NETWORK";
+
+        const signerProvider = signer.provider;
+
+        if (!signerProvider) {
+            throw new Error(
+                "Wallet signer provider is unavailable."
+            );
+        }
+
+        const signerNetwork =
+            await signerProvider.getNetwork();
+
+        if (
+            Number(signerNetwork.chainId) !==
+            CONFIG.chainId
+        ) {
+            throw new Error(
+                "Wallet is not connected to Polygon."
+            );
+        }
+
+        stage = "CHECK_READ_RPC_NETWORK";
+
+        await validateReadNetwork();
 
         stage = "READ_ALLOWANCE";
 
@@ -315,7 +427,7 @@ export async function approveJJS(amount) {
 
         if (currentAllowance >= parsedAmount) {
             console.log(
-                "[JJS APPROVE] Already approved."
+                "[JJS APPROVE V8] Already approved."
             );
 
             return {
@@ -325,36 +437,15 @@ export async function approveJJS(amount) {
             };
         }
 
-        stage = "CHECK_SIGNER_NETWORK";
+        stage = "CHECK_TOKEN_CODE";
 
-        const signer = await tokenContract.runner;
+        const tokenCode = await readProvider.getCode(
+            CONFIG.tokenAddress
+        );
 
-        if (!signer || typeof signer.sendTransaction !== "function") {
+        if (!tokenCode || tokenCode === "0x") {
             throw new Error(
-                "Transaction signer cannot send transactions."
-            );
-        }
-
-        const signerAddress = await signer.getAddress();
-
-        if (
-            signerAddress.toLowerCase() !==
-            address.toLowerCase()
-        ) {
-            throw new Error(
-                "Transaction signer address mismatch."
-            );
-        }
-
-        const signerNetwork =
-            await signer.provider.getNetwork();
-
-        if (
-            Number(signerNetwork.chainId) !==
-            CONFIG.chainId
-        ) {
-            throw new Error(
-                "Transaction signer is not connected to Polygon."
+                "JJS token contract code not found."
             );
         }
 
@@ -370,25 +461,93 @@ export async function approveJJS(amount) {
                 parsedAmount
             );
 
+        if (
+            !transactionRequest.to ||
+            transactionRequest.to.toLowerCase() !==
+            CONFIG.tokenAddress.toLowerCase()
+        ) {
+            throw new Error(
+                "Approve transaction target is incorrect."
+            );
+        }
+
+        if (!transactionRequest.data) {
+            throw new Error(
+                "Approve transaction data is missing."
+            );
+        }
+
         console.log(
-            "[JJS APPROVE] Transaction request prepared:",
-            transactionRequest
+            "[JJS APPROVE V8] Transaction prepared:",
+            {
+                from: address,
+                to: transactionRequest.to,
+                data: transactionRequest.data,
+                value: transactionRequest.value || "0",
+                amount: formatUnits(
+                    parsedAmount,
+                    CONFIG.decimals
+                )
+            }
         );
+
+        /* =================================
+           PUBLIC RPC GAS ESTIMATION
+        ================================= */
+
+        stage = "ESTIMATE_APPROVE_GAS";
+
+        console.log(
+            "[JJS APPROVE V8] Estimating gas through public RPC..."
+        );
+
+        const estimatedGas =
+            await readProvider.estimateGas({
+                ...transactionRequest,
+                from: address
+            });
+
+        if (estimatedGas <= 0n) {
+            throw new Error(
+                "Gas estimation returned zero."
+            );
+        }
+
+        // 20% buffer + 10,000 gas units.
+        const gasLimit =
+            estimatedGas * 120n / 100n + 10000n;
+
+        console.log(
+            "[JJS APPROVE V8] Gas estimation successful:",
+            {
+                estimatedGas: estimatedGas.toString(),
+                gasLimit: gasLimit.toString()
+            }
+        );
+
+        /* =================================
+           SEND APPROVE TO METAMASK
+        ================================= */
 
         stage = "SEND_APPROVE_TO_WALLET";
 
         console.log(
-            "[JJS APPROVE] Requesting MetaMask confirmation..."
+            "[JJS APPROVE V8] Requesting wallet confirmation..."
         );
 
-        const transaction = await signer.sendTransaction(
-            transactionRequest
-        );
+        const transaction = await signer.sendTransaction({
+            ...transactionRequest,
+            gasLimit
+        });
 
         console.log(
-            "[JJS APPROVE] Transaction submitted:",
+            "[JJS APPROVE V8] Transaction submitted:",
             transaction.hash
         );
+
+        /* =================================
+           WAIT RECEIPT
+        ================================= */
 
         stage = "WAIT_APPROVAL_CONFIRMATION";
 
@@ -396,12 +555,12 @@ export async function approveJJS(amount) {
 
         if (!receipt || receipt.status !== 1) {
             throw new Error(
-                "JJS approval transaction failed."
+                "Approval transaction failed on Polygon."
             );
         }
 
         console.log(
-            "[JJS APPROVE] Approval confirmed:",
+            "[JJS APPROVE V8] Approval confirmed:",
             transaction.hash
         );
 
@@ -409,21 +568,29 @@ export async function approveJJS(amount) {
             approved: true,
             alreadyApproved: false,
             transactionHash: transaction.hash,
+            estimatedGas,
+            gasLimit,
             receipt
         };
 
     } catch (error) {
+        const diagnostic = {
+            version: "V8",
+            stage,
+            timestamp: new Date().toISOString(),
+            tokenAddress: CONFIG.tokenAddress,
+            stakingAddress: CONFIG.stakingAddress,
+            chainId: CONFIG.chainId,
+            error: serializeError(error)
+        };
+
         console.error(
-            "[JJS APPROVE DIAGNOSTIC]",
-            {
-                stage,
-                error,
-                serialized: serializeError(error)
-            }
+            "[JJS APPROVE DIAGNOSTIC V8]",
+            diagnostic
         );
 
         throw new Error(
-            "APPROVE FAILED [" +
+            "APPROVE FAILED [V8 - " +
             stage +
             "]: " +
             serializeError(error)
