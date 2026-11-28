@@ -1,39 +1,54 @@
 
 /**
- * JosJis Staking
- * Module: Configuration
- * Version: V3
- * Network: Polygon Mainnet
+ * ============================================================
+ * PROJECT: JOSJIS
+ * MODULE: STAKING CONFIGURATION
+ * FILE: member/staking/modules/config.js
+ * VERSION: V3
+ * NETWORK: Polygon Mainnet
+ * ============================================================
  *
  * PURPOSE:
- * Central configuration module for the staking feature.
+ * Provides centralized configuration and ABI definitions
+ * for the JosJis staking application.
  *
  * RESPONSIBILITIES:
- * - Define the Polygon network and deployment settings.
- * - Store the JJS token and staking contract addresses.
- * - Provide the token and staking contract ABI definitions.
- * - Define supported staking duration labels.
- * - Provide the token unit multiplier.
+ * 1. Define the supported blockchain network.
+ * 2. Store deployed token and staking contract addresses.
+ * 3. Define token precision and unit conversion.
+ * 4. Provide ERC-20 and staking contract ABI definitions.
+ * 5. Define supported staking duration labels.
+ * 6. Configure historical event scanning and dashboard refresh.
  *
  * ARCHITECTURE:
- * This module currently contains feature-specific configuration
- * and ABI definitions. Shared Web3 infrastructure should use
- * JosJis Core wherever applicable.
+ * - This module contains staking-specific configuration.
+ * - Shared RPC services are managed by JosJis Core.
+ * - Shared ERC-20 operations are managed by JosJis Core.
+ * - Contract ABIs remain available to staking feature modules.
+ *
+ * IMPORTANT:
+ * Contract addresses, ABI signatures, duration values,
+ * and configuration constants must match the deployed
+ * Polygon Mainnet contracts.
+ *
+ * Do not change deployed contract settings here unless
+ * the corresponding application integration is reviewed.
+ * ============================================================
  */
 
-// =========================================
+// ============================================================
 // STAKING CONFIGURATION
-// =========================================
+// ============================================================
 
 /**
- * General staking application configuration.
+ * General configuration for the staking application.
  *
  * chainId:
- * Polygon Mainnet network identifier.
+ * Polygon Mainnet chain identifier.
  *
  * deploymentBlock:
- * Block number where the staking contract was deployed.
- * Can be used as the starting point for historical event queries.
+ * Staking contract deployment block.
+ * Used as the starting point for historical event scanning.
  *
  * decimals:
  * JJS token decimal precision.
@@ -42,13 +57,16 @@
  * Dashboard refresh interval in milliseconds.
  *
  * logChunkSize:
- * Maximum chunk size used by log-processing operations.
+ * Maximum block range used when processing historical logs.
  *
  * tokenAddress:
  * Deployed JJS ERC-20 token contract address.
  *
  * stakingAddress:
  * Deployed JosJis staking contract address.
+ *
+ * These values are application configuration.
+ * They do not deploy or modify smart contracts.
  */
 export const CONFIG = {
     chainId: 137,
@@ -61,21 +79,26 @@ export const CONFIG = {
     stakingAddress: "0x9b196084F6650bf5A1f38d2Abc0f93358Dc31382"
 };
 
-// =========================================
-// TOKEN ABI
-// =========================================
+// ============================================================
+// ERC-20 TOKEN ABI
+// ============================================================
 
 /**
- * Minimal ERC-20 ABI required by the staking interface.
+ * Minimal ERC-20 ABI required by the staking application.
  *
  * balanceOf:
- * Reads the token balance of an address.
+ * Reads the token balance of a wallet.
  *
  * allowance:
- * Reads the amount of tokens approved for a spender.
+ * Reads the approved token amount for a spender.
  *
  * approve:
- * Authorizes a spender to use a specified token amount.
+ * Authorizes a spender to transfer tokens on behalf
+ * of the token owner.
+ *
+ * The Core Token Manager may provide shared ERC-20
+ * functionality, while this ABI remains available for
+ * modules that explicitly require the interface.
  */
 export const TOKEN_ABI = [
     "function balanceOf(address) view returns (uint256)",
@@ -83,29 +106,32 @@ export const TOKEN_ABI = [
     "function approve(address,uint256) returns (bool)"
 ];
 
-// =========================================
-// STAKING ABI
+// ============================================================
+// STAKING CONTRACT ABI
 // Based on PolygonScan verified ABI
-// =========================================
+// ============================================================
 
 /**
- * ABI definitions for interacting with the deployed staking contract.
+ * ABI definitions for the deployed JosJis staking contract.
  *
  * The ABI is organized into:
- * - Read-only functions
- * - User staking functions
- * - Reward funding functions
- * - Owner management functions
- * - Ownership management functions
- * - Contract events
- * - Custom errors
+ * 1. Read-only functions.
+ * 2. User staking functions.
+ * 3. Reward funding functions.
+ * 4. Owner management functions.
+ * 5. Ownership management functions.
+ * 6. Contract events.
+ * 7. Custom errors.
+ *
+ * This ABI describes the external contract interface.
+ * It does not implement the smart contract itself.
  */
 export const STAKING_ABI = [
 
-    // -----------------------------------------
-    // Read-only functions
-    // -----------------------------------------
-    // Retrieve contract settings, staking data,
+    // --------------------------------------------------------
+    // READ-ONLY FUNCTIONS
+    // --------------------------------------------------------
+    // Retrieve contract settings, staking positions,
     // ownership information, and reward statistics.
 
     "function BPS() view returns (uint256)",
@@ -122,48 +148,48 @@ export const STAKING_ABI = [
     "function totalReservedRewards() view returns (uint256)",
     "function totalStaked() view returns (uint256)",
 
-    // -----------------------------------------
-    // User functions
-    // -----------------------------------------
-    // Functions available for users to manage
-    // their staking positions.
+    // --------------------------------------------------------
+    // USER STAKING FUNCTIONS
+    // --------------------------------------------------------
+    // Functions available to users for creating and managing
+    // their individual staking positions.
 
     "function stake(uint256 amount, uint256 duration) returns (uint256 id)",
     "function withdrawPrincipal(uint256 id)",
     "function claimReward(uint256 id)",
 
-    // -----------------------------------------
-    // Reward funding functions
-    // -----------------------------------------
-    // Functions for funding rewards and withdrawing
-    // unused reward tokens.
+    // --------------------------------------------------------
+    // REWARD FUNDING FUNCTIONS
+    // --------------------------------------------------------
+    // Functions for adding reward tokens and withdrawing
+    // unused reward funds.
 
     "function fundRewards(uint256 amount)",
     "function withdrawUnusedRewards(address recipient, uint256 amount)",
 
-    // -----------------------------------------
-    // Owner functions
-    // -----------------------------------------
+    // --------------------------------------------------------
+    // OWNER MANAGEMENT FUNCTIONS
+    // --------------------------------------------------------
     // Administrative functions for staking configuration
     // and pause management.
 
     "function setDuration(uint256 duration, uint16 rewardBps, bool enabled)",
     "function setPaused(bool paused)",
 
-    // -----------------------------------------
-    // Ownership functions
-    // -----------------------------------------
+    // --------------------------------------------------------
+    // OWNERSHIP MANAGEMENT FUNCTIONS
+    // --------------------------------------------------------
     // Ownership transfer and renunciation operations.
 
     "function acceptOwnership()",
     "function transferOwnership(address newOwner)",
     "function renounceOwnership()",
 
-    // -----------------------------------------
-    // Events
-    // -----------------------------------------
-    // Event definitions used to track contract activity
-    // and process staking history.
+    // --------------------------------------------------------
+    // CONTRACT EVENTS
+    // --------------------------------------------------------
+    // Events used to track contract activity and process
+    // historical staking information.
 
     "event DurationUpdated(uint256 duration, uint16 rewardBps, bool enabled)",
     "event OwnershipTransferStarted(address indexed previousOwner, address indexed newOwner)",
@@ -175,11 +201,11 @@ export const STAKING_ABI = [
     "event Staked(uint256 indexed id, address indexed user, uint256 amount, uint256 reward)",
     "event UnusedRewardsWithdrawn(address indexed recipient, uint256 amount)",
 
-    // -----------------------------------------
-    // Custom errors
-    // -----------------------------------------
-    // Error definitions used to identify contract
-    // authorization, ownership, and reentrancy failures.
+    // --------------------------------------------------------
+    // CUSTOM ERRORS
+    // --------------------------------------------------------
+    // Error definitions used to identify authorization,
+    // ownership, and reentrancy failures.
 
     "error OwnableInvalidOwner(address owner)",
     "error OwnableUnauthorizedAccount(address account)",
@@ -187,18 +213,25 @@ export const STAKING_ABI = [
     "error SafeERC20FailedOperation(address token)"
 ];
 
-// =========================================
-// DURATION LABELS
-// =========================================
+// ============================================================
+// STAKING DURATION LABELS
+// ============================================================
 
 /**
  * Human-readable labels for supported staking durations.
  *
- * Object keys represent duration values in seconds.
- * Values are labels displayed by the staking interface.
+ * Object keys:
+ * Duration values expressed in seconds.
+ *
+ * Object values:
+ * Labels displayed by the staking interface.
  *
  * These labels must remain consistent with the duration
- * configurations supported by the deployed staking contract.
+ * configurations enabled in the deployed staking contract.
+ *
+ * IMPORTANT:
+ * Defining a duration label does not automatically enable
+ * that duration in the staking smart contract.
  */
 export const DURATION_LABELS = {
     "60": "1 Minute",
@@ -211,17 +244,21 @@ export const DURATION_LABELS = {
     "31536000": "365 Days"
 };
 
-// =========================================
-// TOKEN UNIT
-// =========================================
+// ============================================================
+// TOKEN UNIT MULTIPLIER
+// ============================================================
 
 /**
- * Token unit multiplier based on the configured decimals.
+ * Token unit multiplier derived from the configured decimals.
  *
- * BigInt is used to preserve integer precision when
- * handling token amounts in their smallest unit.
+ * BigInt is used to preserve integer precision when handling
+ * token amounts in their smallest denomination.
  *
- * For 18 decimals:
+ * For an 18-decimal token:
+ *
  * UNIT = 1000000000000000000n
+ *
+ * This value is useful for token amount calculations that
+ * require exact integer arithmetic.
  */
 export const UNIT = 10n ** BigInt(CONFIG.decimals);
