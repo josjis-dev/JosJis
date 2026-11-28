@@ -2,7 +2,7 @@
 /**
  * JosJis Staking
  * Main Controller
- * Version: V4
+ * Version: V5
  * Network: Polygon Mainnet
  */
 
@@ -127,6 +127,10 @@ function setButtonLoading(button, loading, originalText) {
         : originalText;
 }
 
+/* =========================================
+   UPDATE ACTION BUTTONS
+========================================= */
+
 function updateActionButtons() {
     const transactionReady =
         state.connected &&
@@ -135,13 +139,66 @@ function updateActionButtons() {
         state.contractReady &&
         !state.stakingPaused;
 
-    if (elements.stakeBtn) {
-        elements.stakeBtn.disabled =
-            !transactionReady ||
-            state.busy ||
-            state.refreshing;
+    const controlsEnabled =
+        transactionReady &&
+        !state.busy &&
+        !state.refreshing;
+
+    // Amount input
+    if (elements.stakeAmount) {
+        elements.stakeAmount.disabled =
+            !controlsEnabled;
     }
 
+    // MAX button
+    if (elements.maxBtn) {
+        elements.maxBtn.disabled =
+            !controlsEnabled;
+    }
+
+    // Duration selection
+    if (elements.stakeDuration) {
+        elements.stakeDuration.disabled =
+            !controlsEnabled;
+    }
+
+    // Stake button
+    if (elements.stakeBtn) {
+        elements.stakeBtn.disabled =
+            !controlsEnabled;
+
+        if (!state.busy) {
+            if (!state.connected) {
+                elements.stakeBtn.textContent =
+                    "Connect Wallet to Stake";
+            } else if (state.chainId !== CONFIG.chainId) {
+                elements.stakeBtn.textContent =
+                    "Switch to Polygon to Stake";
+            } else if (!state.providerReady) {
+                elements.stakeBtn.textContent =
+                    "Reconnect Wallet to Stake";
+            } else if (!state.contractReady) {
+                elements.stakeBtn.textContent =
+                    "Staking Contract Unavailable";
+            } else if (state.stakingPaused) {
+                elements.stakeBtn.textContent =
+                    "Staking Paused";
+            } else {
+                elements.stakeBtn.textContent =
+                    "Approve & Stake JJS";
+            }
+        }
+    }
+
+    // Refresh button
+    if (elements.refreshBtn) {
+        elements.refreshBtn.disabled =
+            !state.connected ||
+            state.refreshing ||
+            state.busy;
+    }
+
+    // Position action buttons
     if (elements.positionsContainer) {
         elements.positionsContainer
             .querySelectorAll("button[data-action]")
@@ -154,6 +211,10 @@ function updateActionButtons() {
             });
     }
 }
+
+/* =========================================
+   WALLET UI
+========================================= */
 
 function setWalletUI(connected, address = null) {
     state.connected = connected;
@@ -236,10 +297,6 @@ function clearWalletUI() {
    PROVIDER DISCOVERY
 ========================================= */
 
-/**
- * Get injected provider as fallback.
- */
-
 function getInjectedProvider() {
     if (
         typeof window !== "undefined" &&
@@ -251,10 +308,6 @@ function getInjectedProvider() {
 
     return null;
 }
-
-/**
- * Get provider directly from AppKit.
- */
 
 async function getAppKitProvider() {
     if (
@@ -285,15 +338,6 @@ async function getAppKitProvider() {
         return null;
     }
 }
-
-/**
- * Build unique provider candidates.
- *
- * Priority:
- * 1. AppKit provider
- * 2. Provider supplied by wallet event
- * 3. Injected window.ethereum
- */
 
 async function getTransactionProviders(providerCandidate = null) {
     const appKitProvider = await getAppKitProvider();
@@ -379,11 +423,6 @@ async function validateTransactionProvider(
         return false;
     }
 }
-
-/**
- * Find the first provider matching
- * the currently connected AppKit account.
- */
 
 async function findValidTransactionProvider(
     providerCandidate,
@@ -490,11 +529,6 @@ async function syncAppKitWallet(providerCandidate = null) {
 
         setWalletUI(true, address);
 
-        /*
-         * Discover the actual transaction provider.
-         * AppKit provider is checked first.
-         */
-
         const provider =
             await findValidTransactionProvider(
                 providerCandidate,
@@ -507,15 +541,7 @@ async function syncAppKitWallet(providerCandidate = null) {
             provider &&
             state.chainId === CONFIG.chainId
         ) {
-            /*
-             * Register provider in Core Transaction Manager.
-             */
-
             setWalletProvider(provider);
-
-            /*
-             * Verify Core signer.
-             */
 
             const signer = await getWalletSigner();
             const signerAddress = await signer.getAddress();
@@ -1049,6 +1075,12 @@ async function requireTransactionReady() {
         );
     }
 
+    if (state.stakingPaused) {
+        throw new Error(
+            "Staking is currently paused."
+        );
+    }
+
     const signer = await getWalletSigner();
     const signerAddress = await signer.getAddress();
 
@@ -1075,15 +1107,6 @@ async function handleStake() {
         setMessage(
             elements.stakeMessage,
             getErrorMessage(error),
-            "error"
-        );
-        return;
-    }
-
-    if (state.stakingPaused) {
-        setMessage(
-            elements.stakeMessage,
-            "Staking is currently paused.",
             "error"
         );
         return;
@@ -1300,6 +1323,15 @@ async function handleMaxAmount() {
         return;
     }
 
+    if (!state.providerReady || !state.contractReady) {
+        setMessage(
+            elements.stakeMessage,
+            "Wallet or staking contract is not ready.",
+            "error"
+        );
+        return;
+    }
+
     try {
         const balance = await getJJSBalance(
             state.walletAddress
@@ -1422,8 +1454,11 @@ function setupEventListeners() {
 
 async function initialize() {
     console.log(
-        "JosJis Staking V4 initializing..."
+        "JosJis Staking V5 initializing..."
     );
+
+    // Initial state: keep transaction controls disabled
+    updateActionButtons();
 
     setupEventListeners();
 
@@ -1453,7 +1488,7 @@ async function initialize() {
     }
 
     console.log(
-        "JosJis Staking V4 initialized."
+        "JosJis Staking V5 initialized."
     );
 }
 
