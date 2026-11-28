@@ -4,7 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JosJis Staking Diagnostic V12</title>
+    <meta name="theme-color" content="#10121b">
+
+    <title>JosJis Staking Diagnostic V13</title>
 
     <style>
         * {
@@ -72,24 +74,13 @@
             background: #34394d;
         }
 
-        pre {
-            white-space: pre-wrap;
-            overflow-wrap: anywhere;
-            background: #0b0d14;
-            border: 1px solid #292d3d;
-            border-radius: 8px;
-            padding: 12px;
-            min-height: 70px;
-            font-size: 12px;
-            color: #d8dbea;
-        }
-
         .status {
             padding: 10px;
             border-radius: 7px;
             background: #252a3b;
             margin-bottom: 12px;
             font-size: 13px;
+            overflow-wrap: anywhere;
         }
 
         .green {
@@ -103,16 +94,54 @@
         .yellow {
             color: #ffd477;
         }
+
+        pre {
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            background: #0b0d14;
+            border: 1px solid #292d3d;
+            border-radius: 8px;
+            padding: 12px;
+            min-height: 70px;
+            font-size: 12px;
+            color: #d8dbea;
+        }
+
+        label {
+            display: block;
+            color: #c9b8ff;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            background: #0b0d14;
+            color: white;
+            border: 1px solid #45405c;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .notice {
+            color: #ffd477;
+            font-size: 12px;
+            margin-top: 8px;
+        }
     </style>
 </head>
 
 <body>
 <div class="container">
 
-    <h2>JosJis Staking Diagnostic V12</h2>
+    <h2>JosJis Staking Diagnostic V13</h2>
 
     <div class="subtitle">
-        Core Transaction Manager V9 · Staking Actions V6 · Polygon Mainnet · Chain ID 137
+        Core Transaction Manager V9 ·
+        Staking Actions V8 ·
+        Polygon Mainnet · Chain ID 137
     </div>
 
     <div class="panel">
@@ -129,6 +158,33 @@
         <button id="clearButton" class="secondary">
             CLEAR LOG
         </button>
+    </div>
+
+    <div class="panel">
+        <h3>Approve Gas Diagnostic V8</h3>
+
+        <label for="approveAmount">
+            Amount JJS untuk diuji
+        </label>
+
+        <input
+            id="approveAmount"
+            type="number"
+            value="1"
+            min="0.000000000000000001"
+            step="any"
+        >
+
+        <button id="gasTestButton" disabled>
+            TEST APPROVE GAS — NO TRANSACTION
+        </button>
+
+        <div class="notice">
+            Tes ini hanya membaca allowance dan mengestimasi gas.
+            Tidak mengirim transaksi dan tidak meminta persetujuan MetaMask.
+        </div>
+
+        <pre id="gasInfo">Not tested.</pre>
     </div>
 
     <div class="panel">
@@ -181,18 +237,33 @@
 
 const EXPECTED_CHAIN_ID = 137;
 
-const $ = id => document.getElementById(id);
+const CORE_URL =
+    "/josjis/assets/js/core/transaction-manager.js?v=9";
+
+const STAKING_ACTIONS_URL =
+    "/josjis/member/staking/modules/staking-actions.js?v=8";
+
+const CONFIG_URL =
+    "/josjis/member/staking/modules/config.js?v=8";
+
+const WEB3_CONFIG_URL =
+    "/josjis/web3/web3-config.js";
 
 let modal = null;
 let core = null;
 let stakingActions = null;
+let ethersTools = null;
+let stakingConfig = null;
 
 let initialized = false;
 let running = false;
+let gasTesting = false;
 
 // =====================================
 // UTILITIES
 // =====================================
+
+const $ = id => document.getElementById(id);
 
 function timestamp() {
     return new Date().toLocaleTimeString("id-ID");
@@ -211,7 +282,7 @@ function print(id, value) {
     try {
         $(id).textContent = JSON.stringify(
             value,
-            (key, val) => {
+            (_, val) => {
                 if (typeof val === "bigint") {
                     return val.toString();
                 }
@@ -236,14 +307,44 @@ function errorText(error) {
         String(error);
 }
 
-function extractDiagnosticStage(error) {
-    const message = errorText(error);
+function serializeError(error) {
+    const result = {};
 
-    const match = message.match(
-        /JJS diagnostic failed at ([A-Z_]+)/
+    const keys = [
+        "name",
+        "message",
+        "code",
+        "shortMessage",
+        "reason",
+        "action",
+        "method",
+        "data",
+        "info",
+        "error",
+        "cause",
+        "status",
+        "statusText",
+        "body",
+        "transaction"
+    ];
+
+    for (const key of keys) {
+        try {
+            if (error?.[key] !== undefined) {
+                result[key] = error[key];
+            }
+        } catch {
+            result[key] = "[UNREADABLE]";
+        }
+    }
+
+    return JSON.stringify(
+        result,
+        (_, value) =>
+            typeof value === "bigint"
+                ? value.toString()
+                : value
     );
-
-    return match ? match[1] : null;
 }
 
 function isAddress(value) {
@@ -271,13 +372,12 @@ function setStatus(message, type = "yellow") {
 async function initialize() {
     $("log").textContent = "";
 
-    log("Starting JosJis Staking Diagnostic V12...");
-    log("Loading shared AppKit configuration...");
+    log("Starting JosJis Staking Diagnostic V13...");
 
     try {
-        const config = await import(
-            "/josjis/web3/web3-config.js"
-        );
+        log("Loading shared AppKit configuration...");
+
+        const config = await import(WEB3_CONFIG_URL);
 
         modal = config.modal;
 
@@ -289,13 +389,9 @@ async function initialize() {
 
         log("Shared AppKit configuration loaded.", "OK");
 
-        log("Loading Core Transaction Manager...");
+        log("Loading Core Transaction Manager V9...");
 
-        core = await import(
-            "/josjis/assets/js/core/transaction-manager.js?v=9"
-        );
-
-        log("Core Transaction Manager loaded.", "OK");
+        core = await import(CORE_URL);
 
         const requiredCoreFunctions = [
             "setWalletProvider",
@@ -325,36 +421,58 @@ async function initialize() {
             );
         }
 
-        log("All required Core functions are available.", "OK");
+        log("Core Transaction Manager V9 loaded.", "OK");
 
-        log("Loading Staking Actions V6...");
+        log("Loading Staking Actions V8...");
 
         stakingActions = await import(
-            "/josjis/member/staking/modules/staking-actions.js?v=6"
+            STAKING_ACTIONS_URL
         );
 
         if (
-            typeof stakingActions.getJJSWalletStatus !== "function"
+            typeof stakingActions.getJJSWalletStatus !== "function" ||
+            typeof stakingActions.approveJJS !== "function"
         ) {
             throw new Error(
-                "getJJSWalletStatus() not found in Staking Actions V6."
+                "Required Staking Actions V8 functions not found."
             );
         }
 
-        log("Staking Actions V6 loaded.", "OK");
+        log("Staking Actions V8 loaded.", "OK");
+
+        log("Loading ethers diagnostic tools...");
+
+        ethersTools = await import(
+            "https://esm.sh/ethers@6.15.0"
+        );
+
+        stakingConfig = await import(CONFIG_URL);
+
+        if (
+            !stakingConfig.CONFIG ||
+            !stakingConfig.TOKEN_ABI
+        ) {
+            throw new Error(
+                "Staking configuration or token ABI unavailable."
+            );
+        }
+
+        log("Ethers diagnostic tools loaded.", "OK");
 
         print("coreInfo", {
+            coreVersion: "V9",
+            stakingActionsVersion: "V8",
             requiredFunctions: coreFunctions,
-            stakingActions: {
-                version: "V6",
-                getJJSWalletStatus:
-                    typeof stakingActions.getJJSWalletStatus === "function"
+            stakingFunctions: {
+                getJJSWalletStatus: true,
+                approveJJS: true
             }
         });
 
         initialized = true;
 
         $("runButton").disabled = false;
+        $("gasTestButton").disabled = false;
 
         setStatus(
             "Initialization successful. Ready.",
@@ -373,13 +491,14 @@ async function initialize() {
         );
 
         log(
-            "Initialization error: " + errorText(error),
+            "Initialization error: " +
+            serializeError(error),
             "ERROR"
         );
 
         print("coreInfo", {
             initialization: "FAILED",
-            error: errorText(error)
+            error: serializeError(error)
         });
     }
 }
@@ -446,7 +565,7 @@ async function checkAppKit() {
 }
 
 // =====================================
-// CORE PROVIDER RESOLUTION
+// CORE PROVIDER CHECK
 // =====================================
 
 async function checkProvider(appkit) {
@@ -477,7 +596,7 @@ async function checkProvider(appkit) {
 
         if (!provider) {
             throw new Error(
-                "BrowserProvider exists but Core provider is empty."
+                "Core wallet provider is empty."
             );
         }
 
@@ -732,7 +851,7 @@ async function checkCoreDiagnostic() {
 
         log(
             "Core signer diagnostic completed.",
-            result.success ? "OK" : "INFO"
+            "OK"
         );
 
         return {
@@ -749,14 +868,14 @@ async function checkCoreDiagnostic() {
 
         return {
             completed: false,
-            error: errorText(error)
+            error: serializeError(error)
         };
     }
 }
 
 // =====================================
-// JJS BALANCE & ALLOWANCE CHECK
-// READ ONLY - NO TRANSACTION
+// JJS BALANCE & ALLOWANCE
+// READ ONLY
 // =====================================
 
 async function checkJJSWalletStatus() {
@@ -764,16 +883,6 @@ async function checkJJSWalletStatus() {
 
     const result = {
         success: false,
-        address: null,
-        tokenAddress: null,
-        stakingAddress: null,
-        balance: null,
-        allowance: null,
-        formattedBalance: null,
-        formattedAllowance: null,
-        diagnosticStage: null,
-        hasBalance: false,
-        hasAllowance: false,
         errors: []
     };
 
@@ -781,91 +890,57 @@ async function checkJJSWalletStatus() {
         const status =
             await stakingActions.getJJSWalletStatus();
 
-        result.address = status.address;
-        result.tokenAddress = status.tokenAddress;
-        result.stakingAddress = status.stakingAddress;
-
-        result.balance = status.balance;
-        result.allowance = status.allowance;
-
-        result.formattedBalance =
-            status.formattedBalance;
-
-        result.formattedAllowance =
-            status.formattedAllowance;
-
-        result.diagnosticStage =
-            status.diagnosticStage || "COMPLETE";
-
-        result.hasBalance = status.hasBalance;
-        result.hasAllowance = status.hasAllowance;
-
-        result.tokenCodeValid =
-            status.tokenCodeValid;
-
-        result.stakingCodeValid =
-            status.stakingCodeValid;
-
-        result.network = status.network;
-
-        result.success =
-            isAddress(result.address) &&
-            isAddress(result.tokenAddress) &&
-            isAddress(result.stakingAddress) &&
-            typeof result.formattedBalance === "string" &&
-            typeof result.formattedAllowance === "string" &&
-            result.tokenCodeValid === true &&
-            result.stakingCodeValid === true;
-
-        if (!result.success) {
-            throw new Error(
-                "JJS wallet status returned incomplete data."
-            );
-        }
+        Object.assign(result, {
+            success: true,
+            address: status.address,
+            tokenAddress: status.tokenAddress,
+            stakingAddress: status.stakingAddress,
+            formattedBalance: status.formattedBalance,
+            formattedAllowance: status.formattedAllowance,
+            diagnosticStage: status.diagnosticStage,
+            hasBalance: status.hasBalance,
+            hasAllowance: status.hasAllowance,
+            tokenCodeValid: status.tokenCodeValid,
+            stakingCodeValid: status.stakingCodeValid,
+            network: status.network
+        });
 
         log("JJS balance read: SUCCESS", "OK");
 
         log(
             "JJS balance: " +
-            result.formattedBalance + " JJS",
+            status.formattedBalance + " JJS",
             "OK"
         );
 
         log(
             "JJS allowance: " +
-            result.formattedAllowance + " JJS",
+            status.formattedAllowance + " JJS",
             "OK"
         );
 
         log(
-            "Token contract: " +
-            result.tokenAddress
+            "Token contract: " + status.tokenAddress
         );
 
         log(
-            "Staking contract: " +
-            result.stakingAddress
+            "Staking contract: " + status.stakingAddress
         );
 
     } catch (error) {
-        const detail = errorText(error);
-
+        result.success = false;
         result.diagnosticStage =
-            extractDiagnosticStage(error);
+            errorText(error).match(
+                /JJS diagnostic failed at ([A-Z_]+)/
+            )?.[1] || null;
 
-        result.errors.push(detail);
+        result.errors.push(serializeError(error));
 
         log(
-            "JJS wallet status failed: " + detail,
+            "JJS wallet status failed: " +
+            serializeError(error),
             "ERROR"
         );
-
-        if (result.diagnosticStage) {
-            log(
-                "Failure stage: " + result.diagnosticStage,
-                "ERROR"
-            );
-        }
     }
 
     print("jjsInfo", result);
@@ -874,7 +949,7 @@ async function checkJJSWalletStatus() {
 }
 
 // =====================================
-// COMPLETE DIAGNOSTIC
+// COMPLETE READ-ONLY DIAGNOSTIC
 // =====================================
 
 async function runDiagnostic() {
@@ -883,7 +958,6 @@ async function runDiagnostic() {
     }
 
     running = true;
-
     $("runButton").disabled = true;
 
     for (const id of [
@@ -898,20 +972,15 @@ async function runDiagnostic() {
     }
 
     log("------------------------------------");
-    log("STARTING COMPLETE DIAGNOSTIC V12");
+    log("STARTING COMPLETE DIAGNOSTIC V13");
     log("------------------------------------");
 
     try {
         const appkit = await checkAppKit();
-
         const provider = await checkProvider(appkit);
-
         const browser = await checkBrowserProvider();
-
         const signer = await checkSigner(appkit);
-
         const session = await checkSignerSession();
-
         const coreDiagnostic =
             await checkCoreDiagnostic();
 
@@ -929,7 +998,6 @@ async function runDiagnostic() {
 
         let jjsStatus = {
             success: false,
-            diagnosticStage: null,
             errors: [
                 "Wallet connection checks did not pass."
             ]
@@ -937,7 +1005,6 @@ async function runDiagnostic() {
 
         if (walletConnectionReady) {
             jjsStatus = await checkJJSWalletStatus();
-
         } else {
             log(
                 "Skipping JJS read because wallet checks failed.",
@@ -948,63 +1015,43 @@ async function runDiagnostic() {
         }
 
         const summary = {
-            appKitConnected:
-                appkit.connected,
-
-            appKitOnPolygon:
-                appkit.polygon,
-
-            providerAvailable:
-                provider.providerAvailable,
-
+            appKitConnected: appkit.connected,
+            appKitOnPolygon: appkit.polygon,
+            providerAvailable: provider.providerAvailable,
             providerOnPolygon:
                 provider.chainId === EXPECTED_CHAIN_ID,
-
             providerMatchesAppKit:
                 provider.addressMatchesAppKit,
-
-            browserProviderAvailable:
-                browser.available,
-
-            browserProviderOnPolygon:
-                browser.polygon,
-
-            signerAvailable:
-                signer.signerAvailable,
-
+            browserProviderAvailable: browser.available,
+            browserProviderOnPolygon: browser.polygon,
+            signerAvailable: signer.signerAvailable,
             signerMatchesAppKit:
                 signer.addressMatchesAppKit,
-
-            signerSessionAvailable:
-                session.available,
-
-            coreDiagnosticPassed:
-                coreDiagnostic.success === true,
-
-            jjsWalletStatusRead:
-                jjsStatus.success === true,
-
+            signerSessionAvailable: session.available,
+            coreDiagnosticCompleted:
+                coreDiagnostic.completed,
+            jjsWalletStatusRead: jjsStatus.success,
             jjsBalanceRead:
-                jjsStatus.success === true &&
+                jjsStatus.success &&
                 typeof jjsStatus.formattedBalance === "string",
-
             jjsAllowanceRead:
-                jjsStatus.success === true &&
+                jjsStatus.success &&
                 typeof jjsStatus.formattedAllowance === "string",
-
             jjsDiagnosticStage:
                 jjsStatus.diagnosticStage || null,
-
             jjsError:
-                jjsStatus.errors?.join(" | ") || null
+                jjsStatus.errors?.join(" | ") || null,
+            walletConnectionReady,
+            readOnlyIntegrationPassed:
+                walletConnectionReady &&
+                jjsStatus.success === true
         };
 
-        summary.walletConnectionReady =
-            walletConnectionReady;
-
-        summary.readOnlyIntegrationPassed =
-            walletConnectionReady &&
-            jjsStatus.success === true;
+        print("coreInfo", {
+            coreVersion: "V9",
+            stakingActionsVersion: "V8",
+            coreDiagnostic
+        });
 
         print("summaryInfo", summary);
 
@@ -1013,24 +1060,17 @@ async function runDiagnostic() {
         log("------------------------------------");
 
         for (const [key, value] of Object.entries(summary)) {
-            const isBoolean = typeof value === "boolean";
-
             log(
                 `${key}: ${value}`,
-                isBoolean
+                typeof value === "boolean"
                     ? (value ? "OK" : "ERROR")
                     : "INFO"
             );
         }
 
-        print("coreInfo", {
-            requiredFunctions: "Available",
-            coreDiagnostic
-        });
-
         if (summary.readOnlyIntegrationPassed) {
             setStatus(
-                "V12 PASSED. Wallet, signer, JJS balance and allowance reads are working.",
+                "V13 PASSED. Wallet, signer and JJS reads are working.",
                 "green"
             );
 
@@ -1038,26 +1078,14 @@ async function runDiagnostic() {
                 "READ-ONLY INTEGRATION CHECK: PASSED",
                 "OK"
             );
-
-        } else if (walletConnectionReady) {
-            setStatus(
-                "Wallet checks passed, but JJS balance/allowance read failed. See JJS Wallet Status for details.",
-                "red"
-            );
-
-            log(
-                "READ-ONLY INTEGRATION CHECK: FAILED",
-                "ERROR"
-            );
-
         } else {
             setStatus(
-                "Wallet readiness check failed. Review diagnostic results.",
+                "Diagnostic not fully passed. Review the results.",
                 "red"
             );
 
             log(
-                "WALLET CONNECTION CHECK: NOT PASSED",
+                "READ-ONLY INTEGRATION CHECK: NOT PASSED",
                 "ERROR"
             );
         }
@@ -1076,7 +1104,8 @@ async function runDiagnostic() {
         );
 
         log(
-            "Diagnostic error: " + errorText(error),
+            "Diagnostic error: " +
+            serializeError(error),
             "ERROR"
         );
 
@@ -1087,12 +1116,249 @@ async function runDiagnostic() {
 }
 
 // =====================================
+// APPROVE GAS TEST V8
+// NO TRANSACTION SENT
+// =====================================
+
+async function runApproveGasTest() {
+    if (!initialized || gasTesting) {
+        return;
+    }
+
+    gasTesting = true;
+
+    const button = $("gasTestButton");
+    button.disabled = true;
+
+    $("gasInfo").textContent = "Testing...";
+
+    let stage = "START";
+
+    try {
+        log("------------------------------------");
+        log("STARTING APPROVE GAS TEST V8");
+        log("------------------------------------");
+
+        stage = "VALIDATE_AMOUNT";
+
+        const amount = String(
+            $("approveAmount").value
+        ).trim();
+
+        if (!/^\d+(\.\d{1,18})?$/.test(amount)) {
+            throw new Error(
+                "Enter a valid amount with up to 18 decimals."
+            );
+        }
+
+        const parsedAmount =
+            ethersTools.parseUnits(
+                amount,
+                stakingConfig.CONFIG.decimals
+            );
+
+        if (parsedAmount <= 0n) {
+            throw new Error(
+                "Amount must be greater than zero."
+            );
+        }
+
+        stage = "GET_SIGNER";
+
+        const signer = await core.getWalletSigner();
+        const address = await signer.getAddress();
+
+        stage = "CHECK_WALLET_NETWORK";
+
+        const walletNetwork =
+            await signer.provider.getNetwork();
+
+        if (
+            Number(walletNetwork.chainId) !==
+            EXPECTED_CHAIN_ID
+        ) {
+            throw new Error(
+                "Wallet is not connected to Polygon."
+            );
+        }
+
+        stage = "CONNECT_PUBLIC_RPC";
+
+        const provider =
+            new ethersTools.JsonRpcProvider(
+                "https://polygon-bor-rpc.publicnode.com",
+                EXPECTED_CHAIN_ID
+            );
+
+        const network = await provider.getNetwork();
+
+        if (
+            Number(network.chainId) !==
+            EXPECTED_CHAIN_ID
+        ) {
+            throw new Error(
+                "Public RPC is not connected to Polygon."
+            );
+        }
+
+        stage = "CHECK_TOKEN_CODE";
+
+        const tokenAddress =
+            stakingConfig.CONFIG.tokenAddress;
+
+        const stakingAddress =
+            stakingConfig.CONFIG.stakingAddress;
+
+        const code = await provider.getCode(tokenAddress);
+
+        if (!code || code === "0x") {
+            throw new Error(
+                "JJS token contract code not found."
+            );
+        }
+
+        stage = "READ_ALLOWANCE";
+
+        const tokenInterface =
+            new ethersTools.Interface(
+                stakingConfig.TOKEN_ABI
+            );
+
+        const allowanceData =
+            tokenInterface.encodeFunctionData(
+                "allowance",
+                [address, stakingAddress]
+            );
+
+        const allowanceRaw = await provider.call({
+            to: tokenAddress,
+            data: allowanceData
+        });
+
+        const [allowance] =
+            tokenInterface.decodeFunctionResult(
+                "allowance",
+                allowanceRaw
+            );
+
+        const formattedAllowance =
+            ethersTools.formatUnits(
+                allowance,
+                stakingConfig.CONFIG.decimals
+            );
+
+        log("Wallet: " + address);
+        log("Token: " + tokenAddress);
+        log("Spender: " + stakingAddress);
+        log("Amount: " + amount + " JJS");
+        log("Allowance: " + formattedAllowance + " JJS");
+
+        if (allowance >= parsedAmount) {
+            throw new Error(
+                "Current allowance already covers this amount. No gas test needed."
+            );
+        }
+
+        stage = "PREPARE_APPROVE";
+
+        const approveData =
+            tokenInterface.encodeFunctionData(
+                "approve",
+                [stakingAddress, parsedAmount]
+            );
+
+        const transactionRequest = {
+            from: address,
+            to: tokenAddress,
+            data: approveData,
+            value: 0n
+        };
+
+        log("Approve transaction data prepared.", "OK");
+
+        stage = "ESTIMATE_GAS";
+
+        log(
+            "Estimating gas through Public Polygon RPC..."
+        );
+
+        const estimatedGas =
+            await provider.estimateGas(
+                transactionRequest
+            );
+
+        if (estimatedGas <= 0n) {
+            throw new Error(
+                "Gas estimation returned zero."
+            );
+        }
+
+        const result = {
+            success: true,
+            stage: "COMPLETE",
+            transactionSent: false,
+            wallet: address,
+            chainId: Number(network.chainId),
+            tokenAddress,
+            stakingAddress,
+            amount,
+            allowance: formattedAllowance,
+            estimatedGas: estimatedGas.toString()
+        };
+
+        $("gasInfo").textContent =
+            JSON.stringify(result, null, 2);
+
+        log(
+            "Gas estimation successful: " +
+            estimatedGas.toString(),
+            "OK"
+        );
+
+        log(
+            "NO TRANSACTION WAS SENT.",
+            "OK"
+        );
+
+    } catch (error) {
+        const details = {
+            success: false,
+            stage,
+            transactionSent: false,
+            error: serializeError(error)
+        };
+
+        $("gasInfo").textContent =
+            JSON.stringify(details, null, 2);
+
+        log(
+            "APPROVE GAS TEST FAILED AT " + stage,
+            "ERROR"
+        );
+
+        log(
+            serializeError(error),
+            "ERROR"
+        );
+
+    } finally {
+        gasTesting = false;
+        button.disabled = false;
+    }
+}
+
+// =====================================
 // BUTTON EVENTS
 // =====================================
 
 $("runButton").addEventListener(
     "click",
     runDiagnostic
+);
+
+$("gasTestButton").addEventListener(
+    "click",
+    runApproveGasTest
 );
 
 $("clearButton").addEventListener(
