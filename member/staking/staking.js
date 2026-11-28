@@ -2,8 +2,17 @@
 /**
  * JosJis Staking
  * Main Controller
- * Version: V5
+ * Version: V6
  * Network: Polygon Mainnet
+ *
+ * WALLET:
+ * AppKit
+ *
+ * TRANSACTION SIGNER:
+ * Core Transaction Manager
+ *
+ * READ:
+ * Public Polygon RPC through modules
  */
 
 import { modal } from "../../web3/web3-config.js";
@@ -28,7 +37,6 @@ import {
 } from "./modules/contracts.js";
 
 import {
-    setWalletProvider,
     clearWalletSession,
     getWalletSigner
 } from "../../assets/js/core/transaction-manager.js";
@@ -105,8 +113,6 @@ let countdownInterval = null;
 let walletSyncSequence = 0;
 let appKitListenersInitialized = false;
 
-const providerListeners = new WeakSet();
-
 /* =========================================
    UI HELPERS
 ========================================= */
@@ -122,6 +128,7 @@ function setButtonLoading(button, loading, originalText) {
     if (!button) return;
 
     button.disabled = loading;
+
     button.textContent = loading
         ? "Please wait..."
         : originalText;
@@ -144,25 +151,21 @@ function updateActionButtons() {
         !state.busy &&
         !state.refreshing;
 
-    // Amount input
     if (elements.stakeAmount) {
         elements.stakeAmount.disabled =
             !controlsEnabled;
     }
 
-    // MAX button
     if (elements.maxBtn) {
         elements.maxBtn.disabled =
             !controlsEnabled;
     }
 
-    // Duration selection
     if (elements.stakeDuration) {
         elements.stakeDuration.disabled =
             !controlsEnabled;
     }
 
-    // Stake button
     if (elements.stakeBtn) {
         elements.stakeBtn.disabled =
             !controlsEnabled;
@@ -171,18 +174,23 @@ function updateActionButtons() {
             if (!state.connected) {
                 elements.stakeBtn.textContent =
                     "Connect Wallet to Stake";
+
             } else if (state.chainId !== CONFIG.chainId) {
                 elements.stakeBtn.textContent =
                     "Switch to Polygon to Stake";
+
             } else if (!state.providerReady) {
                 elements.stakeBtn.textContent =
-                    "Reconnect Wallet to Stake";
+                    "Checking Transaction Signer...";
+
             } else if (!state.contractReady) {
                 elements.stakeBtn.textContent =
                     "Staking Contract Unavailable";
+
             } else if (state.stakingPaused) {
                 elements.stakeBtn.textContent =
                     "Staking Paused";
+
             } else {
                 elements.stakeBtn.textContent =
                     "Approve & Stake JJS";
@@ -190,7 +198,6 @@ function updateActionButtons() {
         }
     }
 
-    // Refresh button
     if (elements.refreshBtn) {
         elements.refreshBtn.disabled =
             !state.connected ||
@@ -198,7 +205,6 @@ function updateActionButtons() {
             state.busy;
     }
 
-    // Position action buttons
     if (elements.positionsContainer) {
         elements.positionsContainer
             .querySelectorAll("button[data-action]")
@@ -207,7 +213,8 @@ function updateActionButtons() {
                     !state.connected ||
                     !state.providerReady ||
                     state.chainId !== CONFIG.chainId ||
-                    state.busy;
+                    state.busy ||
+                    state.refreshing;
             });
     }
 }
@@ -221,21 +228,20 @@ function setWalletUI(connected, address = null) {
     state.walletAddress = address;
 
     if (elements.walletStatus) {
-        elements.walletStatus.textContent = connected
-            ? "Connected"
-            : "Disconnected";
+        elements.walletStatus.textContent =
+            connected ? "Connected" : "Disconnected";
     }
 
     if (elements.walletAddress) {
-        elements.walletAddress.textContent = connected
-            ? shortenAddress(address)
-            : "Not connected";
+        elements.walletAddress.textContent =
+            connected
+                ? shortenAddress(address)
+                : "Not connected";
     }
 
     if (elements.connectBtn) {
-        elements.connectBtn.textContent = connected
-            ? "Connected"
-            : "Connect Wallet";
+        elements.connectBtn.textContent =
+            connected ? "Connected" : "Connect Wallet";
     }
 
     if (elements.copyBtn) {
@@ -291,217 +297,15 @@ function clearWalletUI() {
     setMessage(elements.stakeMessage, "");
 
     updateStakeEstimate();
-}
-
-/* =========================================
-   PROVIDER DISCOVERY
-========================================= */
-
-function getInjectedProvider() {
-    if (
-        typeof window !== "undefined" &&
-        window.ethereum &&
-        typeof window.ethereum.request === "function"
-    ) {
-        return window.ethereum;
-    }
-
-    return null;
-}
-
-async function getAppKitProvider() {
-    if (
-        !modal ||
-        typeof modal.getWalletProvider !== "function"
-    ) {
-        return null;
-    }
-
-    try {
-        const provider = await modal.getWalletProvider();
-
-        if (
-            provider &&
-            typeof provider.request === "function"
-        ) {
-            return provider;
-        }
-
-        return null;
-
-    } catch (error) {
-        console.warn(
-            "Unable to obtain AppKit wallet provider:",
-            error
-        );
-
-        return null;
-    }
-}
-
-async function getTransactionProviders(providerCandidate = null) {
-    const appKitProvider = await getAppKitProvider();
-
-    const candidates = [
-        appKitProvider,
-        providerCandidate,
-        getInjectedProvider()
-    ];
-
-    const uniqueProviders = [];
-
-    for (const provider of candidates) {
-        if (
-            !provider ||
-            typeof provider.request !== "function"
-        ) {
-            continue;
-        }
-
-        if (!uniqueProviders.includes(provider)) {
-            uniqueProviders.push(provider);
-        }
-    }
-
-    return uniqueProviders;
-}
-
-/* =========================================
-   PROVIDER VALIDATION
-========================================= */
-
-async function validateTransactionProvider(
-    provider,
-    expectedAddress
-) {
-    if (
-        !provider ||
-        typeof provider.request !== "function" ||
-        !expectedAddress
-    ) {
-        return false;
-    }
-
-    try {
-        const accounts = await provider.request({
-            method: "eth_accounts"
-        });
-
-        if (
-            !Array.isArray(accounts) ||
-            accounts.length === 0 ||
-            typeof accounts[0] !== "string"
-        ) {
-            return false;
-        }
-
-        if (
-            accounts[0].toLowerCase() !==
-            expectedAddress.toLowerCase()
-        ) {
-            return false;
-        }
-
-        const chainId = await provider.request({
-            method: "eth_chainId"
-        });
-
-        const parsedChainId =
-            typeof chainId === "string" &&
-            chainId.toLowerCase().startsWith("0x")
-                ? Number.parseInt(chainId, 16)
-                : Number(chainId);
-
-        return parsedChainId === CONFIG.chainId;
-
-    } catch (error) {
-        console.warn(
-            "Transaction provider validation failed:",
-            error
-        );
-
-        return false;
-    }
-}
-
-async function findValidTransactionProvider(
-    providerCandidate,
-    expectedAddress
-) {
-    const providers =
-        await getTransactionProviders(providerCandidate);
-
-    for (const provider of providers) {
-        const valid =
-            await validateTransactionProvider(
-                provider,
-                expectedAddress
-            );
-
-        if (valid) {
-            return provider;
-        }
-    }
-
-    return null;
-}
-
-/* =========================================
-   PROVIDER EVENTS
-========================================= */
-
-function setupProviderEvents(provider) {
-    if (
-        !provider ||
-        typeof provider.on !== "function" ||
-        providerListeners.has(provider)
-    ) {
-        return;
-    }
-
-    providerListeners.add(provider);
-
-    provider.on("accountsChanged", async (accounts) => {
-        if (!Array.isArray(accounts) || accounts.length === 0) {
-            clearWalletUI();
-
-            setMessage(
-                elements.stakingMessage,
-                "Wallet account disconnected.",
-                "warning"
-            );
-
-            return;
-        }
-
-        await syncAppKitWallet(provider);
-    });
-
-    provider.on("chainChanged", async () => {
-        await syncAppKitWallet(provider);
-    });
-
-    provider.on("disconnect", () => {
-        state.providerReady = false;
-        state.walletProvider = null;
-
-        clearWalletSession();
-
-        updateActionButtons();
-
-        setMessage(
-            elements.stakingMessage,
-            "Wallet provider disconnected. Reconnect your wallet.",
-            "warning"
-        );
-    });
+    updateActionButtons();
 }
 
 /* =========================================
    APPKIT WALLET SYNCHRONIZATION
+   CORE TRANSACTION MANAGER
 ========================================= */
 
-async function syncAppKitWallet(providerCandidate = null) {
+async function syncAppKitWallet() {
     const sequence = ++walletSyncSequence;
 
     try {
@@ -527,67 +331,60 @@ async function syncAppKitWallet(providerCandidate = null) {
         state.walletAddress = address;
         state.chainId = Number(chainId);
 
+        state.providerReady = false;
+        state.walletProvider = null;
+
         setWalletUI(true, address);
 
-        const provider =
-            await findValidTransactionProvider(
-                providerCandidate,
-                address
-            );
-
-        if (sequence !== walletSyncSequence) return;
-
-        if (
-            provider &&
-            state.chainId === CONFIG.chainId
-        ) {
-            setWalletProvider(provider);
-
-            const signer = await getWalletSigner();
-            const signerAddress = await signer.getAddress();
-
-            if (
-                signerAddress.toLowerCase() !==
-                address.toLowerCase()
-            ) {
-                throw new Error(
-                    "Signer address does not match the connected wallet."
-                );
-            }
-
-            if (sequence !== walletSyncSequence) return;
-
-            state.walletProvider = provider;
-            state.providerReady = true;
-
-            setupProviderEvents(provider);
+        if (state.chainId !== CONFIG.chainId) {
+            clearWalletSession();
 
             setMessage(
                 elements.stakingMessage,
-                "Wallet connected. Transaction provider ready.",
-                "success"
+                "Please switch your wallet to Polygon Mainnet.",
+                "warning"
             );
 
-        } else {
-            state.walletProvider = null;
-            state.providerReady = false;
+            updateActionButtons();
 
-            clearWalletSession();
-
-            if (state.chainId !== CONFIG.chainId) {
-                setMessage(
-                    elements.stakingMessage,
-                    "Please switch your wallet to Polygon Mainnet.",
-                    "warning"
-                );
-            } else {
-                setMessage(
-                    elements.stakingMessage,
-                    "Wallet connected, but no valid transaction provider was found. Please reconnect your wallet.",
-                    "warning"
-                );
-            }
+            await refreshAll();
+            return;
         }
+
+        setMessage(
+            elements.stakingMessage,
+            "Checking transaction signer..."
+        );
+
+        // Core Transaction Manager resolves provider and signer.
+        const signer = await getWalletSigner();
+
+        const signerAddress = await signer.getAddress();
+
+        if (
+            signerAddress.toLowerCase() !==
+            address.toLowerCase()
+        ) {
+            throw new Error(
+                "Signer address does not match the connected wallet."
+            );
+        }
+
+        // Ignore outdated synchronization results.
+        if (sequence !== walletSyncSequence) {
+            return;
+        }
+
+        state.walletProvider =
+            signer.provider || signer;
+
+        state.providerReady = true;
+
+        setMessage(
+            elements.stakingMessage,
+            "Wallet connected. Transaction signer ready.",
+            "success"
+        );
 
         updateActionButtons();
 
@@ -599,7 +396,9 @@ async function syncAppKitWallet(providerCandidate = null) {
             error
         );
 
-        if (sequence !== walletSyncSequence) return;
+        if (sequence !== walletSyncSequence) {
+            return;
+        }
 
         state.walletProvider = null;
         state.providerReady = false;
@@ -613,6 +412,8 @@ async function syncAppKitWallet(providerCandidate = null) {
             getErrorMessage(error),
             "error"
         );
+
+        await refreshAll();
     }
 }
 
@@ -968,7 +769,8 @@ function createPositionElement(position) {
 
         withdrawButton.disabled =
             !state.providerReady ||
-            state.chainId !== CONFIG.chainId;
+            state.chainId !== CONFIG.chainId ||
+            state.refreshing;
 
         actions.appendChild(withdrawButton);
     }
@@ -984,7 +786,8 @@ function createPositionElement(position) {
 
         claimButton.disabled =
             !state.providerReady ||
-            state.chainId !== CONFIG.chainId;
+            state.chainId !== CONFIG.chainId ||
+            state.refreshing;
 
         actions.appendChild(claimButton);
     }
@@ -1054,12 +857,17 @@ function updateCountdowns() {
 
 async function requireTransactionReady() {
     if (!state.connected || !state.walletAddress) {
-        throw new Error("Connect your wallet first.");
+        throw new Error(
+            "Connect your wallet first."
+        );
     }
 
-    if (!state.providerReady || !state.walletProvider) {
+    if (
+        !state.providerReady ||
+        !state.walletProvider
+    ) {
         throw new Error(
-            "Transaction provider is unavailable. Reconnect your wallet."
+            "Transaction signer is unavailable. Reconnect your wallet."
         );
     }
 
@@ -1082,6 +890,7 @@ async function requireTransactionReady() {
     }
 
     const signer = await getWalletSigner();
+
     const signerAddress = await signer.getAddress();
 
     if (
@@ -1213,7 +1022,8 @@ async function handleStake() {
         state.busy = false;
 
         if (elements.stakeBtn) {
-            elements.stakeBtn.textContent = originalText;
+            elements.stakeBtn.textContent =
+                "Approve & Stake JJS";
         }
 
         updateActionButtons();
@@ -1323,7 +1133,10 @@ async function handleMaxAmount() {
         return;
     }
 
-    if (!state.providerReady || !state.contractReady) {
+    if (
+        !state.providerReady ||
+        !state.contractReady
+    ) {
         setMessage(
             elements.stakeMessage,
             "Wallet or staking contract is not ready.",
@@ -1454,10 +1267,9 @@ function setupEventListeners() {
 
 async function initialize() {
     console.log(
-        "JosJis Staking V5 initializing..."
+        "JosJis Staking V6 initializing..."
     );
 
-    // Initial state: keep transaction controls disabled
     updateActionButtons();
 
     setupEventListeners();
@@ -1488,7 +1300,7 @@ async function initialize() {
     }
 
     console.log(
-        "JosJis Staking V5 initialized."
+        "JosJis Staking V6 initialized."
     );
 }
 
