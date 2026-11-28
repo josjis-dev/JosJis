@@ -2,230 +2,214 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#111827">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JosJis Staking Diagnostic V8</title>
 
-<title>JosJis Staking Diagnostic V7</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
 
-<style>
-* { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 18px;
+            background: #10121b;
+            color: #e8eaf2;
+            font-family: Arial, sans-serif;
+            line-height: 1.5;
+        }
 
-body {
-    margin: 0;
-    padding: 20px;
-    background: #0f172a;
-    color: #e5e7eb;
-    font-family: Arial, sans-serif;
-}
+        .container {
+            max-width: 850px;
+            margin: auto;
+        }
 
-.container {
-    max-width: 700px;
-    margin: 25px auto;
-}
+        h2 {
+            color: #b9a0ff;
+            margin-bottom: 5px;
+        }
 
-h1 { color: #facc15; }
+        .subtitle {
+            color: #9da3b8;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
 
-.subtitle {
-    color: #94a3b8;
-    margin-bottom: 24px;
-}
+        .panel {
+            background: #1b1e2b;
+            border: 1px solid #303449;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
 
-.panel {
-    background: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 12px;
-    padding: 18px;
-    margin-bottom: 16px;
-}
+        .panel h3 {
+            margin-top: 0;
+            color: #c9b8ff;
+            font-size: 16px;
+        }
 
-.panel h2 {
-    font-size: 17px;
-    color: #facc15;
-    margin-top: 0;
-}
+        button {
+            width: 100%;
+            padding: 13px;
+            margin: 5px 0;
+            border: 0;
+            border-radius: 8px;
+            background: #7955d9;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
 
-.test-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 0;
-    border-bottom: 1px solid #334155;
-}
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
 
-.test-item:last-child { border-bottom: none; }
+        .secondary {
+            background: #34394d;
+        }
 
-.status {
-    font-size: 12px;
-    font-weight: bold;
-    text-align: right;
-    overflow-wrap: anywhere;
-}
+        pre {
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            background: #0b0d14;
+            border: 1px solid #292d3d;
+            border-radius: 8px;
+            padding: 12px;
+            min-height: 100px;
+            font-size: 12px;
+            color: #d8dbea;
+        }
 
-.success { color: #4ade80; }
-.error { color: #f87171; }
-.warning { color: #facc15; }
+        .status {
+            padding: 10px;
+            border-radius: 7px;
+            background: #252a3b;
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
 
-button {
-    width: 100%;
-    padding: 14px;
-    margin-top: 10px;
-    border: none;
-    border-radius: 8px;
-    background: #eab308;
-    color: #111827;
-    font-size: 15px;
-    font-weight: bold;
-}
+        .green {
+            color: #65e6a1;
+        }
 
-button.secondary {
-    background: #334155;
-    color: white;
-}
+        .red {
+            color: #ff7777;
+        }
 
-button:disabled {
-    opacity: .5;
-}
+        .yellow {
+            color: #ffd477;
+        }
 
-.details {
-    background: #0f172a;
-    border-radius: 8px;
-    padding: 12px;
-    font-size: 12px;
-    line-height: 1.7;
-    overflow-wrap: anywhere;
-    white-space: pre-wrap;
-}
-
-.notice {
-    color: #facc15;
-    font-size: 13px;
-    line-height: 1.6;
-}
-</style>
+        .muted {
+            color: #9da3b8;
+        }
+    </style>
 </head>
 
 <body>
-
 <div class="container">
 
-<h1>JosJis Staking Diagnostic V7</h1>
+    <h2>JosJis Staking Diagnostic V8</h2>
+    <div class="subtitle">
+        Core Transaction Manager · Polygon Mainnet · Chain ID 137
+    </div>
 
-<p class="subtitle">
-Core Transaction Manager Test - Polygon Mainnet
-</p>
+    <div class="panel">
+        <h3>System Status</h3>
+        <div id="systemStatus" class="status">
+            Initializing diagnostic...
+        </div>
 
-<div class="panel">
-<h2>1. AppKit Connection</h2>
+        <button id="runButton" disabled>
+            RUN COMPLETE DIAGNOSTIC
+        </button>
 
-<div class="test-item">
-<span>AppKit Status</span>
-<span id="appStatus" class="status">WAITING</span>
-</div>
+        <button id="clearButton" class="secondary">
+            CLEAR LOG
+        </button>
+    </div>
 
-<div class="test-item">
-<span>Wallet Address</span>
-<span id="addressStatus" class="status">WAITING</span>
-</div>
+    <div class="panel">
+        <h3>Diagnostic Log</h3>
+        <pre id="log">Waiting for initialization...</pre>
+    </div>
 
-<div class="test-item">
-<span>Network</span>
-<span id="networkStatus" class="status">WAITING</span>
-</div>
+    <div class="panel">
+        <h3>AppKit Information</h3>
+        <pre id="appkitInfo">Not checked.</pre>
+    </div>
 
-<button id="connectBtn">Connect Wallet</button>
-</div>
+    <div class="panel">
+        <h3>Core Transaction Manager</h3>
+        <pre id="coreInfo">Not checked.</pre>
+    </div>
 
-<div class="panel">
-<h2>2. Core Transaction Manager</h2>
+    <div class="panel">
+        <h3>Provider Information</h3>
+        <pre id="providerInfo">Not checked.</pre>
+    </div>
 
-<div class="test-item">
-<span>Core Module</span>
-<span id="coreStatus" class="status">WAITING</span>
-</div>
-
-<div class="test-item">
-<span>Wallet Provider</span>
-<span id="providerStatus" class="status">WAITING</span>
-</div>
-
-<div class="test-item">
-<span>EIP-1193 Request</span>
-<span id="requestStatus" class="status">WAITING</span>
-</div>
-
-<div class="test-item">
-<span>BrowserProvider</span>
-<span id="browserStatus" class="status">WAITING</span>
-</div>
-
-<div class="test-item">
-<span>Wallet Signer</span>
-<span id="signerStatus" class="status">WAITING</span>
-</div>
-
-<div class="test-item">
-<span>Address Match</span>
-<span id="matchStatus" class="status">WAITING</span>
-</div>
-
-<button id="testBtn">Run Core Wallet Test</button>
-</div>
-
-<div class="panel">
-<h2>3. Wallet Information</h2>
-<div id="walletInfo" class="details">
-Test has not started.
-</div>
-</div>
-
-<div class="panel">
-<h2>4. Diagnostic Log</h2>
-<div id="logs" class="details">System initializing...</div>
-<button id="clearBtn" class="secondary">Clear Logs</button>
-</div>
-
-<div class="panel">
-<p class="notice">
-SECURITY NOTICE: Read-only diagnostic.
-This page does not send transactions, approve tokens,
-or request seed phrases or private keys.
-</p>
-</div>
+    <div class="panel">
+        <h3>Signer Information</h3>
+        <pre id="signerInfo">Not checked.</pre>
+    </div>
 
 </div>
 
 <script type="module">
 
-/* =====================================
-   HELPERS
-===================================== */
+const $ = (id) => document.getElementById(id);
 
-const $ = id => document.getElementById(id);
+let modal = null;
+let core = null;
 
-function log(message) {
-    const time = new Date().toLocaleTimeString();
+let initialized = false;
+let running = false;
 
-    $("logs").textContent +=
-        `[${time}] ${message}\n`;
+const EXPECTED_CHAIN_ID = 137;
 
-    console.log("[JosJis V7]", message);
+function timestamp() {
+    return new Date().toLocaleTimeString("id-ID");
 }
 
-function status(id, message, type = "") {
-    const element = $(id);
+function log(message, type = "INFO") {
+    const output = $("log");
 
-    element.textContent = message;
-    element.className = "status " + type;
+    output.textContent +=
+        `[${timestamp()}] [${type}] ${message}\n`;
+
+    output.scrollTop = output.scrollHeight;
 }
 
-function shortAddress(address) {
-    if (!address) return "Unavailable";
+function print(id, value) {
+    if (typeof value === "string") {
+        $(id).textContent = value;
+        return;
+    }
 
-    return address.slice(0, 6) +
-        "..." +
-        address.slice(-4);
+    try {
+        $(id).textContent = JSON.stringify(
+            value,
+            (key, val) => {
+                if (typeof val === "bigint") {
+                    return val.toString();
+                }
+
+                if (typeof val === "function") {
+                    return "[Function]";
+                }
+
+                return val;
+            },
+            2
+        );
+    } catch (error) {
+        $(id).textContent = String(value);
+    }
 }
 
 function errorText(error) {
@@ -235,457 +219,710 @@ function errorText(error) {
         String(error);
 }
 
-/* =====================================
-   STATE
-===================================== */
+function isAddress(value) {
+    return typeof value === "string" &&
+        /^0x[a-fA-F0-9]{40}$/.test(value);
+}
 
-let modal = null;
-let core = null;
+function sameAddress(a, b) {
+    return isAddress(a) &&
+        isAddress(b) &&
+        a.toLowerCase() === b.toLowerCase();
+}
 
-let initialized = false;
-let testing = false;
+function setStatus(message, type = "yellow") {
+    $("systemStatus").innerHTML =
+        `<span class="${type}">${message}</span>`;
+}
 
-/* =====================================
-   LOAD CORE
-===================================== */
-
-async function loadCore() {
+async function safeCall(label, callback) {
     try {
-        log("Loading shared AppKit configuration...");
+        const result = await callback();
+
+        log(`${label}: SUCCESS`, "OK");
+
+        return {
+            success: true,
+            value: result
+        };
+
+    } catch (error) {
+        log(`${label}: FAILED - ${errorText(error)}`, "ERROR");
+
+        return {
+            success: false,
+            error: errorText(error)
+        };
+    }
+}
+
+// =====================================
+// INITIALIZATION
+// =====================================
+
+async function initialize() {
+
+    $("log").textContent = "";
+
+    log("Starting JosJis Staking Diagnostic V8...");
+    log("Loading shared AppKit configuration...");
+
+    try {
 
         const config = await import(
-            "../../web3/web3-config.js"
+            "/josjis/web3/web3-config.js"
         );
 
         modal = config.modal;
 
         if (!modal) {
             throw new Error(
-                "AppKit modal export unavailable."
+                "Shared AppKit modal export not found."
             );
         }
 
-        log("Shared AppKit configuration loaded.");
+        log("Shared AppKit configuration loaded.", "OK");
 
         log("Loading Core Transaction Manager...");
 
         core = await import(
-            "../../../assets/js/core/transaction-manager.js"
+            "/josjis/assets/js/core/transaction-manager.js?v=8"
         );
 
-        const required = [
+        log("Core Transaction Manager loaded.", "OK");
+
+        const requiredFunctions = [
+            "setWalletProvider",
             "getWalletProvider",
             "getBrowserProvider",
             "getWalletSigner",
             "getSignerSession",
-            "diagnoseWalletSigner"
+            "diagnoseWalletSigner",
+            "clearWalletSession"
         ];
 
-        for (const name of required) {
-            if (typeof core[name] !== "function") {
-                throw new Error(
-                    `Core function missing: ${name}`
-                );
-            }
+        const functionStatus = {};
+
+        for (const name of requiredFunctions) {
+            functionStatus[name] =
+                typeof core[name] === "function";
         }
 
-        status("coreStatus", "LOADED", "success");
+        print("coreInfo", functionStatus);
 
-        log("Core Transaction Manager loaded.");
+        const missing = requiredFunctions.filter(
+            name => !functionStatus[name]
+        );
+
+        if (missing.length > 0) {
+            throw new Error(
+                "Missing Core functions: " + missing.join(", ")
+            );
+        }
 
         initialized = true;
 
-        status("appStatus", "READY", "success");
+        $("runButton").disabled = false;
 
-        return true;
-
-    } catch (error) {
-        status("coreStatus", "FAILED", "error");
-
-        log("Initialization error: " + errorText(error));
-
-        $("walletInfo").textContent =
-            error?.stack || errorText(error);
-
-        return false;
-    }
-}
-
-/* =====================================
-   APPKIT ACCOUNT
-===================================== */
-
-function getAppKitInfo() {
-    if (!modal) {
-        throw new Error("AppKit unavailable.");
-    }
-
-    const address = modal.getAddress();
-
-    const chainId = modal.getChainId();
-
-    const connected = Boolean(address);
-
-    status(
-        "appStatus",
-        connected ? "CONNECTED" : "DISCONNECTED",
-        connected ? "success" : "warning"
-    );
-
-    status(
-        "addressStatus",
-        connected ? shortAddress(address) : "NOT CONNECTED",
-        connected ? "success" : "warning"
-    );
-
-    status(
-        "networkStatus",
-        Number(chainId) === 137
-            ? "POLYGON 137"
-            : `WRONG NETWORK (${chainId ?? "Unknown"})`,
-        Number(chainId) === 137
-            ? "success"
-            : "error"
-    );
-
-    return {
-        connected,
-        address,
-        chainId: chainId ?? null
-    };
-}
-
-/* =====================================
-   CONNECT WALLET
-===================================== */
-
-async function connectWallet() {
-    try {
-        if (!modal) {
-            throw new Error("AppKit is not initialized.");
-        }
-
-        log("Opening AppKit wallet modal...");
-
-        await modal.open();
-
-        log("AppKit modal opened.");
-
-        getAppKitInfo();
-
-    } catch (error) {
-        log("Connect error: " + errorText(error));
-    }
-}
-
-/* =====================================
-   CORE WALLET TEST
-===================================== */
-
-async function runCoreTest() {
-    if (testing) return;
-
-    testing = true;
-
-    $("testBtn").disabled = true;
-
-    const resetItems = [
-        "providerStatus",
-        "requestStatus",
-        "browserStatus",
-        "signerStatus",
-        "matchStatus"
-    ];
-
-    resetItems.forEach(id => {
-        status(id, "CHECKING", "warning");
-    });
-
-    try {
-        if (!initialized) {
-            throw new Error("Core module is not initialized.");
-        }
-
-        log("--------------------------------");
-        log("Starting Core Wallet Test V7...");
-
-        const account = getAppKitInfo();
-
-        if (!account.connected) {
-            throw new Error("AppKit wallet is not connected.");
-        }
-
-        if (Number(account.chainId) !== 137) {
-            throw new Error("Please switch to Polygon Mainnet.");
-        }
-
-        log("AppKit address: " + account.address);
-        log("AppKit Chain ID: " + account.chainId);
-
-        /*
-         * STEP 1
-         * Run Core's own signer diagnostic.
-         */
-
-        log("Running diagnoseWalletSigner()...");
-
-        const diagnosis =
-            await core.diagnoseWalletSigner();
-
-        if (!diagnosis.success) {
-            throw new Error(
-                "Core signer diagnostic failed: " +
-                diagnosis.error
-            );
-        }
-
-        log("Core signer diagnostic successful.");
-
-        /*
-         * STEP 2
-         * Check provider acquired by Core.
-         */
-
-        const provider = core.getWalletProvider();
-
-        if (!provider) {
-            throw new Error(
-                "Core wallet provider is unavailable."
-            );
-        }
-
-        status("providerStatus", "AVAILABLE", "success");
-
-        log(
-            "Provider constructor: " +
-            (provider.constructor?.name || "Unknown")
+        setStatus(
+            "Initialization successful. Ready to run diagnostic.",
+            "green"
         );
 
-        /*
-         * STEP 3
-         * Test EIP-1193 read-only request.
-         */
+        log("All required Core functions are available.", "OK");
+        log("Diagnostic initialization completed.");
 
-        if (typeof provider.request !== "function") {
-            throw new Error(
-                "Provider does not expose request()."
+    } catch (error) {
+
+        initialized = false;
+
+        setStatus(
+            "Initialization failed: " + errorText(error),
+            "red"
+        );
+
+        log(
+            "Initialization error: " + errorText(error),
+            "ERROR"
+        );
+
+        print("coreInfo", {
+            initialization: "FAILED",
+            error: errorText(error)
+        });
+    }
+}
+
+// =====================================
+// APPKIT CHECK
+// =====================================
+
+async function checkAppKit() {
+
+    log("Checking AppKit account...");
+
+    const result = {
+        connected: false,
+        address: null,
+        chainId: null,
+        errors: []
+    };
+
+    try {
+        result.address = await modal.getAddress();
+    } catch (error) {
+        result.errors.push(
+            "getAddress: " + errorText(error)
+        );
+    }
+
+    try {
+        result.chainId = await modal.getChainId();
+    } catch (error) {
+        result.errors.push(
+            "getChainId: " + errorText(error)
+        );
+    }
+
+    result.connected = isAddress(result.address);
+
+    result.polygon =
+        Number(result.chainId) === EXPECTED_CHAIN_ID;
+
+    print("appkitInfo", result);
+
+    log(
+        "AppKit address: " +
+        (result.address || "Unavailable")
+    );
+
+    log(
+        "AppKit chain ID: " +
+        (result.chainId ?? "Unavailable")
+    );
+
+    log(
+        "AppKit connected: " + result.connected,
+        result.connected ? "OK" : "ERROR"
+    );
+
+    log(
+        "AppKit Polygon network: " + result.polygon,
+        result.polygon ? "OK" : "ERROR"
+    );
+
+    return result;
+}
+
+// =====================================
+// PROVIDER CHECK
+// =====================================
+
+async function checkProvider(appkit) {
+
+    log("Checking Core wallet provider...");
+
+    const result = {
+        providerAvailable: false,
+        providerType: null,
+        accounts: null,
+        chainId: null,
+        addressMatchesAppKit: false,
+        errors: []
+    };
+
+    let provider = null;
+
+    const providerResult = await safeCall(
+        "Core getWalletProvider",
+        async () => core.getWalletProvider()
+    );
+
+    if (providerResult.success) {
+        provider = providerResult.value;
+    } else {
+        result.errors.push(providerResult.error);
+    }
+
+    // If Core has no provider, try the injected wallet provider.
+    if (!provider && window.ethereum) {
+
+        log(
+            "Core provider unavailable. Checking injected provider..."
+        );
+
+        const injected = window.ethereum;
+
+        if (typeof injected.request === "function") {
+
+            try {
+
+                const accounts = await injected.request({
+                    method: "eth_accounts"
+                });
+
+                if (
+                    Array.isArray(accounts) &&
+                    appkit.address &&
+                    accounts.some(account =>
+                        sameAddress(account, appkit.address)
+                    )
+                ) {
+
+                    log(
+                        "Injected provider account matches AppKit.",
+                        "OK"
+                    );
+
+                    core.setWalletProvider(injected);
+
+                    provider = core.getWalletProvider();
+
+                } else {
+
+                    log(
+                        "Injected provider account does not match AppKit.",
+                        "WARNING"
+                    );
+                }
+
+            } catch (error) {
+                result.errors.push(
+                    "Injected provider: " + errorText(error)
+                );
+            }
+        }
+    }
+
+    result.providerAvailable = !!provider;
+
+    if (provider) {
+
+        result.providerType =
+            provider.constructor?.name || "Unknown";
+
+        try {
+
+            result.accounts = await provider.request({
+                method: "eth_accounts"
+            });
+
+            log(
+                "Provider eth_accounts: SUCCESS",
+                "OK"
+            );
+
+        } catch (error) {
+
+            result.errors.push(
+                "eth_accounts: " + errorText(error)
             );
         }
 
-        const accounts = await provider.request({
-            method: "eth_accounts"
-        });
+        try {
 
-        const chainId = await provider.request({
-            method: "eth_chainId"
-        });
+            const chain = await provider.request({
+                method: "eth_chainId"
+            });
 
-        if (!Array.isArray(accounts) || !accounts[0]) {
-            throw new Error(
-                "Provider returned no wallet account."
+            result.chainId = Number(chain);
+
+            log(
+                "Provider chain ID: " + result.chainId,
+                result.chainId === EXPECTED_CHAIN_ID
+                    ? "OK"
+                    : "ERROR"
+            );
+
+        } catch (error) {
+
+            result.errors.push(
+                "eth_chainId: " + errorText(error)
             );
         }
 
-        status("requestStatus", "SUCCESS", "success");
+        if (
+            Array.isArray(result.accounts) &&
+            appkit.address
+        ) {
 
-        log("Provider account: " + accounts[0]);
-        log("Provider chain ID: " + chainId);
+            result.addressMatchesAppKit =
+                result.accounts.some(account =>
+                    sameAddress(account, appkit.address)
+                );
+        }
+    }
 
-        /*
-         * STEP 4
-         * BrowserProvider
-         */
+    print("providerInfo", result);
+
+    log(
+        "Provider available: " + result.providerAvailable,
+        result.providerAvailable ? "OK" : "ERROR"
+    );
+
+    log(
+        "Provider address matches AppKit: " +
+        result.addressMatchesAppKit,
+        result.addressMatchesAppKit ? "OK" : "ERROR"
+    );
+
+    return result;
+}
+
+// =====================================
+// BROWSER PROVIDER CHECK
+// =====================================
+
+async function checkBrowserProvider() {
+
+    log("Checking ethers BrowserProvider...");
+
+    const result = {
+        available: false,
+        chainId: null,
+        networkName: null,
+        errors: []
+    };
+
+    try {
 
         const browserProvider =
             await core.getBrowserProvider();
 
-        const network =
-            await browserProvider.getNetwork();
-
-        if (Number(network.chainId) !== 137) {
+        if (!browserProvider) {
             throw new Error(
-                "BrowserProvider is not on Polygon."
+                "BrowserProvider returned empty value."
             );
         }
 
-        status("browserStatus", "VALID", "success");
+        result.available = true;
+
+        const network = await browserProvider.getNetwork();
+
+        result.chainId = Number(network.chainId);
+        result.networkName = network.name;
 
         log(
-            "BrowserProvider chain ID: " +
-            network.chainId.toString()
+            "BrowserProvider network: " +
+            result.chainId,
+            result.chainId === EXPECTED_CHAIN_ID
+                ? "OK"
+                : "ERROR"
         );
 
-        /*
-         * STEP 5
-         * Signer
-         */
+    } catch (error) {
 
-        const session =
-            await core.getSignerSession();
+        result.errors.push(errorText(error));
 
-        const signerAddress =
-            await session.signer.getAddress();
+        log(
+            "BrowserProvider check failed: " +
+            errorText(error),
+            "ERROR"
+        );
+    }
 
-        if (!signerAddress) {
-            throw new Error("Signer address unavailable.");
-        }
+    return result;
+}
 
-        status("signerStatus", "AVAILABLE", "success");
+// =====================================
+// SIGNER CHECK
+// =====================================
 
-        log("Signer address: " + signerAddress);
+async function checkSigner(appkit) {
 
-        /*
-         * STEP 6
-         * Compare all wallet addresses.
-         */
+    log("Checking wallet signer...");
 
-        const appAddress =
-            account.address.toLowerCase();
+    const result = {
+        signerAvailable: false,
+        signerAddress: null,
+        addressMatchesAppKit: false,
+        errors: []
+    };
 
-        const providerAddress =
-            accounts[0].toLowerCase();
+    try {
 
-        const actualSigner =
-            signerAddress.toLowerCase();
+        const signer = await core.getWalletSigner();
 
-        const allMatch =
-            appAddress === providerAddress &&
-            appAddress === actualSigner;
-
-        if (!allMatch) {
-            status("matchStatus", "MISMATCH", "error");
-
+        if (!signer) {
             throw new Error(
-                "AppKit, provider, and signer addresses do not match."
+                "getWalletSigner returned empty value."
             );
         }
 
-        status("matchStatus", "MATCH", "success");
+        result.signerAvailable = true;
 
-        log("All wallet addresses match.");
-        log("Polygon network verified.");
-        log("Core wallet test successful.");
+        result.signerAddress =
+            await signer.getAddress();
 
-        $("walletInfo").textContent =
-            `AppKit Connected: ${account.connected}\n` +
-            `AppKit Address: ${account.address}\n` +
-            `AppKit Chain ID: ${account.chainId}\n` +
-            `Provider Available: true\n` +
-            `Provider Account: ${accounts[0]}\n` +
-            `Provider Chain ID: ${chainId}\n` +
-            `BrowserProvider Chain ID: ${network.chainId}\n` +
-            `Signer Address: ${signerAddress}\n` +
-            `Address Match: ${allMatch}\n` +
-            `Core Diagnostic: SUCCESS\n` +
-            `Transaction Sent: NO`;
+        result.addressMatchesAppKit =
+            sameAddress(
+                result.signerAddress,
+                appkit.address
+            );
+
+        log(
+            "Signer address: " + result.signerAddress,
+            "OK"
+        );
+
+        log(
+            "Signer matches AppKit: " +
+            result.addressMatchesAppKit,
+            result.addressMatchesAppKit ? "OK" : "ERROR"
+        );
 
     } catch (error) {
-        log("CORE TEST FAILED: " + errorText(error));
 
-        $("walletInfo").textContent =
-            `Diagnostic Result: FAILED\n\n` +
-            `Error: ${errorText(error)}\n\n` +
-            `Details:\n${error?.stack || "Not available"}`;
+        result.errors.push(errorText(error));
 
-        /*
-         * Keep the failed step visible.
-         * Do not mark successful steps as failed.
-         */
-
-        if (
-            $("providerStatus").textContent === "CHECKING"
-        ) {
-            status("providerStatus", "FAILED", "error");
-        }
-
-        if (
-            $("requestStatus").textContent === "CHECKING"
-        ) {
-            status("requestStatus", "NOT REACHED", "warning");
-        }
-
-        if (
-            $("browserStatus").textContent === "CHECKING"
-        ) {
-            status("browserStatus", "NOT REACHED", "warning");
-        }
-
-        if (
-            $("signerStatus").textContent === "CHECKING"
-        ) {
-            status("signerStatus", "NOT REACHED", "warning");
-        }
-
-        if (
-            $("matchStatus").textContent === "CHECKING"
-        ) {
-            status("matchStatus", "NOT REACHED", "warning");
-        }
-
-    } finally {
-        testing = false;
-        $("testBtn").disabled = false;
+        log(
+            "Signer check failed: " + errorText(error),
+            "ERROR"
+        );
     }
+
+    print("signerInfo", result);
+
+    return result;
 }
 
-/* =====================================
-   EVENTS
-===================================== */
+// =====================================
+// SIGNER SESSION CHECK
+// =====================================
 
-$("connectBtn").addEventListener(
-    "click",
-    connectWallet
-);
+async function checkSignerSession() {
 
-$("testBtn").addEventListener(
-    "click",
-    runCoreTest
-);
-
-$("clearBtn").addEventListener(
-    "click",
-    () => {
-        $("logs").textContent = "";
-    }
-);
-
-/* =====================================
-   INITIALIZATION
-===================================== */
-
-async function initialize() {
-    log("Starting JosJis Staking Diagnostic V7...");
-
-    const loaded = await loadCore();
-
-    if (!loaded) return;
+    log("Checking Core signer session...");
 
     try {
-        getAppKitInfo();
 
-        if (typeof modal.subscribeAccount === "function") {
-            modal.subscribeAccount(() => {
-                log("AppKit account changed.");
+        const session = await core.getSignerSession();
 
-                try {
-                    getAppKitInfo();
-                } catch (error) {
-                    log(errorText(error));
-                }
-            });
-        }
+        print("signerInfo", {
+            session
+        });
 
-        log("V7 initialization completed.");
-        log("Press Run Core Wallet Test.");
+        log(
+            "Core signer session retrieved.",
+            "OK"
+        );
+
+        return {
+            success: true,
+            value: session
+        };
 
     } catch (error) {
-        log("AppKit initialization error: " + errorText(error));
+
+        log(
+            "Signer session failed: " + errorText(error),
+            "ERROR"
+        );
+
+        return {
+            success: false,
+            error: errorText(error)
+        };
     }
 }
+
+// =====================================
+// CORE DIAGNOSTIC
+// =====================================
+
+async function checkCoreDiagnostic() {
+
+    log("Running Core diagnoseWalletSigner...");
+
+    try {
+
+        const result =
+            await core.diagnoseWalletSigner();
+
+        log(
+            "Core diagnoseWalletSigner completed.",
+            "OK"
+        );
+
+        print("coreInfo", {
+            requiredFunctions: "Available",
+            diagnoseWalletSigner: result
+        });
+
+        return {
+            success: true,
+            value: result
+        };
+
+    } catch (error) {
+
+        log(
+            "Core signer diagnostic failed: " +
+            errorText(error),
+            "ERROR"
+        );
+
+        return {
+            success: false,
+            error: errorText(error)
+        };
+    }
+}
+
+// =====================================
+// COMPLETE DIAGNOSTIC
+// =====================================
+
+async function runDiagnostic() {
+
+    if (!initialized || running) {
+        return;
+    }
+
+    running = true;
+
+    $("runButton").disabled = true;
+
+    $("appkitInfo").textContent = "Checking...";
+    $("providerInfo").textContent = "Checking...";
+    $("signerInfo").textContent = "Checking...";
+
+    log("------------------------------------");
+    log("STARTING COMPLETE DIAGNOSTIC");
+    log("------------------------------------");
+
+    try {
+
+        const appkit = await checkAppKit();
+
+        const provider = await checkProvider(appkit);
+
+        const browser = await checkBrowserProvider();
+
+        const signer = await checkSigner(appkit);
+
+        const session = await checkSignerSession();
+
+        const coreDiagnostic =
+            await checkCoreDiagnostic();
+
+        const summary = {
+            appKitConnected: appkit.connected,
+            appKitOnPolygon: appkit.polygon,
+            providerAvailable: provider.providerAvailable,
+            providerOnPolygon:
+                provider.chainId === EXPECTED_CHAIN_ID,
+            providerMatchesAppKit:
+                provider.addressMatchesAppKit,
+            browserProviderAvailable: browser.available,
+            browserProviderOnPolygon:
+                browser.chainId === EXPECTED_CHAIN_ID,
+            signerAvailable: signer.signerAvailable,
+            signerMatchesAppKit:
+                signer.addressMatchesAppKit,
+            signerSessionAvailable: session.success,
+            coreDiagnosticCompleted:
+                coreDiagnostic.success
+        };
+
+        log("------------------------------------");
+        log("FINAL DIAGNOSTIC SUMMARY");
+        log("------------------------------------");
+
+        print("coreInfo", {
+            requiredFunctions: "Available",
+            summary
+        });
+
+        for (const [key, value] of Object.entries(summary)) {
+
+            log(
+                `${key}: ${value}`,
+                value ? "OK" : "WARNING"
+            );
+        }
+
+        const transactionReady =
+            summary.appKitConnected &&
+            summary.appKitOnPolygon &&
+            summary.providerAvailable &&
+            summary.providerOnPolygon &&
+            summary.providerMatchesAppKit &&
+            summary.browserProviderAvailable &&
+            summary.browserProviderOnPolygon &&
+            summary.signerAvailable &&
+            summary.signerMatchesAppKit;
+
+        if (transactionReady) {
+
+            setStatus(
+                "Provider and signer checks passed. Transaction path appears ready.",
+                "green"
+            );
+
+            log(
+                "TRANSACTION READINESS CHECK: PASSED",
+                "OK"
+            );
+
+        } else {
+
+            setStatus(
+                "Transaction readiness check failed or is incomplete. Check diagnostic log.",
+                "red"
+            );
+
+            log(
+                "TRANSACTION READINESS CHECK: NOT PASSED",
+                "ERROR"
+            );
+        }
+
+        log("Diagnostic completed.");
+
+    } catch (error) {
+
+        setStatus(
+            "Diagnostic failed: " + errorText(error),
+            "red"
+        );
+
+        log(
+            "Diagnostic error: " + errorText(error),
+            "ERROR"
+        );
+
+    } finally {
+
+        running = false;
+
+        $("runButton").disabled = false;
+    }
+}
+
+// =====================================
+// BUTTON EVENTS
+// =====================================
+
+$("runButton").addEventListener(
+    "click",
+    runDiagnostic
+);
+
+$("clearButton").addEventListener(
+    "click",
+    () => {
+        $("log").textContent = "";
+        log("Log cleared.");
+    }
+);
+
+// =====================================
+// START
+// =====================================
 
 initialize();
 
 </script>
-
 </body>
 </html>
