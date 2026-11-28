@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JosJis Staking Diagnostic V8</title>
+    <title>JosJis Staking Diagnostic V9</title>
 
     <style>
         * {
@@ -79,7 +79,7 @@
             border: 1px solid #292d3d;
             border-radius: 8px;
             padding: 12px;
-            min-height: 100px;
+            min-height: 70px;
             font-size: 12px;
             color: #d8dbea;
         }
@@ -103,25 +103,23 @@
         .yellow {
             color: #ffd477;
         }
-
-        .muted {
-            color: #9da3b8;
-        }
     </style>
 </head>
 
 <body>
 <div class="container">
 
-    <h2>JosJis Staking Diagnostic V8</h2>
+    <h2>JosJis Staking Diagnostic V9</h2>
+
     <div class="subtitle">
         Core Transaction Manager · Polygon Mainnet · Chain ID 137
     </div>
 
     <div class="panel">
         <h3>System Status</h3>
+
         <div id="systemStatus" class="status">
-            Initializing diagnostic...
+            Initializing...
         </div>
 
         <button id="runButton" disabled>
@@ -135,7 +133,7 @@
 
     <div class="panel">
         <h3>Diagnostic Log</h3>
-        <pre id="log">Waiting for initialization...</pre>
+        <pre id="log">Waiting...</pre>
     </div>
 
     <div class="panel">
@@ -154,15 +152,31 @@
     </div>
 
     <div class="panel">
+        <h3>BrowserProvider Information</h3>
+        <pre id="browserInfo">Not checked.</pre>
+    </div>
+
+    <div class="panel">
         <h3>Signer Information</h3>
         <pre id="signerInfo">Not checked.</pre>
+    </div>
+
+    <div class="panel">
+        <h3>Final Diagnostic Summary</h3>
+        <pre id="summaryInfo">Not checked.</pre>
     </div>
 
 </div>
 
 <script type="module">
 
-const $ = (id) => document.getElementById(id);
+// =====================================
+// CONFIGURATION
+// =====================================
+
+const EXPECTED_CHAIN_ID = 137;
+
+const $ = id => document.getElementById(id);
 
 let modal = null;
 let core = null;
@@ -170,13 +184,16 @@ let core = null;
 let initialized = false;
 let running = false;
 
-const EXPECTED_CHAIN_ID = 137;
+// =====================================
+// UTILITIES
+// =====================================
 
 function timestamp() {
     return new Date().toLocaleTimeString("id-ID");
 }
 
 function log(message, type = "INFO") {
+
     const output = $("log");
 
     output.textContent +=
@@ -186,15 +203,13 @@ function log(message, type = "INFO") {
 }
 
 function print(id, value) {
-    if (typeof value === "string") {
-        $(id).textContent = value;
-        return;
-    }
 
     try {
+
         $(id).textContent = JSON.stringify(
             value,
             (key, val) => {
+
                 if (typeof val === "bigint") {
                     return val.toString();
                 }
@@ -207,12 +222,15 @@ function print(id, value) {
             },
             2
         );
+
     } catch (error) {
+
         $(id).textContent = String(value);
     }
 }
 
 function errorText(error) {
+
     return error?.shortMessage ||
         error?.reason ||
         error?.message ||
@@ -220,40 +238,24 @@ function errorText(error) {
 }
 
 function isAddress(value) {
+
     return typeof value === "string" &&
         /^0x[a-fA-F0-9]{40}$/.test(value);
 }
 
 function sameAddress(a, b) {
+
     return isAddress(a) &&
         isAddress(b) &&
         a.toLowerCase() === b.toLowerCase();
 }
 
 function setStatus(message, type = "yellow") {
-    $("systemStatus").innerHTML =
-        `<span class="${type}">${message}</span>`;
-}
 
-async function safeCall(label, callback) {
-    try {
-        const result = await callback();
+    const status = $("systemStatus");
 
-        log(`${label}: SUCCESS`, "OK");
-
-        return {
-            success: true,
-            value: result
-        };
-
-    } catch (error) {
-        log(`${label}: FAILED - ${errorText(error)}`, "ERROR");
-
-        return {
-            success: false,
-            error: errorText(error)
-        };
-    }
+    status.textContent = message;
+    status.className = "status " + type;
 }
 
 // =====================================
@@ -264,7 +266,7 @@ async function initialize() {
 
     $("log").textContent = "";
 
-    log("Starting JosJis Staking Diagnostic V8...");
+    log("Starting JosJis Staking Diagnostic V9...");
     log("Loading shared AppKit configuration...");
 
     try {
@@ -277,7 +279,7 @@ async function initialize() {
 
         if (!modal) {
             throw new Error(
-                "Shared AppKit modal export not found."
+                "AppKit modal export not found."
             );
         }
 
@@ -286,7 +288,7 @@ async function initialize() {
         log("Loading Core Transaction Manager...");
 
         core = await import(
-            "/josjis/assets/js/core/transaction-manager.js?v=8"
+            "/josjis/assets/js/core/transaction-manager.js?v=9"
         );
 
         log("Core Transaction Manager loaded.", "OK");
@@ -301,22 +303,27 @@ async function initialize() {
             "clearWalletSession"
         ];
 
-        const functionStatus = {};
+        const functions = {};
 
         for (const name of requiredFunctions) {
-            functionStatus[name] =
+
+            functions[name] =
                 typeof core[name] === "function";
         }
 
-        print("coreInfo", functionStatus);
+        print("coreInfo", {
+            requiredFunctions: functions
+        });
 
         const missing = requiredFunctions.filter(
-            name => !functionStatus[name]
+            name => !functions[name]
         );
 
-        if (missing.length > 0) {
+        if (missing.length) {
+
             throw new Error(
-                "Missing Core functions: " + missing.join(", ")
+                "Missing Core functions: " +
+                missing.join(", ")
             );
         }
 
@@ -325,12 +332,13 @@ async function initialize() {
         $("runButton").disabled = false;
 
         setStatus(
-            "Initialization successful. Ready to run diagnostic.",
+            "Initialization successful. Ready.",
             "green"
         );
 
         log("All required Core functions are available.", "OK");
-        log("Diagnostic initialization completed.");
+
+        log("Diagnostic initialization completed.", "OK");
 
     } catch (error) {
 
@@ -365,20 +373,27 @@ async function checkAppKit() {
         connected: false,
         address: null,
         chainId: null,
+        polygon: false,
         errors: []
     };
 
     try {
+
         result.address = await modal.getAddress();
+
     } catch (error) {
+
         result.errors.push(
             "getAddress: " + errorText(error)
         );
     }
 
     try {
+
         result.chainId = await modal.getChainId();
+
     } catch (error) {
+
         result.errors.push(
             "getChainId: " + errorText(error)
         );
@@ -407,7 +422,7 @@ async function checkAppKit() {
     );
 
     log(
-        "AppKit Polygon network: " + result.polygon,
+        "AppKit Polygon: " + result.polygon,
         result.polygon ? "OK" : "ERROR"
     );
 
@@ -415,12 +430,12 @@ async function checkAppKit() {
 }
 
 // =====================================
-// PROVIDER CHECK
+// CORE PROVIDER RESOLUTION
 // =====================================
 
 async function checkProvider(appkit) {
 
-    log("Checking Core wallet provider...");
+    log("Resolving Core wallet provider...");
 
     const result = {
         providerAvailable: false,
@@ -432,66 +447,52 @@ async function checkProvider(appkit) {
     };
 
     let provider = null;
+    let browserProvider = null;
 
-    const providerResult = await safeCall(
-        "Core getWalletProvider",
-        async () => core.getWalletProvider()
-    );
+    /*
+     * IMPORTANT:
+     * getWalletProvider() only reads cached provider.
+     * getBrowserProvider() calls findWalletProvider()
+     * and resolves the provider when necessary.
+     */
 
-    if (providerResult.success) {
-        provider = providerResult.value;
-    } else {
-        result.errors.push(providerResult.error);
-    }
+    try {
 
-    // If Core has no provider, try the injected wallet provider.
-    if (!provider && window.ethereum) {
+        browserProvider =
+            await core.getBrowserProvider();
+
+        if (!browserProvider) {
+
+            throw new Error(
+                "BrowserProvider returned empty value."
+            );
+        }
+
+        provider = core.getWalletProvider();
+
+        if (!provider) {
+
+            throw new Error(
+                "BrowserProvider exists but Core provider is empty."
+            );
+        }
 
         log(
-            "Core provider unavailable. Checking injected provider..."
+            "Provider resolved through Core BrowserProvider.",
+            "OK"
         );
 
-        const injected = window.ethereum;
+    } catch (error) {
 
-        if (typeof injected.request === "function") {
+        result.errors.push(
+            "Core resolution: " + errorText(error)
+        );
 
-            try {
-
-                const accounts = await injected.request({
-                    method: "eth_accounts"
-                });
-
-                if (
-                    Array.isArray(accounts) &&
-                    appkit.address &&
-                    accounts.some(account =>
-                        sameAddress(account, appkit.address)
-                    )
-                ) {
-
-                    log(
-                        "Injected provider account matches AppKit.",
-                        "OK"
-                    );
-
-                    core.setWalletProvider(injected);
-
-                    provider = core.getWalletProvider();
-
-                } else {
-
-                    log(
-                        "Injected provider account does not match AppKit.",
-                        "WARNING"
-                    );
-                }
-
-            } catch (error) {
-                result.errors.push(
-                    "Injected provider: " + errorText(error)
-                );
-            }
-        }
+        log(
+            "Core provider resolution failed: " +
+            errorText(error),
+            "ERROR"
+        );
     }
 
     result.providerAvailable = !!provider;
@@ -499,7 +500,8 @@ async function checkProvider(appkit) {
     if (provider) {
 
         result.providerType =
-            provider.constructor?.name || "Unknown";
+            provider.constructor?.name ||
+            "EIP-1193 Adapter";
 
         try {
 
@@ -507,10 +509,7 @@ async function checkProvider(appkit) {
                 method: "eth_accounts"
             });
 
-            log(
-                "Provider eth_accounts: SUCCESS",
-                "OK"
-            );
+            log("Provider eth_accounts: SUCCESS", "OK");
 
         } catch (error) {
 
@@ -561,7 +560,7 @@ async function checkProvider(appkit) {
     );
 
     log(
-        "Provider address matches AppKit: " +
+        "Provider matches AppKit: " +
         result.addressMatchesAppKit,
         result.addressMatchesAppKit ? "OK" : "ERROR"
     );
@@ -581,33 +580,36 @@ async function checkBrowserProvider() {
         available: false,
         chainId: null,
         networkName: null,
+        polygon: false,
         errors: []
     };
 
     try {
 
-        const browserProvider =
+        const provider =
             await core.getBrowserProvider();
 
-        if (!browserProvider) {
+        if (!provider) {
+
             throw new Error(
-                "BrowserProvider returned empty value."
+                "BrowserProvider unavailable."
             );
         }
 
         result.available = true;
 
-        const network = await browserProvider.getNetwork();
+        const network = await provider.getNetwork();
 
         result.chainId = Number(network.chainId);
         result.networkName = network.name;
 
+        result.polygon =
+            result.chainId === EXPECTED_CHAIN_ID;
+
         log(
-            "BrowserProvider network: " +
+            "BrowserProvider chain ID: " +
             result.chainId,
-            result.chainId === EXPECTED_CHAIN_ID
-                ? "OK"
-                : "ERROR"
+            result.polygon ? "OK" : "ERROR"
         );
 
     } catch (error) {
@@ -615,11 +617,13 @@ async function checkBrowserProvider() {
         result.errors.push(errorText(error));
 
         log(
-            "BrowserProvider check failed: " +
+            "BrowserProvider failed: " +
             errorText(error),
             "ERROR"
         );
     }
+
+    print("browserInfo", result);
 
     return result;
 }
@@ -644,6 +648,7 @@ async function checkSigner(appkit) {
         const signer = await core.getWalletSigner();
 
         if (!signer) {
+
             throw new Error(
                 "getWalletSigner returned empty value."
             );
@@ -694,36 +699,38 @@ async function checkSignerSession() {
 
     log("Checking Core signer session...");
 
+    const result = {
+        available: false,
+        address: null,
+        chainId: null,
+        errors: []
+    };
+
     try {
 
         const session = await core.getSignerSession();
 
-        print("signerInfo", {
-            session
-        });
+        result.available = !!session;
+        result.address = session?.address || null;
+        result.chainId = session?.chainId ?? null;
 
         log(
             "Core signer session retrieved.",
             "OK"
         );
 
-        return {
-            success: true,
-            value: session
-        };
-
     } catch (error) {
 
+        result.errors.push(errorText(error));
+
         log(
-            "Signer session failed: " + errorText(error),
+            "Signer session failed: " +
+            errorText(error),
             "ERROR"
         );
-
-        return {
-            success: false,
-            error: errorText(error)
-        };
     }
+
+    return result;
 }
 
 // =====================================
@@ -732,7 +739,7 @@ async function checkSignerSession() {
 
 async function checkCoreDiagnostic() {
 
-    log("Running Core diagnoseWalletSigner...");
+    log("Running diagnoseWalletSigner...");
 
     try {
 
@@ -740,30 +747,25 @@ async function checkCoreDiagnostic() {
             await core.diagnoseWalletSigner();
 
         log(
-            "Core diagnoseWalletSigner completed.",
-            "OK"
+            "Core signer diagnostic completed.",
+            result.success ? "OK" : "ERROR"
         );
 
-        print("coreInfo", {
-            requiredFunctions: "Available",
-            diagnoseWalletSigner: result
-        });
-
         return {
-            success: true,
-            value: result
+            completed: true,
+            ...result
         };
 
     } catch (error) {
 
         log(
-            "Core signer diagnostic failed: " +
+            "Core diagnostic failed: " +
             errorText(error),
             "ERROR"
         );
 
         return {
-            success: false,
+            completed: false,
             error: errorText(error)
         };
     }
@@ -783,9 +785,16 @@ async function runDiagnostic() {
 
     $("runButton").disabled = true;
 
-    $("appkitInfo").textContent = "Checking...";
-    $("providerInfo").textContent = "Checking...";
-    $("signerInfo").textContent = "Checking...";
+    for (const id of [
+        "appkitInfo",
+        "providerInfo",
+        "browserInfo",
+        "signerInfo",
+        "summaryInfo"
+    ]) {
+
+        $(id).textContent = "Checking...";
+    }
 
     log("------------------------------------");
     log("STARTING COMPLETE DIAGNOSTIC");
@@ -807,40 +816,45 @@ async function runDiagnostic() {
             await checkCoreDiagnostic();
 
         const summary = {
-            appKitConnected: appkit.connected,
-            appKitOnPolygon: appkit.polygon,
-            providerAvailable: provider.providerAvailable,
+
+            appKitConnected:
+                appkit.connected,
+
+            appKitOnPolygon:
+                appkit.polygon,
+
+            providerAvailable:
+                provider.providerAvailable,
+
             providerOnPolygon:
                 provider.chainId === EXPECTED_CHAIN_ID,
+
             providerMatchesAppKit:
                 provider.addressMatchesAppKit,
-            browserProviderAvailable: browser.available,
+
+            browserProviderAvailable:
+                browser.available,
+
             browserProviderOnPolygon:
-                browser.chainId === EXPECTED_CHAIN_ID,
-            signerAvailable: signer.signerAvailable,
+                browser.polygon,
+
+            signerAvailable:
+                signer.signerAvailable,
+
             signerMatchesAppKit:
                 signer.addressMatchesAppKit,
-            signerSessionAvailable: session.success,
-            coreDiagnosticCompleted:
-                coreDiagnostic.success
+
+            signerSessionAvailable:
+                session.available,
+
+            coreDiagnosticPassed:
+                coreDiagnostic.success === true
         };
 
-        log("------------------------------------");
-        log("FINAL DIAGNOSTIC SUMMARY");
-        log("------------------------------------");
-
-        print("coreInfo", {
-            requiredFunctions: "Available",
-            summary
-        });
-
-        for (const [key, value] of Object.entries(summary)) {
-
-            log(
-                `${key}: ${value}`,
-                value ? "OK" : "WARNING"
-            );
-        }
+        /*
+         * Transaction readiness is based on
+         * the resolved provider and verified signer.
+         */
 
         const transactionReady =
             summary.appKitConnected &&
@@ -851,7 +865,25 @@ async function runDiagnostic() {
             summary.browserProviderAvailable &&
             summary.browserProviderOnPolygon &&
             summary.signerAvailable &&
-            summary.signerMatchesAppKit;
+            summary.signerMatchesAppKit &&
+            summary.signerSessionAvailable;
+
+        summary.transactionReady = transactionReady;
+
+        print("summaryInfo", summary);
+
+        log("------------------------------------");
+        log("FINAL DIAGNOSTIC SUMMARY");
+        log("------------------------------------");
+
+        for (const [key, value] of Object.entries(summary)) {
+
+            log(
+                `${key}: ${value}`,
+                value === true ? "OK" :
+                value === false ? "ERROR" : "INFO"
+            );
+        }
 
         if (transactionReady) {
 
@@ -868,7 +900,7 @@ async function runDiagnostic() {
         } else {
 
             setStatus(
-                "Transaction readiness check failed or is incomplete. Check diagnostic log.",
+                "Transaction readiness check failed. Review diagnostic results.",
                 "red"
             );
 
@@ -878,7 +910,12 @@ async function runDiagnostic() {
             );
         }
 
-        log("Diagnostic completed.");
+        print("coreInfo", {
+            requiredFunctions: "Available",
+            coreDiagnostic
+        });
+
+        log("Diagnostic completed.", "OK");
 
     } catch (error) {
 
@@ -912,7 +949,9 @@ $("runButton").addEventListener(
 $("clearButton").addEventListener(
     "click",
     () => {
+
         $("log").textContent = "";
+
         log("Log cleared.");
     }
 );
