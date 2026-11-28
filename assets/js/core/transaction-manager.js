@@ -1,6 +1,7 @@
 
 import {
     Contract,
+    BrowserProvider,
     parseUnits,
     formatUnits
 } from "https://esm.sh/ethers@6.15.0";
@@ -20,14 +21,32 @@ import {
     rpcRequest
 } from "./rpc-manager.js";
 
+import { modal } from "../../../web3/web3-config.js";
+
 /*
 ========================================
- TRANSACTION MANAGER
- JosJis Ecosystem
+ JOSJIS TRANSACTION MANAGER
+ Central Wallet Signer
 ========================================
 */
 
-// Validate connected wallet
+const POLYGON_CAIP2 = `eip155:${NETWORK.CHAIN_ID}`;
+
+let rawWalletProvider = null;
+let walletProvider = null;
+let browserProvider = null;
+let walletSigner = null;
+let signerAddress = null;
+
+const adapterCache = new WeakMap();
+const ADAPTER_MARKER = Symbol.for(
+    "JOSJIS_CORE_EIP1193_ADAPTER"
+);
+
+/* =====================================
+   WALLET VALIDATION
+===================================== */
+
 function validateWallet() {
     const address = getAddress();
 
@@ -42,39 +61,296 @@ function validateWallet() {
     return address;
 }
 
-// Get signer from connected wallet
-async function getWalletSigner() {
-    validateWallet();
-
-    const { modal } = await import(
-        "../../../web3/web3-config.js"
-    );
-
-    if (typeof modal.getWalletProvider !== "function") {
-        throw new Error(
-            "AppKit getWalletProvider tidak tersedia."
-        );
+function validateAddress(address) {
+    if (
+        !address ||
+        !/^0x[a-fA-F0-9]{40}$/.test(address)
+    ) {
+        throw new Error("Alamat wallet tidak valid.");
     }
-
-    const walletProvider =
-        await modal.getWalletProvider();
-
-    if (!walletProvider) {
-        throw new Error(
-            "Wallet provider tidak tersedia."
-        );
-    }
-
-    const { BrowserProvider } = await import(
-        "https://esm.sh/ethers@6.15.0"
-    );
-
-    const provider = new BrowserProvider(walletProvider);
-
-    return await provider.getSigner();
 }
 
-// Get writable ERC20 token contract
+/* =====================================
+   PROVIDER DETECTION
+===================================== */
+
+function isUniversalProvider(provider) {
+    return Boolean(
+        provider &&
+        provider.rpcProviders &&
+        typeof provider.request === "function"
+    );
+}
+
+function createProviderAdapter(provider) {
+    if (!provider || typeof provider.request !== "function") {
+        throw new Error("Wallet provider tidak valid.");
+    }
+
+    if (provider[ADAPTER_MARKER]) {
+        return provider;
+    }
+
+    if (adapterCache.has(provider)) {
+        return adapterCache.get(provider);
+    }
+
+    const universal = isUniversalProvider(provider);
+
+    const adapter = {
+        [ADAPTER_MARKER]: true,
+
+        request(args) {
+            if (!args || typeof args.method !== "string") {
+                throw new Error("JSON-RPC request tidak valid.");
+            }
+
+            if (universal) {
+                return provider.request(args, POLYGON_CAIP2);
+            }
+
+            return provider.request(args);
+        },
+
+        on(event, listener) {
+            provider.on?.(event, listener);
+            return adapter;
+        },
+
+        removeListener(event, listener) {
+            if (typeof provider.removeListener === "function") {
+                provider.removeListener(event, listener);
+            } else {
+                provider.off?.(event, listener);
+            }
+
+            return adapter;
+        },
+
+        off(event, listener) {
+            if (typeof provider.off === "function") {
+                provider.off(event, listener);
+            } else {
+                provider.removeListener?.(event, listener);
+            }
+
+            return adapter;
+        }
+    };
+
+    adapterCache.set(provider, adapter);
+
+    return adapter;
+}
+
+/* =====================================
+   SET WALLET PROVIDER
+===================================== */
+
+export function setWalletProvider(provider) {
+    if (!provider) {
+        clearWalletSession();
+        return false;
+    }
+
+    const adapter = createProviderAdapter(provider);
+
+    if (walletProvider !== adapter) {
+        rawWalletProvider = provider;
+        walletProvider = adapter;
+
+        browserProvider = null;
+        walletSigner = null;
+        signerAddress = null;
+    }
+
+    return true;
+}
+
+/* =====================================
+   GET WALLET PROVIDER
+===================================== */
+
+export function getWalletProvider() {
+    return walletProvider;
+}
+
+/* =====================================
+   CLEAR WALLET SESSION
+===================================== */
+
+export function clearWalletSession() {
+    rawWalletProvider = null;
+    walletProvider = null;
+
+    browserProvider = null;
+    walletSigner = null;
+    signerAddress = null;
+}
+
+/* =====================================
+   FIND WALLET PROVIDER
+===================================== */
+
+async function findWalletProvider() {
+    if (walletProvider) {
+        return walletProvider;
+    }
+
+    const expectedAddress = getAddress();
+
+    /*
+     * First try the AppKit provider API.
+     */
+
+    if (typeof modal.getWalletProvider === "function") {
+        try {
+            const provider = await modal.getWalletProvider();
+
+            if (provider) {
+                setWalletProvider(provider);
+                return walletProvider;
+            }
+        } catch (error) {
+            console.warn(
+                "[JosJis Core] AppKit provider unavailable:",
+                error.message
+            );
+        }
+    }
+
+    /*
+     * Fallback to an injected provider only
+     * when its account matches the AppKit account.
+     */
+
+    if (typeof window !== "undefined" && window.ethereum) {
+        const provider = window.ethereum;
+
+        if (typeof provider.request === "function") {
+            const accounts = await provider.request({
+                method: "eth_accounts"
+            });
+
+            if (
+                Array.isArray(accounts) &&
+                accounts.length > 0 &&
+                expectedAddress &&
+                accounts[0].toLowerCase() ===
+                    expectedAddress.toLowerCase()
+            ) {
+                setWalletProvider(provider);
+                return walletProvider;
+            }
+        }
+    }
+
+    throw new Error(
+        "Provider transaksi tidak tersedia. Hubungkan wallet melalui MetaMask atau AppKit."
+    );
+}
+
+/* =====================================
+   GET BROWSER PROVIDER
+===================================== */
+
+export async function getBrowserProvider() {
+    const provider = await findWalletProvider();
+
+    if (!browserProvider) {
+        browserProvider = new BrowserProvider(
+            provider,
+            "any"
+        );
+    }
+
+    return browserProvider;
+}
+
+/* =====================================
+   GET WALLET SIGNER
+===================================== */
+
+export async function getWalletSigner() {
+    const expectedAddress = validateWallet();
+
+    const provider = await getBrowserProvider();
+
+    const network = await provider.getNetwork();
+
+    if (Number(network.chainId) !== NETWORK.CHAIN_ID) {
+        clearWalletSession();
+
+        throw new Error(
+            "Provider wallet tidak menggunakan Polygon Mainnet."
+        );
+    }
+
+    const accounts = await walletProvider.request({
+        method: "eth_accounts"
+    });
+
+    if (
+        !Array.isArray(accounts) ||
+        accounts.length === 0
+    ) {
+        throw new Error("Akun wallet tidak tersedia.");
+    }
+
+    if (
+        accounts[0].toLowerCase() !==
+        expectedAddress.toLowerCase()
+    ) {
+        clearWalletSession();
+
+        throw new Error(
+            "Alamat wallet berbeda dengan akun AppKit."
+        );
+    }
+
+    if (
+        !walletSigner ||
+        !signerAddress ||
+        signerAddress.toLowerCase() !==
+            expectedAddress.toLowerCase()
+    ) {
+        walletSigner = await provider.getSigner();
+        signerAddress = await walletSigner.getAddress();
+    }
+
+    if (
+        signerAddress.toLowerCase() !==
+        expectedAddress.toLowerCase()
+    ) {
+        clearWalletSession();
+
+        throw new Error(
+            "Signer tidak cocok dengan alamat wallet aktif."
+        );
+    }
+
+    return walletSigner;
+}
+
+/* =====================================
+   GET SIGNER SESSION
+===================================== */
+
+export async function getSignerSession() {
+    const signer = await getWalletSigner();
+
+    return {
+        signer,
+        address: await signer.getAddress(),
+        provider: await getBrowserProvider(),
+        chainId: NETWORK.CHAIN_ID
+    };
+}
+
+/* =====================================
+   GET WRITABLE ERC20 TOKEN
+===================================== */
+
 async function getWritableToken(tokenName) {
     const token = CONTRACTS[tokenName];
 
@@ -91,14 +367,10 @@ async function getWritableToken(tokenName) {
     );
 }
 
-// Validate Ethereum address
-function validateAddress(address) {
-    if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
-        throw new Error("Alamat penerima tidak valid.");
-    }
-}
+/* =====================================
+   TOKEN AMOUNT
+===================================== */
 
-// Convert token amount
 function parseTokenAmount(tokenName, amount) {
     const token = CONTRACTS[tokenName];
 
@@ -107,13 +379,13 @@ function parseTokenAmount(tokenName, amount) {
     }
 
     if (
-        !amount ||
+        amount === null ||
+        amount === undefined ||
+        String(amount).trim() === "" ||
         !Number.isFinite(Number(amount)) ||
         Number(amount) <= 0
     ) {
-        throw new Error(
-            "Jumlah token harus lebih dari nol."
-        );
+        throw new Error("Jumlah token harus lebih dari nol.");
     }
 
     return parseUnits(
@@ -122,7 +394,10 @@ function parseTokenAmount(tokenName, amount) {
     );
 }
 
-// Transfer ERC20 token
+/* =====================================
+   TRANSFER ERC20
+===================================== */
+
 export async function transferToken(
     tokenName,
     recipient,
@@ -134,10 +409,7 @@ export async function transferToken(
     const contract = await getWritableToken(tokenName);
     const value = parseTokenAmount(tokenName, amount);
 
-    const tx = await contract.transfer(
-        recipient,
-        value
-    );
+    const tx = await contract.transfer(recipient, value);
 
     return {
         hash: tx.hash,
@@ -145,7 +417,10 @@ export async function transferToken(
     };
 }
 
-// Transfer native POL
+/* =====================================
+   TRANSFER NATIVE POL
+===================================== */
+
 export async function transferNative(
     recipient,
     amount
@@ -153,18 +428,16 @@ export async function transferNative(
     validateWallet();
     validateAddress(recipient);
 
+    if (
+        !Number.isFinite(Number(amount)) ||
+        Number(amount) <= 0
+    ) {
+        throw new Error("Jumlah POL harus lebih dari nol.");
+    }
+
     const signer = await getWalletSigner();
 
-    const value = parseUnits(
-        String(amount),
-        18
-    );
-
-    if (value <= 0n) {
-        throw new Error(
-            "Jumlah POL harus lebih dari nol."
-        );
-    }
+    const value = parseUnits(String(amount), 18);
 
     const tx = await signer.sendTransaction({
         to: recipient,
@@ -177,7 +450,10 @@ export async function transferNative(
     };
 }
 
-// Approve ERC20 token
+/* =====================================
+   APPROVE TOKEN
+===================================== */
+
 export async function approveToken(
     tokenName,
     spender,
@@ -189,10 +465,7 @@ export async function approveToken(
     const contract = await getWritableToken(tokenName);
     const value = parseTokenAmount(tokenName, amount);
 
-    const tx = await contract.approve(
-        spender,
-        value
-    );
+    const tx = await contract.approve(spender, value);
 
     return {
         hash: tx.hash,
@@ -200,7 +473,10 @@ export async function approveToken(
     };
 }
 
-// Approve unlimited token allowance
+/* =====================================
+   APPROVE UNLIMITED
+===================================== */
+
 export async function approveUnlimited(
     tokenName,
     spender
@@ -213,10 +489,7 @@ export async function approveUnlimited(
     const maxAmount =
         0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffn;
 
-    const tx = await contract.approve(
-        spender,
-        maxAmount
-    );
+    const tx = await contract.approve(spender, maxAmount);
 
     return {
         hash: tx.hash,
@@ -224,7 +497,10 @@ export async function approveUnlimited(
     };
 }
 
-// Check token allowance through RPC Manager
+/* =====================================
+   CHECK ALLOWANCE
+===================================== */
+
 export async function checkAllowance(
     tokenName,
     owner,
@@ -239,7 +515,7 @@ export async function checkAllowance(
     validateAddress(owner);
     validateAddress(spender);
 
-    return await rpcRequest(async (provider) => {
+    return rpcRequest(async provider => {
         const contract = new Contract(
             token.address,
             ABIS.ERC20,
@@ -261,16 +537,16 @@ export async function checkAllowance(
     });
 }
 
-// Wait for transaction confirmation
+/* =====================================
+   WAIT FOR TRANSACTION
+===================================== */
+
 export async function waitForTransaction(txHash) {
     if (!txHash) {
-        throw new Error(
-            "Transaction hash tidak tersedia."
-        );
+        throw new Error("Transaction hash tidak tersedia.");
     }
 
-    const signer = await getWalletSigner();
-    const provider = signer.provider;
+    const provider = await getBrowserProvider();
 
     const receipt = await provider.waitForTransaction(
         txHash,
@@ -278,100 +554,59 @@ export async function waitForTransaction(txHash) {
     );
 
     if (!receipt) {
-        throw new Error(
-            "Receipt transaksi belum tersedia."
-        );
+        throw new Error("Receipt transaksi belum tersedia.");
     }
 
     return {
         hash: receipt.hash,
-        status: receipt.status === 1
-            ? "success"
-            : "failed",
+        status: receipt.status === 1 ? "success" : "failed",
         blockNumber: receipt.blockNumber,
         gasUsed: receipt.gasUsed.toString()
     };
 }
 
-// Get PolygonScan transaction URL
+/* =====================================
+   EXPLORER URL
+===================================== */
+
 export function getTransactionUrl(txHash) {
     if (!txHash) {
-        throw new Error(
-            "Transaction hash tidak tersedia."
-        );
+        throw new Error("Transaction hash tidak tersedia.");
     }
 
     return `${NETWORK.EXPLORER}/tx/${txHash}`;
 }
 
-// Get PolygonScan address URL
 export function getAddressUrl(address) {
     validateAddress(address);
 
     return `${NETWORK.EXPLORER}/address/${address}`;
 }
 
-/*
-========================================
- WALLET SIGNER DIAGNOSTIC
- Read-only wallet connection test
-========================================
-*/
+/* =====================================
+   WALLET SIGNER DIAGNOSTIC
+===================================== */
 
 export async function diagnoseWalletSigner() {
     try {
-        const address = validateWallet();
+        const expectedAddress = validateWallet();
 
-        const { modal } = await import(
-            "../../../web3/web3-config.js"
-        );
+        const signer = await getWalletSigner();
+        const actualAddress = await signer.getAddress();
 
-        if (
-            typeof modal.getWalletProvider !== "function"
-        ) {
-            throw new Error(
-                "AppKit getWalletProvider tidak tersedia."
-            );
-        }
-
-        const walletProvider =
-            await modal.getWalletProvider();
-
-        if (!walletProvider) {
-            throw new Error(
-                "Wallet provider tidak tersedia."
-            );
-        }
-
-        const { BrowserProvider } = await import(
-            "https://esm.sh/ethers@6.15.0"
-        );
-
-        const provider = new BrowserProvider(
-            walletProvider
-        );
-
-        const signer = await provider.getSigner();
-
-        const signerAddress =
-            await signer.getAddress();
-
+        const provider = await getBrowserProvider();
         const network = await provider.getNetwork();
-
-        const correctNetwork =
-            Number(network.chainId) === NETWORK.CHAIN_ID;
-
-        const matched =
-            address.toLowerCase() ===
-            signerAddress.toLowerCase();
 
         return {
             success: true,
-            walletAddress: address,
-            signerAddress,
+            walletAddress: expectedAddress,
+            signerAddress: actualAddress,
             chainId: Number(network.chainId),
-            matched,
-            correctNetwork
+            matched:
+                expectedAddress.toLowerCase() ===
+                actualAddress.toLowerCase(),
+            correctNetwork:
+                Number(network.chainId) === NETWORK.CHAIN_ID
         };
 
     } catch (error) {
