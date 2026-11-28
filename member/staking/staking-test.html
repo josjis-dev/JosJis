@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JosJis Staking Diagnostic V10</title>
+    <title>JosJis Staking Diagnostic V11</title>
 
     <style>
         * {
@@ -109,10 +109,10 @@
 <body>
 <div class="container">
 
-    <h2>JosJis Staking Diagnostic V10</h2>
+    <h2>JosJis Staking Diagnostic V11</h2>
 
     <div class="subtitle">
-        Core Transaction Manager · Staking Actions V3 · Polygon Mainnet · Chain ID 137
+        Core Transaction Manager V9 · Staking Actions V5 · Polygon Mainnet · Chain ID 137
     </div>
 
     <div class="panel">
@@ -199,7 +199,6 @@ function timestamp() {
 }
 
 function log(message, type = "INFO") {
-
     const output = $("log");
 
     output.textContent +=
@@ -209,13 +208,10 @@ function log(message, type = "INFO") {
 }
 
 function print(id, value) {
-
     try {
-
         $(id).textContent = JSON.stringify(
             value,
             (key, val) => {
-
                 if (typeof val === "bigint") {
                     return val.toString();
                 }
@@ -228,36 +224,31 @@ function print(id, value) {
             },
             2
         );
-
     } catch (error) {
-
         $(id).textContent = String(value);
     }
 }
 
 function errorText(error) {
-
-    return error?.shortMessage ||
+    // Preserve detailed V5 diagnostic message.
+    return error?.message ||
+        error?.shortMessage ||
         error?.reason ||
-        error?.message ||
         String(error);
 }
 
 function isAddress(value) {
-
     return typeof value === "string" &&
         /^0x[a-fA-F0-9]{40}$/.test(value);
 }
 
 function sameAddress(a, b) {
-
     return isAddress(a) &&
         isAddress(b) &&
         a.toLowerCase() === b.toLowerCase();
 }
 
 function setStatus(message, type = "yellow") {
-
     const status = $("systemStatus");
 
     status.textContent = message;
@@ -269,14 +260,12 @@ function setStatus(message, type = "yellow") {
 // =====================================
 
 async function initialize() {
-
     $("log").textContent = "";
 
-    log("Starting JosJis Staking Diagnostic V10...");
+    log("Starting JosJis Staking Diagnostic V11...");
     log("Loading shared AppKit configuration...");
 
     try {
-
         const config = await import(
             "/josjis/web3/web3-config.js"
         );
@@ -312,7 +301,6 @@ async function initialize() {
         const coreFunctions = {};
 
         for (const name of requiredCoreFunctions) {
-
             coreFunctions[name] =
                 typeof core[name] === "function";
         }
@@ -322,7 +310,6 @@ async function initialize() {
         );
 
         if (missingCore.length) {
-
             throw new Error(
                 "Missing Core functions: " +
                 missingCore.join(", ")
@@ -331,25 +318,26 @@ async function initialize() {
 
         log("All required Core functions are available.", "OK");
 
-        log("Loading Staking Actions V3...");
+        log("Loading Staking Actions V5...");
 
         stakingActions = await import(
-            "/josjis/member/staking/modules/staking-actions.js?v=4"
+            "/josjis/member/staking/modules/staking-actions.js?v=5"
         );
 
         if (
             typeof stakingActions.getJJSWalletStatus !== "function"
         ) {
             throw new Error(
-                "getJJSWalletStatus() not found in staking-actions.js"
+                "getJJSWalletStatus() not found in Staking Actions V5."
             );
         }
 
-        log("Staking Actions V4 loaded.", "OK");
+        log("Staking Actions V5 loaded.", "OK");
 
         print("coreInfo", {
             requiredFunctions: coreFunctions,
             stakingActions: {
+                version: "V5",
                 getJJSWalletStatus:
                     typeof stakingActions.getJJSWalletStatus === "function"
             }
@@ -368,7 +356,6 @@ async function initialize() {
         log("Diagnostic initialization completed.", "OK");
 
     } catch (error) {
-
         initialized = false;
 
         setStatus(
@@ -393,7 +380,6 @@ async function initialize() {
 // =====================================
 
 async function checkAppKit() {
-
     log("Checking AppKit account...");
 
     const result = {
@@ -405,22 +391,16 @@ async function checkAppKit() {
     };
 
     try {
-
         result.address = await modal.getAddress();
-
     } catch (error) {
-
         result.errors.push(
             "getAddress: " + errorText(error)
         );
     }
 
     try {
-
         result.chainId = await modal.getChainId();
-
     } catch (error) {
-
         result.errors.push(
             "getChainId: " + errorText(error)
         );
@@ -461,7 +441,6 @@ async function checkAppKit() {
 // =====================================
 
 async function checkProvider(appkit) {
-
     log("Resolving Core wallet provider...");
 
     const result = {
@@ -476,12 +455,10 @@ async function checkProvider(appkit) {
     let provider = null;
 
     try {
-
         const browserProvider =
             await core.getBrowserProvider();
 
         if (!browserProvider) {
-
             throw new Error(
                 "BrowserProvider returned empty value."
             );
@@ -490,7 +467,6 @@ async function checkProvider(appkit) {
         provider = core.getWalletProvider();
 
         if (!provider) {
-
             throw new Error(
                 "BrowserProvider exists but Core provider is empty."
             );
@@ -502,7 +478,6 @@ async function checkProvider(appkit) {
         );
 
     } catch (error) {
-
         result.errors.push(
             "Core resolution: " + errorText(error)
         );
@@ -517,13 +492,11 @@ async function checkProvider(appkit) {
     result.providerAvailable = !!provider;
 
     if (provider) {
-
         result.providerType =
             provider.constructor?.name ||
             "EIP-1193 Adapter";
 
         try {
-
             result.accounts = await provider.request({
                 method: "eth_accounts"
             });
@@ -531,14 +504,12 @@ async function checkProvider(appkit) {
             log("Provider eth_accounts: SUCCESS", "OK");
 
         } catch (error) {
-
             result.errors.push(
                 "eth_accounts: " + errorText(error)
             );
         }
 
         try {
-
             const chain = await provider.request({
                 method: "eth_chainId"
             });
@@ -553,7 +524,6 @@ async function checkProvider(appkit) {
             );
 
         } catch (error) {
-
             result.errors.push(
                 "eth_chainId: " + errorText(error)
             );
@@ -563,7 +533,6 @@ async function checkProvider(appkit) {
             Array.isArray(result.accounts) &&
             appkit.address
         ) {
-
             result.addressMatchesAppKit =
                 result.accounts.some(account =>
                     sameAddress(account, appkit.address)
@@ -592,7 +561,6 @@ async function checkProvider(appkit) {
 // =====================================
 
 async function checkBrowserProvider() {
-
     log("Checking ethers BrowserProvider...");
 
     const result = {
@@ -604,12 +572,10 @@ async function checkBrowserProvider() {
     };
 
     try {
-
         const provider =
             await core.getBrowserProvider();
 
         if (!provider) {
-
             throw new Error(
                 "BrowserProvider unavailable."
             );
@@ -632,7 +598,6 @@ async function checkBrowserProvider() {
         );
 
     } catch (error) {
-
         result.errors.push(errorText(error));
 
         log(
@@ -652,7 +617,6 @@ async function checkBrowserProvider() {
 // =====================================
 
 async function checkSigner(appkit) {
-
     log("Checking wallet signer...");
 
     const result = {
@@ -663,11 +627,9 @@ async function checkSigner(appkit) {
     };
 
     try {
-
         const signer = await core.getWalletSigner();
 
         if (!signer) {
-
             throw new Error(
                 "getWalletSigner returned empty value."
             );
@@ -696,7 +658,6 @@ async function checkSigner(appkit) {
         );
 
     } catch (error) {
-
         result.errors.push(errorText(error));
 
         log(
@@ -715,7 +676,6 @@ async function checkSigner(appkit) {
 // =====================================
 
 async function checkSignerSession() {
-
     log("Checking Core signer session...");
 
     const result = {
@@ -726,7 +686,6 @@ async function checkSignerSession() {
     };
 
     try {
-
         const session = await core.getSignerSession();
 
         result.available = !!session;
@@ -739,7 +698,6 @@ async function checkSignerSession() {
         );
 
     } catch (error) {
-
         result.errors.push(errorText(error));
 
         log(
@@ -757,17 +715,15 @@ async function checkSignerSession() {
 // =====================================
 
 async function checkCoreDiagnostic() {
-
     log("Running diagnoseWalletSigner...");
 
     try {
-
         const result =
             await core.diagnoseWalletSigner();
 
         log(
             "Core signer diagnostic completed.",
-            result.success ? "OK" : "ERROR"
+            result.success ? "OK" : "INFO"
         );
 
         return {
@@ -776,7 +732,6 @@ async function checkCoreDiagnostic() {
         };
 
     } catch (error) {
-
         log(
             "Core diagnostic failed: " +
             errorText(error),
@@ -796,7 +751,6 @@ async function checkCoreDiagnostic() {
 // =====================================
 
 async function checkJJSWalletStatus() {
-
     log("Reading JJS wallet balance and allowance...");
 
     const result = {
@@ -808,13 +762,13 @@ async function checkJJSWalletStatus() {
         allowance: null,
         formattedBalance: null,
         formattedAllowance: null,
+        diagnosticStage: null,
         hasBalance: false,
         hasAllowance: false,
         errors: []
     };
 
     try {
-
         const status =
             await stakingActions.getJJSWalletStatus();
 
@@ -831,6 +785,9 @@ async function checkJJSWalletStatus() {
         result.formattedAllowance =
             status.formattedAllowance;
 
+        result.diagnosticStage =
+            status.diagnosticStage || "NOT PROVIDED";
+
         result.hasBalance = status.hasBalance;
         result.hasAllowance = status.hasAllowance;
 
@@ -842,7 +799,6 @@ async function checkJJSWalletStatus() {
             typeof result.formattedAllowance === "string";
 
         if (!result.success) {
-
             throw new Error(
                 "JJS wallet status returned incomplete data."
             );
@@ -873,12 +829,12 @@ async function checkJJSWalletStatus() {
         );
 
     } catch (error) {
+        const detail = errorText(error);
 
-        result.errors.push(errorText(error));
+        result.errors.push(detail);
 
         log(
-            "JJS wallet status failed: " +
-            errorText(error),
+            "JJS wallet status failed: " + detail,
             "ERROR"
         );
     }
@@ -893,7 +849,6 @@ async function checkJJSWalletStatus() {
 // =====================================
 
 async function runDiagnostic() {
-
     if (!initialized || running) {
         return;
     }
@@ -910,16 +865,14 @@ async function runDiagnostic() {
         "jjsInfo",
         "summaryInfo"
     ]) {
-
         $(id).textContent = "Checking...";
     }
 
     log("------------------------------------");
-    log("STARTING COMPLETE DIAGNOSTIC V10");
+    log("STARTING COMPLETE DIAGNOSTIC V11");
     log("------------------------------------");
 
     try {
-
         const appkit = await checkAppKit();
 
         const provider = await checkProvider(appkit);
@@ -953,11 +906,9 @@ async function runDiagnostic() {
         };
 
         if (walletConnectionReady) {
-
             jjsStatus = await checkJJSWalletStatus();
 
         } else {
-
             log(
                 "Skipping JJS read because wallet checks failed.",
                 "ERROR"
@@ -967,7 +918,6 @@ async function runDiagnostic() {
         }
 
         const summary = {
-
             appKitConnected:
                 appkit.connected,
 
@@ -1010,7 +960,13 @@ async function runDiagnostic() {
 
             jjsAllowanceRead:
                 jjsStatus.success === true &&
-                typeof jjsStatus.formattedAllowance === "string"
+                typeof jjsStatus.formattedAllowance === "string",
+
+            jjsDiagnosticStage:
+                jjsStatus.diagnosticStage || null,
+
+            jjsError:
+                jjsStatus.errors?.join(" | ") || null
         };
 
         summary.walletConnectionReady =
@@ -1027,11 +983,13 @@ async function runDiagnostic() {
         log("------------------------------------");
 
         for (const [key, value] of Object.entries(summary)) {
+            const isBoolean = typeof value === "boolean";
 
             log(
                 `${key}: ${value}`,
-                value === true ? "OK" :
-                value === false ? "ERROR" : "INFO"
+                isBoolean
+                    ? (value ? "OK" : "ERROR")
+                    : (value ? "INFO" : "INFO")
             );
         }
 
@@ -1041,9 +999,8 @@ async function runDiagnostic() {
         });
 
         if (summary.readOnlyIntegrationPassed) {
-
             setStatus(
-                "V10 PASSED. Wallet, signer, JJS balance and allowance reads are working.",
+                "V11 PASSED. Wallet, signer, JJS balance and allowance reads are working.",
                 "green"
             );
 
@@ -1053,9 +1010,8 @@ async function runDiagnostic() {
             );
 
         } else if (walletConnectionReady) {
-
             setStatus(
-                "Wallet checks passed, but JJS balance/allowance read failed.",
+                "Wallet checks passed, but JJS balance/allowance read failed. See JJS Wallet Status for details.",
                 "red"
             );
 
@@ -1065,7 +1021,6 @@ async function runDiagnostic() {
             );
 
         } else {
-
             setStatus(
                 "Wallet readiness check failed. Review diagnostic results.",
                 "red"
@@ -1085,7 +1040,6 @@ async function runDiagnostic() {
         log("Diagnostic completed.", "OK");
 
     } catch (error) {
-
         setStatus(
             "Diagnostic failed: " + errorText(error),
             "red"
@@ -1097,9 +1051,7 @@ async function runDiagnostic() {
         );
 
     } finally {
-
         running = false;
-
         $("runButton").disabled = false;
     }
 }
@@ -1116,9 +1068,7 @@ $("runButton").addEventListener(
 $("clearButton").addEventListener(
     "click",
     () => {
-
         $("log").textContent = "";
-
         log("Log cleared.");
     }
 );
