@@ -2,7 +2,7 @@
 /**
  * JosJis Staking
  * Module: Staking Actions
- * Version: V4
+ * Version: V5
  * Network: Polygon Mainnet
  */
 
@@ -49,6 +49,32 @@ async function getSignerContracts() {
         tokenContract,
         stakingContract
     };
+}
+
+/* =========================================
+   ERROR FORMATTER
+========================================= */
+
+function serializeError(error) {
+    const details = {
+        message: error?.message || null,
+        code: error?.code || null,
+        shortMessage: error?.shortMessage || null,
+        reason: error?.reason || null,
+        action: error?.action || null,
+        method: error?.method || null,
+        data: error?.data || null,
+        info: error?.info || null,
+        nestedError: error?.info?.error || null
+    };
+
+    return JSON.stringify(
+        details,
+        (_, value) =>
+            typeof value === "bigint"
+                ? value.toString()
+                : value
+    );
 }
 
 /* =========================================
@@ -113,115 +139,128 @@ function validatePositionId(positionId) {
 ========================================= */
 
 export async function getJJSWalletStatus() {
-    const {
-        signer,
-        address
-    } = await getSignerContracts();
+    let stage = "START";
 
-    const provider = signer.provider;
-
-    if (!provider) {
-        throw new Error(
-            "Wallet signer has no connected provider."
-        );
-    }
-
-    // Verify Polygon network
-    const network = await provider.getNetwork();
-
-    if (Number(network.chainId) !== CONFIG.chainId) {
-        throw new Error(
-            "Wrong network. Please connect to Polygon Mainnet."
-        );
-    }
-
-    // Check token contract bytecode
-    const tokenCode = await provider.getCode(
-        CONFIG.tokenAddress
-    );
-
-    if (tokenCode === "0x") {
-        throw new Error(
-            "JJS token address has no contract code on Polygon."
-        );
-    }
-
-    // Check staking contract bytecode
-    const stakingCode = await provider.getCode(
-        CONFIG.stakingAddress
-    );
-
-    if (stakingCode === "0x") {
-        throw new Error(
-            "Staking address has no contract code on Polygon."
-        );
-    }
-
-    // Create read-only token contract
-    const tokenRead = new Contract(
-        CONFIG.tokenAddress,
-        TOKEN_ABI,
-        provider
-    );
-
-    let balance;
-    let allowance;
-
-    // Read JJS balance
     try {
-        balance = await tokenRead.balanceOf(address);
-    } catch (error) {
-        throw new Error(
-            "JJS balanceOf failed: " +
-            (
-                error.shortMessage ||
-                error.reason ||
-                error.message ||
-                "Unknown RPC error."
-            )
-        );
-    }
+        stage = "GET_SIGNER_CONTRACTS";
 
-    // Read JJS allowance
-    try {
-        allowance = await tokenRead.allowance(
+        const {
+            signer,
+            address
+        } = await getSignerContracts();
+
+        const provider = signer.provider;
+
+        if (!provider) {
+            throw new Error(
+                "Signer provider unavailable."
+            );
+        }
+
+        // Check network
+        stage = "CHECK_NETWORK";
+
+        const network = await provider.getNetwork();
+
+        if (
+            Number(network.chainId) !== CONFIG.chainId
+        ) {
+            throw new Error(
+                "Wrong network: " + network.chainId
+            );
+        }
+
+        // Check token bytecode
+        stage = "CHECK_TOKEN_CODE";
+
+        const tokenCode = await provider.getCode(
+            CONFIG.tokenAddress
+        );
+
+        if (tokenCode === "0x") {
+            throw new Error(
+                "JJS token contract code not found."
+            );
+        }
+
+        // Check staking bytecode
+        stage = "CHECK_STAKING_CODE";
+
+        const stakingCode = await provider.getCode(
+            CONFIG.stakingAddress
+        );
+
+        if (stakingCode === "0x") {
+            throw new Error(
+                "Staking contract code not found."
+            );
+        }
+
+        // Read-only token contract
+        const tokenRead = new Contract(
+            CONFIG.tokenAddress,
+            TOKEN_ABI,
+            provider
+        );
+
+        // Read JJS balance
+        stage = "READ_BALANCE";
+
+        const balance = await tokenRead.balanceOf(
+            address
+        );
+
+        // Read JJS allowance
+        stage = "READ_ALLOWANCE";
+
+        const allowance = await tokenRead.allowance(
             address,
             CONFIG.stakingAddress
         );
+
+        stage = "COMPLETE";
+
+        return {
+            address,
+
+            tokenAddress: CONFIG.tokenAddress,
+            stakingAddress: CONFIG.stakingAddress,
+
+            balance,
+            allowance,
+
+            formattedBalance: formatUnits(
+                balance,
+                CONFIG.decimals
+            ),
+
+            formattedAllowance: formatUnits(
+                allowance,
+                CONFIG.decimals
+            ),
+
+            hasBalance: balance > 0n,
+            hasAllowance: allowance > 0n,
+
+            diagnosticStage: stage
+        };
+
     } catch (error) {
+        console.error(
+            "[JJS WALLET STATUS DIAGNOSTIC]",
+            {
+                stage,
+                error
+            }
+        );
+
         throw new Error(
-            "JJS allowance failed: " +
-            (
-                error.shortMessage ||
-                error.reason ||
-                error.message ||
-                "Unknown RPC error."
-            )
+            "JJS diagnostic failed at " +
+            stage +
+            ": " +
+            serializeError(error)
         );
     }
-
-    return {
-        address,
-
-        tokenAddress: CONFIG.tokenAddress,
-        stakingAddress: CONFIG.stakingAddress,
-
-        balance,
-        allowance,
-
-        formattedBalance: formatUnits(
-            balance,
-            CONFIG.decimals
-        ),
-
-        formattedAllowance: formatUnits(
-            allowance,
-            CONFIG.decimals
-        ),
-
-        hasBalance: balance > 0n,
-        hasAllowance: allowance > 0n
-    };
 }
 
 /* =========================================
@@ -345,18 +384,21 @@ export async function stakeJJS(amount, duration) {
 
     for (const log of receipt.logs) {
         try {
-            const parsedLog = stakingContract.interface.parseLog(log);
+            const parsedLog = stakingContract.interface.parseLog(
+                log
+            );
 
             if (
                 parsedLog &&
                 parsedLog.name === "Staked" &&
-                parsedLog.args.user.toLowerCase() === address.toLowerCase()
+                parsedLog.args.user.toLowerCase() ===
+                    address.toLowerCase()
             ) {
                 positionId = parsedLog.args.id;
                 break;
             }
         } catch {
-            // Ignore logs that do not belong to the staking contract.
+            // Ignore logs from other contracts.
         }
     }
 
@@ -407,7 +449,9 @@ export async function withdrawPrincipal(positionId) {
         );
     }
 
-    const transaction = await stakingContract.withdrawPrincipal(id);
+    const transaction = await stakingContract.withdrawPrincipal(
+        id
+    );
 
     const receipt = await transaction.wait();
 
@@ -460,7 +504,9 @@ export async function claimReward(positionId) {
         );
     }
 
-    const transaction = await stakingContract.claimReward(id);
+    const transaction = await stakingContract.claimReward(
+        id
+    );
 
     const receipt = await transaction.wait();
 
