@@ -5,7 +5,7 @@
  *
  * Purpose:
  * Provides a centralized interface for accessing and managing
- * the wallet connection state through Reown AppKit.
+ * wallet connection information through Reown AppKit.
  *
  * Responsibilities:
  * - Retrieve the current wallet state.
@@ -15,7 +15,7 @@
  * - Check whether the wallet uses Polygon Mainnet.
  * - Provide a summarized wallet connection status.
  * - Open wallet connection and network selection modals.
- * - Subscribe to wallet, account, and network changes.
+ * - Subscribe to wallet, account, network, and provider changes.
  *
  * Provider:
  * Reown AppKit modal instance imported from web3-config.js.
@@ -24,8 +24,8 @@
  * The expected network is obtained from contract-registry.js.
  *
  * Important:
- * This module manages wallet connection information.
- * It does not directly execute blockchain transactions.
+ * This module manages wallet connection information and AppKit
+ * subscriptions. It does not directly execute blockchain transactions.
  */
 
 import { modal } from "../../../web3/web3-config.js";
@@ -161,6 +161,23 @@ export function subscribeAccount(callback) {
  */
 export function subscribeNetwork(callback) {
     return modal.subscribeNetwork(callback);
+}
+
+/**
+ * Subscribes to AppKit wallet provider changes.
+ *
+ * The callback receives the available provider collection,
+ * which may contain an EVM provider under the eip155 namespace.
+ *
+ * This function only forwards the AppKit subscription.
+ * Provider adaptation and transaction signer management
+ * remain the responsibility of the Transaction Manager.
+ *
+ * @param {Function} callback - Function executed when providers change.
+ * @returns {*} Subscription result returned by AppKit.
+ */
+export function subscribeProviders(callback) {
+    return modal.subscribeProviders(callback);
 }
 
 /**
