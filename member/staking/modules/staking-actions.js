@@ -1,21 +1,20 @@
 
 /**
- * JosJis Staking
- * Module: Staking Actions
- * Network: Polygon Mainnet
+ * ============================================================
+ * PROJECT: JOSJIS
+ * MODULE: STAKING ACTIONS
+ * FILE: member/staking/modules/staking-actions.js
+ * NETWORK: Polygon Mainnet
+ * LIBRARY: Ethers.js 6.15.0
+ * ============================================================
  *
  * PURPOSE:
  * Handles staking-related blockchain reads and transactions.
  *
- * READ:
- * Public Polygon RPC
- *
- * WRITE:
- * JosJis Core Transaction Manager + AppKit Wallet Provider
- *
- * APPROVE:
- * Core Transaction Manager handles wallet authorization.
- * Public RPC handles gas estimation and receipt confirmation.
+ * CORE INTEGRATION:
+ * - RPC Manager handles public blockchain read operations.
+ * - Token Manager handles JJS balance and allowance reads.
+ * - Transaction Manager handles wallet signing and approval.
  *
  * RESPONSIBILITIES:
  * - Read JJS wallet balance and staking allowance.
@@ -26,18 +25,25 @@
  * - Claim staking rewards.
  * - Validate transaction results and staking positions.
  *
- * DEPENDENCIES:
- * - ethers.js 6.15.0
- * - staking configuration module
- * - JosJis Core Transaction Manager
+ * IMPORTANT:
+ * Staking-specific business logic remains in this module.
+ * Shared blockchain infrastructure is delegated to JosJis Core.
  */
+
+// ============================================================
+// 1. IMPORT EXTERNAL LIBRARIES
+// ============================================================
 
 import {
     Contract,
-    JsonRpcProvider,
+    Interface,
     parseUnits,
     formatUnits
 } from "https://esm.sh/ethers@6.15.0";
+
+// ============================================================
+// 2. IMPORT STAKING CONFIGURATION
+// ============================================================
 
 import {
     CONFIG,
@@ -45,44 +51,31 @@ import {
     STAKING_ABI
 } from "./config.js";
 
+// ============================================================
+// 3. IMPORT JOSJIS CORE
+// ============================================================
+
 import {
+    RPC,
+    Token,
     Transaction
 } from "../../../assets/js/core/index.js";
 
+// ============================================================
+// 4. TOKEN INTERFACE
+// ============================================================
 
-/* =========================================
-   PUBLIC READ RPC
-========================================= */
+/**
+ * Creates an ABI interface for encoding ERC20 transactions.
+ *
+ * This interface does not create another RPC provider
+ * or manage blockchain connections.
+ */
+const tokenInterface = new Interface(TOKEN_ABI);
 
-const READ_RPC_URL =
-    "https://polygon-bor-rpc.publicnode.com";
-
-const readProvider = new JsonRpcProvider(
-    READ_RPC_URL,
-    CONFIG.chainId
-);
-
-
-/* =========================================
-   READ-ONLY CONTRACT INSTANCES
-========================================= */
-
-const tokenReadContract = new Contract(
-    CONFIG.tokenAddress,
-    TOKEN_ABI,
-    readProvider
-);
-
-const stakingReadContract = new Contract(
-    CONFIG.stakingAddress,
-    STAKING_ABI,
-    readProvider
-);
-
-
-/* =========================================
-   SIGNER CONTRACTS
-========================================= */
+// ============================================================
+// 5. SIGNER CONTRACTS
+// ============================================================
 
 /**
  * Creates staking contract instances connected to the
@@ -115,11 +108,47 @@ async function getSignerContracts() {
     };
 }
 
+// ============================================================
+// 6. STAKING READ HELPER
+// ============================================================
 
-/* =========================================
-   ERROR SERIALIZER
-========================================= */
+/**
+ * Executes a staking contract read through JosJis Core RPC.
+ *
+ * A read-only contract instance is created using the provider
+ * selected by RPC Manager for each operation.
+ *
+ * @param {Function} callback - Staking contract read operation.
+ * @returns {Promise<*>} Result returned by the callback.
+ */
+async function readStaking(callback) {
+    return RPC.rpcRequest(async provider => {
+        const stakingContract = new Contract(
+            CONFIG.stakingAddress,
+            STAKING_ABI,
+            provider
+        );
 
+        return callback(stakingContract);
+    });
+}
+
+// ============================================================
+// 7. ERROR SERIALIZER
+// ============================================================
+
+/**
+ * Converts complex errors into JSON-safe diagnostic data.
+ *
+ * Handles:
+ * - BigInt values.
+ * - Circular references.
+ * - Nested error objects.
+ * - Unreadable properties.
+ *
+ * @param {Error|object} error - Error to serialize.
+ * @returns {string} Serialized error information.
+ */
 function serializeError(error) {
     const seen = new WeakSet();
 
@@ -216,11 +245,16 @@ function serializeError(error) {
     }
 }
 
+// ============================================================
+// 8. VALIDATE AMOUNT
+// ============================================================
 
-/* =========================================
-   VALIDATE AMOUNT
-========================================= */
-
+/**
+ * Validates and converts a human-readable JJS amount.
+ *
+ * @param {string|number} amount - JJS amount.
+ * @returns {bigint} Amount in the smallest token unit.
+ */
 function validateAmount(amount) {
     if (
         typeof amount !== "string" &&
@@ -253,11 +287,16 @@ function validateAmount(amount) {
     return parsedAmount;
 }
 
+// ============================================================
+// 9. VALIDATE POSITION ID
+// ============================================================
 
-/* =========================================
-   VALIDATE POSITION ID
-========================================= */
-
+/**
+ * Validates a staking position identifier.
+ *
+ * @param {string|number|bigint} positionId - Position ID.
+ * @returns {bigint} Validated position ID.
+ */
 function validatePositionId(positionId) {
     let id;
 
@@ -278,13 +317,19 @@ function validatePositionId(positionId) {
     return id;
 }
 
+// ============================================================
+// 10. CHECK READ RPC NETWORK
+// ============================================================
 
-/* =========================================
-   CHECK READ RPC NETWORK
-========================================= */
-
+/**
+ * Checks the network returned by JosJis Core RPC Manager.
+ *
+ * @returns {Promise<object>} Verified network information.
+ */
 async function validateReadNetwork() {
-    const network = await readProvider.getNetwork();
+    const network = await RPC.rpcRequest(
+        provider => provider.getNetwork()
+    );
 
     if (
         Number(network.chainId) !==
@@ -299,11 +344,36 @@ async function validateReadNetwork() {
     return network;
 }
 
+// ============================================================
+// 11. READ CONTRACT BYTECODE
+// ============================================================
 
-/* =========================================
-   READ JJS BALANCE & ALLOWANCE
-========================================= */
+/**
+ * Checks whether a contract has deployed bytecode.
+ *
+ * @param {string} address - Contract address.
+ * @returns {Promise<string>} Contract bytecode.
+ */
+async function getContractCode(address) {
+    return RPC.rpcRequest(
+        provider => provider.getCode(address)
+    );
+}
 
+// ============================================================
+// 12. READ JJS BALANCE AND ALLOWANCE
+// ============================================================
+
+/**
+ * Retrieves wallet JJS balance and staking allowance.
+ *
+ * Uses:
+ * - Transaction Manager for wallet signer validation.
+ * - RPC Manager for network and contract verification.
+ * - Token Manager for balance and allowance reads.
+ *
+ * @returns {Promise<object>} Wallet diagnostic information.
+ */
 export async function getJJSWalletStatus() {
     let stage = "START";
 
@@ -320,7 +390,7 @@ export async function getJJSWalletStatus() {
 
         stage = "CHECK_TOKEN_CODE";
 
-        const tokenCode = await readProvider.getCode(
+        const tokenCode = await getContractCode(
             CONFIG.tokenAddress
         );
 
@@ -332,7 +402,7 @@ export async function getJJSWalletStatus() {
 
         stage = "CHECK_STAKING_CODE";
 
-        const stakingCode = await readProvider.getCode(
+        const stakingCode = await getContractCode(
             CONFIG.stakingAddress
         );
 
@@ -344,16 +414,24 @@ export async function getJJSWalletStatus() {
 
         stage = "READ_BALANCE";
 
-        const balance =
-            await tokenReadContract.balanceOf(address);
+        const balanceResult =
+            await Token.getTokenBalance(
+                "JJS",
+                address
+            );
+
+        const balance = balanceResult.raw;
 
         stage = "READ_ALLOWANCE";
 
-        const allowance =
-            await tokenReadContract.allowance(
+        const allowanceResult =
+            await Token.getAllowance(
+                "JJS",
                 address,
                 CONFIG.stakingAddress
             );
+
+        const allowance = allowanceResult.raw;
 
         stage = "COMPLETE";
 
@@ -405,11 +483,20 @@ export async function getJJSWalletStatus() {
     }
 }
 
+// ============================================================
+// 13. APPROVE JJS
+// ============================================================
 
-/* =========================================
-   APPROVE JJS
-========================================= */
-
+/**
+ * Approves JJS spending for the staking contract.
+ *
+ * Core Transaction Manager handles the approval transaction.
+ * Core Token Manager reads the current and updated allowance.
+ * Core RPC Manager handles gas estimation and contract checks.
+ *
+ * @param {string|number} amount - Approval amount in JJS.
+ * @returns {Promise<object>} Approval result.
+ */
 export async function approveJJS(amount) {
     let stage = "VALIDATE_AMOUNT";
 
@@ -484,11 +571,15 @@ export async function approveJJS(amount) {
 
         stage = "READ_ALLOWANCE";
 
-        const currentAllowance =
-            await tokenReadContract.allowance(
+        const currentAllowanceResult =
+            await Token.getAllowance(
+                "JJS",
                 signerAddress,
                 CONFIG.stakingAddress
             );
+
+        const currentAllowance =
+            currentAllowanceResult.raw;
 
         if (currentAllowance >= parsedAmount) {
             console.log(
@@ -508,7 +599,7 @@ export async function approveJJS(amount) {
 
         stage = "CHECK_TOKEN_CODE";
 
-        const tokenCode = await readProvider.getCode(
+        const tokenCode = await getContractCode(
             CONFIG.tokenAddress
         );
 
@@ -521,7 +612,7 @@ export async function approveJJS(amount) {
         stage = "PREPARE_APPROVE";
 
         const approveData =
-            tokenReadContract.interface.encodeFunctionData(
+            tokenInterface.encodeFunctionData(
                 "approve",
                 [
                     CONFIG.stakingAddress,
@@ -545,12 +636,14 @@ export async function approveJJS(amount) {
         stage = "ESTIMATE_APPROVE_GAS";
 
         const estimatedGas =
-            await readProvider.estimateGas({
-                from: signerAddress,
-                to: CONFIG.tokenAddress,
-                data: approveData,
-                value: 0n
-            });
+            await RPC.rpcRequest(provider =>
+                provider.estimateGas({
+                    from: signerAddress,
+                    to: CONFIG.tokenAddress,
+                    data: approveData,
+                    value: 0n
+                })
+            );
 
         if (estimatedGas <= 0n) {
             throw new Error(
@@ -595,8 +688,12 @@ export async function approveJJS(amount) {
 
         stage = "WAIT_APPROVAL_CONFIRMATION";
 
+        // Use a healthy Core RPC provider for the long receipt wait.
+        const receiptProvider =
+            await RPC.getHealthyProvider();
+
         const receipt =
-            await readProvider.waitForTransaction(
+            await receiptProvider.waitForTransaction(
                 transactionHash,
                 1,
                 180000
@@ -616,11 +713,15 @@ export async function approveJJS(amount) {
 
         stage = "VERIFY_ALLOWANCE";
 
-        const updatedAllowance =
-            await tokenReadContract.allowance(
+        const updatedAllowanceResult =
+            await Token.getAllowance(
+                "JJS",
                 signerAddress,
                 CONFIG.stakingAddress
             );
+
+        const updatedAllowance =
+            updatedAllowanceResult.raw;
 
         if (updatedAllowance < parsedAmount) {
             throw new Error(
@@ -672,11 +773,17 @@ export async function approveJJS(amount) {
     }
 }
 
+// ============================================================
+// 14. STAKE JJS
+// ============================================================
 
-/* =========================================
-   STAKE JJS
-========================================= */
-
+/**
+ * Stakes JJS for the selected duration.
+ *
+ * @param {string|number} amount - Amount of JJS to stake.
+ * @param {string|number|bigint} duration - Staking duration.
+ * @returns {Promise<object>} Staking transaction result.
+ */
 export async function stakeJJS(amount, duration) {
     const parsedAmount = validateAmount(amount);
 
@@ -701,11 +808,14 @@ export async function stakeJJS(amount, duration) {
         address
     } = await getSignerContracts();
 
-    const currentAllowance =
-        await tokenReadContract.allowance(
+    const allowanceResult =
+        await Token.getAllowance(
+            "JJS",
             address,
             CONFIG.stakingAddress
         );
+
+    const currentAllowance = allowanceResult.raw;
 
     if (currentAllowance < parsedAmount) {
         throw new Error(
@@ -714,8 +824,8 @@ export async function stakeJJS(amount, duration) {
     }
 
     const durationConfig =
-        await stakingReadContract.durationConfigs(
-            parsedDuration
+        await readStaking(contract =>
+            contract.durationConfigs(parsedDuration)
         );
 
     if (!durationConfig.enabled) {
@@ -725,7 +835,9 @@ export async function stakeJJS(amount, duration) {
     }
 
     const paused =
-        await stakingReadContract.stakingPaused();
+        await readStaking(contract =>
+            contract.stakingPaused()
+        );
 
     if (paused) {
         throw new Error(
@@ -775,11 +887,16 @@ export async function stakeJJS(amount, duration) {
     };
 }
 
+// ============================================================
+// 15. WITHDRAW PRINCIPAL
+// ============================================================
 
-/* =========================================
-   WITHDRAW PRINCIPAL
-========================================= */
-
+/**
+ * Withdraws the principal from an eligible staking position.
+ *
+ * @param {string|number|bigint} positionId - Staking position ID.
+ * @returns {Promise<object>} Withdrawal transaction result.
+ */
 export async function withdrawPrincipal(positionId) {
     const id = validatePositionId(positionId);
 
@@ -789,7 +906,9 @@ export async function withdrawPrincipal(positionId) {
     } = await getSignerContracts();
 
     const position =
-        await stakingReadContract.positions(id);
+        await readStaking(contract =>
+            contract.positions(id)
+        );
 
     if (
         position.user.toLowerCase() !==
@@ -835,11 +954,16 @@ export async function withdrawPrincipal(positionId) {
     };
 }
 
+// ============================================================
+// 16. CLAIM REWARD
+// ============================================================
 
-/* =========================================
-   CLAIM REWARD
-========================================= */
-
+/**
+ * Claims the reward from an eligible staking position.
+ *
+ * @param {string|number|bigint} positionId - Staking position ID.
+ * @returns {Promise<object>} Reward claim transaction result.
+ */
 export async function claimReward(positionId) {
     const id = validatePositionId(positionId);
 
@@ -849,7 +973,9 @@ export async function claimReward(positionId) {
     } = await getSignerContracts();
 
     const position =
-        await stakingReadContract.positions(id);
+        await readStaking(contract =>
+            contract.positions(id)
+        );
 
     if (
         position.user.toLowerCase() !==
