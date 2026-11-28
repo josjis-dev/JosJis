@@ -11,8 +11,8 @@
  * Core Transaction Manager + AppKit Wallet Provider
  *
  * APPROVE:
- * Public RPC for gas estimation, nonce and gas price
- * Direct EIP-1193 wallet transaction request
+ * Direct AppKit wallet request
+ * Wallet handles gas and nonce
  * Public RPC receipt confirmation
  */
 
@@ -30,9 +30,13 @@ import {
 } from "./config.js";
 
 import {
-    getWalletSigner,
-    getWalletProvider
+    getWalletSigner
 } from "../../../assets/js/core/transaction-manager.js";
+
+import {
+    modal
+} from "../../../web3/web3-config.js";
+
 
 /* =========================================
    PUBLIC READ RPC
@@ -45,6 +49,7 @@ const readProvider = new JsonRpcProvider(
     READ_RPC_URL,
     CONFIG.chainId
 );
+
 
 /* =========================================
    READ-ONLY CONTRACT INSTANCES
@@ -61,6 +66,56 @@ const stakingReadContract = new Contract(
     STAKING_ABI,
     readProvider
 );
+
+
+/* =========================================
+   GET APPKIT WALLET PROVIDER
+========================================= */
+
+async function getAppKitProvider() {
+    const provider = await modal.getWalletProvider();
+
+    if (
+        !provider ||
+        typeof provider.request !== "function"
+    ) {
+        throw new Error(
+            "AppKit wallet provider is unavailable."
+        );
+    }
+
+    return provider;
+}
+
+
+/* =========================================
+   WALLET PROVIDER REQUEST
+========================================= */
+
+async function requestWallet(
+    provider,
+    method,
+    params = []
+) {
+    const request = {
+        method,
+        params
+    };
+
+    const isUniversalProvider = Boolean(
+        provider.rpcProviders
+    );
+
+    if (isUniversalProvider) {
+        return await provider.request(
+            request,
+            "eip155:" + CONFIG.chainId
+        );
+    }
+
+    return await provider.request(request);
+}
+
 
 /* =========================================
    SIGNER CONTRACTS
@@ -91,19 +146,6 @@ async function getSignerContracts() {
     };
 }
 
-/* =========================================
-   RPC QUANTITY CONVERTER
-========================================= */
-
-function toRpcQuantity(value) {
-    const number = BigInt(value);
-
-    if (number < 0n) {
-        throw new Error("Invalid RPC quantity.");
-    }
-
-    return "0x" + number.toString(16);
-}
 
 /* =========================================
    ERROR SERIALIZER
@@ -113,7 +155,10 @@ function serializeError(error) {
     const seen = new WeakSet();
 
     function clean(value, depth = 0) {
-        if (value === null || value === undefined) {
+        if (
+            value === null ||
+            value === undefined
+        ) {
             return value ?? null;
         }
 
@@ -192,12 +237,16 @@ function serializeError(error) {
         return JSON.stringify(clean(error));
     } catch (serializationError) {
         return JSON.stringify({
-            message: error?.message || String(error),
+            message:
+                error?.message || String(error),
+
             serializationError:
-                serializationError?.message || String(serializationError)
+                serializationError?.message ||
+                String(serializationError)
         });
     }
 }
+
 
 /* =========================================
    VALIDATE AMOUNT
@@ -208,13 +257,17 @@ function validateAmount(amount) {
         typeof amount !== "string" &&
         typeof amount !== "number"
     ) {
-        throw new Error("Invalid JJS amount.");
+        throw new Error(
+            "Invalid JJS amount."
+        );
     }
 
     const value = String(amount).trim();
 
     if (!/^\d+(\.\d{1,18})?$/.test(value)) {
-        throw new Error("Enter a valid JJS amount.");
+        throw new Error(
+            "Enter a valid JJS amount."
+        );
     }
 
     const parsedAmount = parseUnits(
@@ -230,6 +283,7 @@ function validateAmount(amount) {
 
     return parsedAmount;
 }
+
 
 /* =========================================
    VALIDATE POSITION ID
@@ -255,6 +309,7 @@ function validatePositionId(positionId) {
     return id;
 }
 
+
 /* =========================================
    CHECK READ RPC NETWORK
 ========================================= */
@@ -262,14 +317,19 @@ function validatePositionId(positionId) {
 async function validateReadNetwork() {
     const network = await readProvider.getNetwork();
 
-    if (Number(network.chainId) !== CONFIG.chainId) {
+    if (
+        Number(network.chainId) !==
+        Number(CONFIG.chainId)
+    ) {
         throw new Error(
-            "Wrong read RPC network: " + network.chainId
+            "Wrong read RPC network: " +
+            network.chainId
         );
     }
 
     return network;
 }
+
 
 /* =========================================
    READ JJS BALANCE & ALLOWANCE
@@ -315,23 +375,25 @@ export async function getJJSWalletStatus() {
 
         stage = "READ_BALANCE";
 
-        const balance = await tokenReadContract.balanceOf(
-            address
-        );
+        const balance =
+            await tokenReadContract.balanceOf(address);
 
         stage = "READ_ALLOWANCE";
 
-        const allowance = await tokenReadContract.allowance(
-            address,
-            CONFIG.stakingAddress
-        );
+        const allowance =
+            await tokenReadContract.allowance(
+                address,
+                CONFIG.stakingAddress
+            );
 
         stage = "COMPLETE";
 
         return {
             address,
+
             tokenAddress: CONFIG.tokenAddress,
             stakingAddress: CONFIG.stakingAddress,
+
             balance,
             allowance,
 
@@ -361,7 +423,6 @@ export async function getJJSWalletStatus() {
             "[JJS WALLET STATUS]",
             {
                 stage,
-                error,
                 serialized: serializeError(error)
             }
         );
@@ -375,6 +436,7 @@ export async function getJJSWalletStatus() {
     }
 }
 
+
 /* =========================================
    APPROVE JJS
 ========================================= */
@@ -385,53 +447,57 @@ export async function approveJJS(amount) {
     try {
         const parsedAmount = validateAmount(amount);
 
-        stage = "GET_SIGNER_CONTRACTS";
+        stage = "GET_SIGNER";
 
-        const {
-            signer,
-            address,
-            tokenContract
-        } = await getSignerContracts();
-
-        stage = "CHECK_WALLET_ADDRESS";
+        const signer = await getWalletSigner();
 
         const signerAddress = await signer.getAddress();
 
-        if (
-            signerAddress.toLowerCase() !==
-            address.toLowerCase()
-        ) {
-            throw new Error(
-                "Signer address does not match wallet address."
-            );
-        }
-
         stage = "GET_APPKIT_PROVIDER";
 
-        const walletProvider = getWalletProvider();
-
-        if (
-            !walletProvider ||
-            typeof walletProvider.request !== "function"
-        ) {
-            throw new Error(
-                "AppKit wallet provider is unavailable."
-            );
-        }
+        const walletProvider = await getAppKitProvider();
 
         stage = "CHECK_WALLET_NETWORK";
 
-        const walletChainId = await walletProvider.request({
-            method: "eth_chainId"
-        });
+        const walletChainId = await requestWallet(
+            walletProvider,
+            "eth_chainId"
+        );
 
         const chainId = Number(
             BigInt(walletChainId)
         );
 
-        if (chainId !== CONFIG.chainId) {
+        if (
+            chainId !== Number(CONFIG.chainId)
+        ) {
             throw new Error(
                 "Wallet is not connected to Polygon Mainnet."
+            );
+        }
+
+        stage = "CHECK_WALLET_ACCOUNT";
+
+        const accounts = await requestWallet(
+            walletProvider,
+            "eth_accounts"
+        );
+
+        if (
+            !Array.isArray(accounts) ||
+            accounts.length === 0
+        ) {
+            throw new Error(
+                "No connected wallet account found."
+            );
+        }
+
+        if (
+            accounts[0].toLowerCase() !==
+            signerAddress.toLowerCase()
+        ) {
+            throw new Error(
+                "AppKit account does not match signer address."
             );
         }
 
@@ -443,7 +509,7 @@ export async function approveJJS(amount) {
 
         const currentAllowance =
             await tokenReadContract.allowance(
-                address,
+                signerAddress,
                 CONFIG.stakingAddress
             );
 
@@ -455,7 +521,11 @@ export async function approveJJS(amount) {
             return {
                 approved: true,
                 alreadyApproved: true,
-                allowance: currentAllowance
+                allowance: currentAllowance,
+                formattedAllowance: formatUnits(
+                    currentAllowance,
+                    CONFIG.decimals
+                )
             };
         }
 
@@ -473,38 +543,28 @@ export async function approveJJS(amount) {
 
         stage = "PREPARE_APPROVE";
 
-        const approveMethod = tokenContract.getFunction(
-            "approve"
-        );
-
-        const transactionRequest =
-            await approveMethod.populateTransaction(
-                CONFIG.stakingAddress,
-                parsedAmount
+        const approveData =
+            tokenReadContract.interface.encodeFunctionData(
+                "approve",
+                [
+                    CONFIG.stakingAddress,
+                    parsedAmount
+                ]
             );
 
-        if (
-            !transactionRequest.to ||
-            transactionRequest.to.toLowerCase() !==
-            CONFIG.tokenAddress.toLowerCase()
-        ) {
-            throw new Error(
-                "Approve transaction target is incorrect."
-            );
-        }
-
-        if (!transactionRequest.data) {
-            throw new Error(
-                "Approve transaction data is missing."
-            );
-        }
+        const walletTransaction = {
+            from: signerAddress,
+            to: CONFIG.tokenAddress,
+            data: approveData,
+            value: "0x0"
+        };
 
         console.log(
             "[JJS APPROVE] Transaction prepared:",
             {
-                from: address,
-                to: transactionRequest.to,
-                data: transactionRequest.data,
+                from: signerAddress,
+                to: CONFIG.tokenAddress,
+                spender: CONFIG.stakingAddress,
                 amount: formatUnits(
                     parsedAmount,
                     CONFIG.decimals
@@ -512,18 +572,14 @@ export async function approveJJS(amount) {
             }
         );
 
-        /* =================================
-           PUBLIC RPC GAS ESTIMATION
-        ================================= */
-
         stage = "ESTIMATE_APPROVE_GAS";
 
         const estimatedGas =
             await readProvider.estimateGas({
-                to: transactionRequest.to,
-                data: transactionRequest.data,
-                value: transactionRequest.value ?? 0n,
-                from: address
+                from: signerAddress,
+                to: CONFIG.tokenAddress,
+                data: approveData,
+                value: 0n
             });
 
         if (estimatedGas <= 0n) {
@@ -532,85 +588,22 @@ export async function approveJJS(amount) {
             );
         }
 
-        const gasLimit =
-            estimatedGas * 120n / 100n + 10000n;
-
         console.log(
-            "[JJS APPROVE] Gas estimation:",
-            {
-                estimatedGas: estimatedGas.toString(),
-                gasLimit: gasLimit.toString()
-            }
+            "[JJS APPROVE] Gas pre-check:",
+            estimatedGas.toString()
         );
-
-        /* =================================
-           PUBLIC RPC GAS PRICE
-        ================================= */
-
-        stage = "GET_PUBLIC_GAS_PRICE";
-
-        const feeData = await readProvider.getFeeData();
-
-        const gasPrice = feeData.gasPrice;
-
-        if (!gasPrice || gasPrice <= 0n) {
-            throw new Error(
-                "Public RPC did not return a valid gas price."
-            );
-        }
-
-        /* =================================
-           PUBLIC RPC NONCE
-        ================================= */
-
-        stage = "GET_PUBLIC_NONCE";
-
-        const nonce = await readProvider.getTransactionCount(
-            address,
-            "pending"
-        );
-
-        if (!Number.isSafeInteger(nonce) || nonce < 0) {
-            throw new Error(
-                "Public RPC returned an invalid wallet nonce."
-            );
-        }
-
-        console.log(
-            "[JJS APPROVE] Transaction parameters:",
-            {
-                nonce,
-                gasPrice: gasPrice.toString(),
-                gasLimit: gasLimit.toString()
-            }
-        );
-
-        /* =================================
-           DIRECT APPKIT WALLET REQUEST
-        ================================= */
 
         stage = "SEND_APPROVE_TO_WALLET";
-
-        const walletTransaction = {
-            from: address,
-            to: transactionRequest.to,
-            data: transactionRequest.data,
-            value: toRpcQuantity(
-                transactionRequest.value ?? 0n
-            ),
-            gas: toRpcQuantity(gasLimit),
-            gasPrice: toRpcQuantity(gasPrice),
-            nonce: toRpcQuantity(BigInt(nonce))
-        };
 
         console.log(
             "[JJS APPROVE] Requesting wallet confirmation..."
         );
 
-        const transactionHash = await walletProvider.request({
-            method: "eth_sendTransaction",
-            params: [walletTransaction]
-        });
+        const transactionHash = await requestWallet(
+            walletProvider,
+            "eth_sendTransaction",
+            [walletTransaction]
+        );
 
         if (
             typeof transactionHash !== "string" ||
@@ -626,17 +619,14 @@ export async function approveJJS(amount) {
             transactionHash
         );
 
-        /* =================================
-           WAIT PUBLIC RPC RECEIPT
-        ================================= */
-
         stage = "WAIT_APPROVAL_CONFIRMATION";
 
-        const receipt = await readProvider.waitForTransaction(
-            transactionHash,
-            1,
-            180000
-        );
+        const receipt =
+            await readProvider.waitForTransaction(
+                transactionHash,
+                1,
+                180000
+            );
 
         if (!receipt) {
             throw new Error(
@@ -644,9 +634,23 @@ export async function approveJJS(amount) {
             );
         }
 
-        if (receipt.status !== 1) {
+        if (Number(receipt.status) !== 1) {
             throw new Error(
                 "Approval transaction failed on Polygon."
+            );
+        }
+
+        stage = "VERIFY_ALLOWANCE";
+
+        const updatedAllowance =
+            await tokenReadContract.allowance(
+                signerAddress,
+                CONFIG.stakingAddress
+            );
+
+        if (updatedAllowance < parsedAmount) {
+            throw new Error(
+                "Transaction confirmed, but allowance is still insufficient."
             );
         }
 
@@ -658,27 +662,31 @@ export async function approveJJS(amount) {
         return {
             approved: true,
             alreadyApproved: false,
+
             transactionHash,
+
+            allowance: updatedAllowance,
+
+            formattedAllowance: formatUnits(
+                updatedAllowance,
+                CONFIG.decimals
+            ),
+
             estimatedGas,
-            gasLimit,
-            gasPrice,
-            nonce,
             receipt
         };
 
     } catch (error) {
-        const diagnostic = {
-            stage,
-            timestamp: new Date().toISOString(),
-            tokenAddress: CONFIG.tokenAddress,
-            stakingAddress: CONFIG.stakingAddress,
-            chainId: CONFIG.chainId,
-            error: serializeError(error)
-        };
-
         console.error(
             "[JJS APPROVE DIAGNOSTIC]",
-            diagnostic
+            {
+                stage,
+                timestamp: new Date().toISOString(),
+                tokenAddress: CONFIG.tokenAddress,
+                stakingAddress: CONFIG.stakingAddress,
+                chainId: CONFIG.chainId,
+                error: serializeError(error)
+            }
         );
 
         throw new Error(
@@ -689,6 +697,7 @@ export async function approveJJS(amount) {
         );
     }
 }
+
 
 /* =========================================
    STAKE JJS
@@ -757,7 +766,7 @@ export async function stakeJJS(amount, duration) {
 
     const receipt = await transaction.wait();
 
-    if (!receipt || receipt.status !== 1) {
+    if (!receipt || Number(receipt.status) !== 1) {
         throw new Error(
             "Staking transaction failed."
         );
@@ -774,7 +783,7 @@ export async function stakeJJS(amount, duration) {
                 parsedLog &&
                 parsedLog.name === "Staked" &&
                 parsedLog.args.user.toLowerCase() ===
-                    address.toLowerCase()
+                address.toLowerCase()
             ) {
                 positionId = parsedLog.args.id;
                 break;
@@ -792,6 +801,7 @@ export async function stakeJJS(amount, duration) {
     };
 }
 
+
 /* =========================================
    WITHDRAW PRINCIPAL
 ========================================= */
@@ -804,7 +814,8 @@ export async function withdrawPrincipal(positionId) {
         address
     } = await getSignerContracts();
 
-    const position = await stakingReadContract.positions(id);
+    const position =
+        await stakingReadContract.positions(id);
 
     if (
         position.user.toLowerCase() !==
@@ -836,7 +847,7 @@ export async function withdrawPrincipal(positionId) {
 
     const receipt = await transaction.wait();
 
-    if (!receipt || receipt.status !== 1) {
+    if (!receipt || Number(receipt.status) !== 1) {
         throw new Error(
             "Principal withdrawal failed."
         );
@@ -850,6 +861,7 @@ export async function withdrawPrincipal(positionId) {
     };
 }
 
+
 /* =========================================
    CLAIM REWARD
 ========================================= */
@@ -862,7 +874,8 @@ export async function claimReward(positionId) {
         address
     } = await getSignerContracts();
 
-    const position = await stakingReadContract.positions(id);
+    const position =
+        await stakingReadContract.positions(id);
 
     if (
         position.user.toLowerCase() !==
@@ -890,7 +903,7 @@ export async function claimReward(positionId) {
 
     const receipt = await transaction.wait();
 
-    if (!receipt || receipt.status !== 1) {
+    if (!receipt || Number(receipt.status) !== 1) {
         throw new Error(
             "Reward claim failed."
         );
