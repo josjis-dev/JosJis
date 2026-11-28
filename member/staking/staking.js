@@ -2,7 +2,7 @@
 /**
  * JosJis Staking
  * Main Controller
- * Version: V3
+ * Version: V4
  * Network: Polygon Mainnet
  */
 
@@ -233,8 +233,12 @@ function clearWalletUI() {
 }
 
 /* =========================================
-   INJECTED PROVIDER
+   PROVIDER DISCOVERY
 ========================================= */
+
+/**
+ * Get injected provider as fallback.
+ */
 
 function getInjectedProvider() {
     if (
@@ -246,6 +250,76 @@ function getInjectedProvider() {
     }
 
     return null;
+}
+
+/**
+ * Get provider directly from AppKit.
+ */
+
+async function getAppKitProvider() {
+    if (
+        !modal ||
+        typeof modal.getWalletProvider !== "function"
+    ) {
+        return null;
+    }
+
+    try {
+        const provider = await modal.getWalletProvider();
+
+        if (
+            provider &&
+            typeof provider.request === "function"
+        ) {
+            return provider;
+        }
+
+        return null;
+
+    } catch (error) {
+        console.warn(
+            "Unable to obtain AppKit wallet provider:",
+            error
+        );
+
+        return null;
+    }
+}
+
+/**
+ * Build unique provider candidates.
+ *
+ * Priority:
+ * 1. AppKit provider
+ * 2. Provider supplied by wallet event
+ * 3. Injected window.ethereum
+ */
+
+async function getTransactionProviders(providerCandidate = null) {
+    const appKitProvider = await getAppKitProvider();
+
+    const candidates = [
+        appKitProvider,
+        providerCandidate,
+        getInjectedProvider()
+    ];
+
+    const uniqueProviders = [];
+
+    for (const provider of candidates) {
+        if (
+            !provider ||
+            typeof provider.request !== "function"
+        ) {
+            continue;
+        }
+
+        if (!uniqueProviders.includes(provider)) {
+            uniqueProviders.push(provider);
+        }
+    }
+
+    return uniqueProviders;
 }
 
 /* =========================================
@@ -269,7 +343,11 @@ async function validateTransactionProvider(
             method: "eth_accounts"
         });
 
-        if (!Array.isArray(accounts) || accounts.length === 0) {
+        if (
+            !Array.isArray(accounts) ||
+            accounts.length === 0 ||
+            typeof accounts[0] !== "string"
+        ) {
             return false;
         }
 
@@ -284,7 +362,13 @@ async function validateTransactionProvider(
             method: "eth_chainId"
         });
 
-        return Number.parseInt(chainId, 16) === CONFIG.chainId;
+        const parsedChainId =
+            typeof chainId === "string" &&
+            chainId.toLowerCase().startsWith("0x")
+                ? Number.parseInt(chainId, 16)
+                : Number(chainId);
+
+        return parsedChainId === CONFIG.chainId;
 
     } catch (error) {
         console.warn(
@@ -294,6 +378,33 @@ async function validateTransactionProvider(
 
         return false;
     }
+}
+
+/**
+ * Find the first provider matching
+ * the currently connected AppKit account.
+ */
+
+async function findValidTransactionProvider(
+    providerCandidate,
+    expectedAddress
+) {
+    const providers =
+        await getTransactionProviders(providerCandidate);
+
+    for (const provider of providers) {
+        const valid =
+            await validateTransactionProvider(
+                provider,
+                expectedAddress
+            );
+
+        if (valid) {
+            return provider;
+        }
+    }
+
+    return null;
 }
 
 /* =========================================
@@ -357,7 +468,8 @@ async function syncAppKitWallet(providerCandidate = null) {
     try {
         if (
             !modal ||
-            typeof modal.getAddress !== "function"
+            typeof modal.getAddress !== "function" ||
+            typeof modal.getChainId !== "function"
         ) {
             throw new Error(
                 "AppKit account information is unavailable."
@@ -378,30 +490,33 @@ async function syncAppKitWallet(providerCandidate = null) {
 
         setWalletUI(true, address);
 
-        let provider = providerCandidate;
+        /*
+         * Discover the actual transaction provider.
+         * AppKit provider is checked first.
+         */
 
-        if (!provider) {
-            provider = getInjectedProvider();
-        }
-
-        const providerValid =
-            await validateTransactionProvider(
-                provider,
+        const provider =
+            await findValidTransactionProvider(
+                providerCandidate,
                 address
             );
 
         if (sequence !== walletSyncSequence) return;
 
         if (
-            providerValid &&
+            provider &&
             state.chainId === CONFIG.chainId
         ) {
+            /*
+             * Register provider in Core Transaction Manager.
+             */
+
             setWalletProvider(provider);
 
             /*
-             * Verify that Core can create a signer
-             * for the currently connected AppKit account.
+             * Verify Core signer.
              */
+
             const signer = await getWalletSigner();
             const signerAddress = await signer.getAddress();
 
@@ -442,7 +557,7 @@ async function syncAppKitWallet(providerCandidate = null) {
             } else {
                 setMessage(
                     elements.stakingMessage,
-                    "Wallet connected. Transaction provider is unavailable. You can still view staking data.",
+                    "Wallet connected, but no valid transaction provider was found. Please reconnect your wallet.",
                     "warning"
                 );
             }
@@ -1307,7 +1422,7 @@ function setupEventListeners() {
 
 async function initialize() {
     console.log(
-        "JosJis Staking V3 initializing..."
+        "JosJis Staking V4 initializing..."
     );
 
     setupEventListeners();
@@ -1338,7 +1453,7 @@ async function initialize() {
     }
 
     console.log(
-        "JosJis Staking V3 initialized."
+        "JosJis Staking V4 initialized."
     );
 }
 
