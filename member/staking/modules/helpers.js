@@ -1,13 +1,41 @@
+
 /**
  * JosJis Staking
  * Module: Helpers
  * Version: V1
+ *
+ * PURPOSE:
+ * Provide reusable utility functions for the staking interface.
+ *
+ * RESPONSIBILITIES:
+ * - Format JJS token amounts for display.
+ * - Parse user-entered JJS amounts into token base units.
+ * - Calculate and format staking countdowns.
+ * - Format Unix timestamps as readable dates.
+ * - Shorten wallet addresses and transaction hashes.
+ * - Extract readable error messages.
+ * - Validate basic EVM wallet address syntax.
+ *
+ * ARCHITECTURE:
+ * This module contains general-purpose utilities only.
+ * Web3 providers, wallet connections, contract instances,
+ * and blockchain operations should be handled by JosJis Core.
  */
 
-/* =========================================
-   FORMAT JJS AMOUNT
-========================================= */
+// =========================================
+// FORMAT JJS AMOUNT
+// =========================================
 
+/**
+ * Convert a JJS token amount from base units into a readable string.
+ *
+ * @param {bigint|string|number} value - Token amount in base units.
+ * @param {number} precision - Maximum number of displayed decimal places.
+ * @returns {string} Formatted JJS amount.
+ *
+ * Uses BigInt to avoid floating-point precision loss.
+ * Returns "0" if formatting fails.
+ */
 export function formatJJS(value, precision = 4) {
     try {
         const amount = BigInt(value ?? 0);
@@ -38,10 +66,20 @@ export function formatJJS(value, precision = 4) {
     }
 }
 
-/* =========================================
-   PARSE JJS AMOUNT
-========================================= */
+// =========================================
+// PARSE JJS AMOUNT
+// =========================================
 
+/**
+ * Convert a user-entered JJS amount into its smallest token unit.
+ *
+ * @param {string|number} value - Human-readable JJS amount.
+ * @returns {bigint} Amount converted to 18-decimal base units.
+ * @throws {Error} If the supplied amount has an invalid format.
+ *
+ * Accepts up to 18 decimal places.
+ * Does not use JavaScript floating-point arithmetic for conversion.
+ */
 export function parseJJS(value) {
     if (typeof value !== "string" && typeof value !== "number") {
         throw new Error("Invalid JJS amount.");
@@ -61,10 +99,24 @@ export function parseJJS(value) {
     );
 }
 
-/* =========================================
-   FORMAT COUNTDOWN
-========================================= */
+// =========================================
+// FORMAT COUNTDOWN
+// =========================================
 
+/**
+ * Format the remaining time until a staking position unlocks.
+ *
+ * @param {number|string|bigint} unlockTime - Unlock timestamp in Unix seconds.
+ * @returns {string} Remaining time or "Unlocked".
+ *
+ * Displays available time units:
+ * - Days (d)
+ * - Hours (h)
+ * - Minutes (m)
+ * - Seconds (s)
+ *
+ * Returns "--" if countdown formatting fails.
+ */
 export function formatCountdown(unlockTime) {
     try {
         const unlock = Number(unlockTime);
@@ -101,10 +153,17 @@ export function formatCountdown(unlockTime) {
     }
 }
 
-/* =========================================
-   GET TIME REMAINING
-========================================= */
+// =========================================
+// GET TIME REMAINING
+// =========================================
 
+/**
+ * Calculate the remaining time before a staking position unlocks.
+ *
+ * @param {number|string|bigint} unlockTime - Unlock timestamp in Unix seconds.
+ * @returns {number} Remaining seconds, or zero if already unlocked
+ *                   or the timestamp is invalid.
+ */
 export function getTimeRemaining(unlockTime) {
     const unlock = Number(unlockTime);
     const now = Math.floor(Date.now() / 1000);
@@ -116,10 +175,18 @@ export function getTimeRemaining(unlockTime) {
     return Math.max(0, unlock - now);
 }
 
-/* =========================================
-   FORMAT DATE
-========================================= */
+// =========================================
+// FORMAT DATE
+// =========================================
 
+/**
+ * Convert a Unix timestamp into a readable date and time.
+ *
+ * @param {number|string|bigint} timestamp - Unix timestamp in seconds.
+ * @returns {string} Formatted date and time, or "--" if invalid.
+ *
+ * Uses the en-US locale with the user's local timezone.
+ */
 export function formatDate(timestamp) {
     try {
         const date = new Date(Number(timestamp) * 1000);
@@ -142,10 +209,23 @@ export function formatDate(timestamp) {
     }
 }
 
-/* =========================================
-   SHORTEN WALLET ADDRESS
-========================================= */
+// =========================================
+// SHORTEN WALLET ADDRESS
+// =========================================
 
+/**
+ * Shorten an EVM wallet address for compact interface display.
+ *
+ * @param {string} address - Wallet address.
+ * @param {number} start - Number of hexadecimal characters to retain at the start.
+ * @param {number} end - Number of characters to retain at the end.
+ * @returns {string} Shortened address or fallback value.
+ *
+ * Example:
+ * 0x1234567890abcdef1234567890abcdef12345678
+ * becomes:
+ * 0x123456...5678
+ */
 export function shortenAddress(address, start = 6, end = 4) {
     if (
         typeof address !== "string" ||
@@ -162,10 +242,25 @@ export function shortenAddress(address, start = 6, end = 4) {
     );
 }
 
-/* =========================================
-   GET ERROR MESSAGE
-========================================= */
+// =========================================
+// GET ERROR MESSAGE
+// =========================================
 
+/**
+ * Extract a readable message from common JavaScript and ethers errors.
+ *
+ * @param {Error|object|string|null|undefined} error - Error object or value.
+ * @returns {string} Best available error message.
+ *
+ * Checks common error fields in priority order:
+ * - reason
+ * - shortMessage
+ * - info.error.message
+ * - data.message
+ * - message
+ *
+ * Returns "Unknown error." when no error value is provided.
+ */
 export function getErrorMessage(error) {
     if (!error) {
         return "Unknown error.";
@@ -194,10 +289,20 @@ export function getErrorMessage(error) {
     return String(error);
 }
 
-/* =========================================
-   VALIDATE WALLET ADDRESS
-========================================= */
+// =========================================
+// VALIDATE WALLET ADDRESS
+// =========================================
 
+/**
+ * Check whether a value matches the basic EVM address format.
+ *
+ * @param {string} address - Address to validate.
+ * @returns {boolean} True if the value contains 40 hexadecimal
+ *                    characters after the 0x prefix.
+ *
+ * This performs format validation only.
+ * It does not verify checksum casing or blockchain account existence.
+ */
 export function isValidAddress(address) {
     return (
         typeof address === "string" &&
@@ -205,10 +310,18 @@ export function isValidAddress(address) {
     );
 }
 
-/* =========================================
-   FORMAT TRANSACTION HASH
-========================================= */
+// =========================================
+// FORMAT TRANSACTION HASH
+// =========================================
 
+/**
+ * Shorten a 32-byte transaction hash for interface display.
+ *
+ * @param {string} hash - Transaction hash.
+ * @returns {string} Shortened hash or fallback value.
+ *
+ * Only accepts a hexadecimal hash with the expected 66-character length.
+ */
 export function shortenHash(hash) {
     if (
         typeof hash !== "string" ||
