@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JosJis Staking Diagnostic V11</title>
+    <title>JosJis Staking Diagnostic V12</title>
 
     <style>
         * {
@@ -109,10 +109,10 @@
 <body>
 <div class="container">
 
-    <h2>JosJis Staking Diagnostic V11</h2>
+    <h2>JosJis Staking Diagnostic V12</h2>
 
     <div class="subtitle">
-        Core Transaction Manager V9 · Staking Actions V5 · Polygon Mainnet · Chain ID 137
+        Core Transaction Manager V9 · Staking Actions V6 · Polygon Mainnet · Chain ID 137
     </div>
 
     <div class="panel">
@@ -230,11 +230,20 @@ function print(id, value) {
 }
 
 function errorText(error) {
-    // Preserve detailed V5 diagnostic message.
     return error?.message ||
         error?.shortMessage ||
         error?.reason ||
         String(error);
+}
+
+function extractDiagnosticStage(error) {
+    const message = errorText(error);
+
+    const match = message.match(
+        /JJS diagnostic failed at ([A-Z_]+)/
+    );
+
+    return match ? match[1] : null;
 }
 
 function isAddress(value) {
@@ -262,7 +271,7 @@ function setStatus(message, type = "yellow") {
 async function initialize() {
     $("log").textContent = "";
 
-    log("Starting JosJis Staking Diagnostic V11...");
+    log("Starting JosJis Staking Diagnostic V12...");
     log("Loading shared AppKit configuration...");
 
     try {
@@ -318,26 +327,26 @@ async function initialize() {
 
         log("All required Core functions are available.", "OK");
 
-        log("Loading Staking Actions V5...");
+        log("Loading Staking Actions V6...");
 
         stakingActions = await import(
-            "/josjis/member/staking/modules/staking-actions.js?v=5"
+            "/josjis/member/staking/modules/staking-actions.js?v=6"
         );
 
         if (
             typeof stakingActions.getJJSWalletStatus !== "function"
         ) {
             throw new Error(
-                "getJJSWalletStatus() not found in Staking Actions V5."
+                "getJJSWalletStatus() not found in Staking Actions V6."
             );
         }
 
-        log("Staking Actions V5 loaded.", "OK");
+        log("Staking Actions V6 loaded.", "OK");
 
         print("coreInfo", {
             requiredFunctions: coreFunctions,
             stakingActions: {
-                version: "V5",
+                version: "V6",
                 getJJSWalletStatus:
                     typeof stakingActions.getJJSWalletStatus === "function"
             }
@@ -786,17 +795,27 @@ async function checkJJSWalletStatus() {
             status.formattedAllowance;
 
         result.diagnosticStage =
-            status.diagnosticStage || "NOT PROVIDED";
+            status.diagnosticStage || "COMPLETE";
 
         result.hasBalance = status.hasBalance;
         result.hasAllowance = status.hasAllowance;
+
+        result.tokenCodeValid =
+            status.tokenCodeValid;
+
+        result.stakingCodeValid =
+            status.stakingCodeValid;
+
+        result.network = status.network;
 
         result.success =
             isAddress(result.address) &&
             isAddress(result.tokenAddress) &&
             isAddress(result.stakingAddress) &&
             typeof result.formattedBalance === "string" &&
-            typeof result.formattedAllowance === "string";
+            typeof result.formattedAllowance === "string" &&
+            result.tokenCodeValid === true &&
+            result.stakingCodeValid === true;
 
         if (!result.success) {
             throw new Error(
@@ -831,12 +850,22 @@ async function checkJJSWalletStatus() {
     } catch (error) {
         const detail = errorText(error);
 
+        result.diagnosticStage =
+            extractDiagnosticStage(error);
+
         result.errors.push(detail);
 
         log(
             "JJS wallet status failed: " + detail,
             "ERROR"
         );
+
+        if (result.diagnosticStage) {
+            log(
+                "Failure stage: " + result.diagnosticStage,
+                "ERROR"
+            );
+        }
     }
 
     print("jjsInfo", result);
@@ -869,7 +898,7 @@ async function runDiagnostic() {
     }
 
     log("------------------------------------");
-    log("STARTING COMPLETE DIAGNOSTIC V11");
+    log("STARTING COMPLETE DIAGNOSTIC V12");
     log("------------------------------------");
 
     try {
@@ -900,6 +929,7 @@ async function runDiagnostic() {
 
         let jjsStatus = {
             success: false,
+            diagnosticStage: null,
             errors: [
                 "Wallet connection checks did not pass."
             ]
@@ -989,7 +1019,7 @@ async function runDiagnostic() {
                 `${key}: ${value}`,
                 isBoolean
                     ? (value ? "OK" : "ERROR")
-                    : (value ? "INFO" : "INFO")
+                    : "INFO"
             );
         }
 
@@ -1000,7 +1030,7 @@ async function runDiagnostic() {
 
         if (summary.readOnlyIntegrationPassed) {
             setStatus(
-                "V11 PASSED. Wallet, signer, JJS balance and allowance reads are working.",
+                "V12 PASSED. Wallet, signer, JJS balance and allowance reads are working.",
                 "green"
             );
 
